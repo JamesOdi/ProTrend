@@ -7,14 +7,7 @@ namespace ProTrendAPI.Services
 {
     public class RegistrationService: BaseService
     {
-        private readonly IMongoCollection<Register> _registrationCollection;
-        private readonly IMongoCollection<UserProfile> _userProfileCollection;
-
-        public RegistrationService(IOptions<DBSettings> settings): base(settings)
-        {
-            _registrationCollection = Database.GetCollection<Register>(settings.Value.UserCollection);
-            _userProfileCollection = Database.GetCollection<UserProfile>(settings.Value.UsersProfileCollection);
-        }
+        public RegistrationService(IOptions<DBSettings> settings): base(settings) {}
 
         public async Task<UserProfile> InsertAsync(Register register)
         {
@@ -27,7 +20,7 @@ namespace ProTrendAPI.Services
                 Location = register.Location,
                 RegistrationDate = register.RegistrationDate,
             };
-            await _userProfileCollection.InsertOneAsync(userProfile);
+            await _profileCollection.InsertOneAsync(userProfile);
             return userProfile;
         }
 

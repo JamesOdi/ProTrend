@@ -7,11 +7,8 @@ namespace ProTrendAPI.Services
 {
     public class CategoriesService : BaseService
     {
-        private readonly IMongoCollection<Category> _categoriesCollection;
         public CategoriesService(IOptions<DBSettings> settings): base(settings)
-        {
-            _categoriesCollection = Database.GetCollection<Category>(settings.Value.CategoriesCollection);
-        }
+        {}
 
         public async Task<Category> AddCategoryAsync(string name)
         {
@@ -21,6 +18,7 @@ namespace ProTrendAPI.Services
                 return category;
             }
             category = new Category { Name = name };
+            
             await _categoriesCollection.InsertOneAsync(category);
             return category;
         }
