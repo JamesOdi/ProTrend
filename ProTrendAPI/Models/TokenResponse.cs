@@ -1,11 +1,11 @@
 ﻿using System.Text.Json.Serialization;
 namespace ProTrendAPI.Models
 {
-    public class Response
+    public class TokenResponse
     {
         [JsonPropertyName("status")]
         public string Status { get; set; } = null!;
-        [JsonPropertyName("message")]
-        public string Message { get; set; } = null!;
+        [JsonPropertyName("token")]
+        public string Token { get; set; } = null!;
     }
 }

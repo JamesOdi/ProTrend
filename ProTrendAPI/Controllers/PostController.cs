@@ -67,7 +67,7 @@ namespace ProTrendAPI.Controllers
         public async Task<IActionResult> DeletePost(string id)
         {
             await _uploadService.DeletePostAsync(id);
-            return Ok(new Response { Status = "ok", Message = "Post deleted!" });
+            return Ok(new BasicResponse { Status = "ok", Message = "Post deleted!" });
         }
     }
 }

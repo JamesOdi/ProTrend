@@ -21,13 +21,13 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<Response>> Register(UserDTO request)
+        public async Task<ActionResult<BasicResponse>> Register(UserDTO request)
         {
             var userExists = await GetUserResult(request);
 
             if (userExists != null)
             {
-                return BadRequest(new Response { Status = "error", Message = "User already exists!" });
+                return BadRequest(new BasicResponse { Status = "error", Message = "User already exists!" });
             }
 
             CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
@@ -42,7 +42,7 @@ namespace ProTrendAPI.Controllers
                 Country = request.Country!
             };
             await _dbService.InsertAsync(register);
-            return Ok(new Response { Status = "ok", Message = "Registration successful!" });
+            return Ok(new BasicResponse { Status = "ok", Message = "Registration successful!" });
         }
 
         [HttpPost("login")]
@@ -51,12 +51,11 @@ namespace ProTrendAPI.Controllers
             var result = await GetUserResult(request);
             
             if (result == null)
-                return BadRequest(new Response { Status = "error", Message = "User not found!" });
+                return BadRequest(new BasicResponse { Status = "error", Message = "User not found!" });
             if (!VerifyPasswordHash(result, request.Password, result.PasswordHash, result.PasswordSalt))
-                return BadRequest(new Response { Status = "error", Message = "Wrong email or password!" });
+                return BadRequest(new BasicResponse { Status = "error", Message = "Wrong email or password!" });
 
-            var token = CreateToken(result);
-            return Ok(token);
+            return Ok(new TokenResponse { Status = "ok", Token = CreateToken(result) });
         }
 
         private async Task<Register?> GetUserResult(UserDTO request)
