@@ -18,13 +18,19 @@ namespace ProTrendAPI.Controllers
         [HttpGet("get/{id}")]
         public async Task<ActionResult<UserProfile>> GetProfile(string id)
         {
-            return Ok(await _profileService.GetUserProfileAsync(id));
+            var profile = await _profileService.GetUserProfileAsync(id);
+            if (profile == null)
+                return BadRequest(new BasicResponse { Status = ResponsesTemp.Error, Message = ResponsesTemp.UserNotFound });
+            return Ok(profile);
         }
 
         [HttpPut("update/{id}")]
         public async Task<ActionResult<UserProfile>> UpdateProfile(string id, [FromBody] UserProfile profile)
         {
-            return Ok(await _profileService.UpdateProfile(id, profile));
+            var result = await _profileService.UpdateProfile(id, profile);
+            if (result == null)
+                return BadRequest(new BasicResponse { Status = ResponsesTemp.Error, Message = ResponsesTemp.UserNotFound });
+            return Ok(result);
         }
     }
 }

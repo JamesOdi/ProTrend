@@ -14,8 +14,8 @@ namespace ProTrendAPI.Services
             await _registrationCollection.InsertOneAsync(register);
             var userProfile = new UserProfile
             {
-                Name = register.Name,
-                Email = register.Email,
+                Name = register.Name.ToLower(),
+                Email = register.Email.ToLower(),
                 AccountType = register.AccountType,
                 Country = register.Country,
                 RegistrationDate = register.RegistrationDate,
@@ -28,17 +28,10 @@ namespace ProTrendAPI.Services
 
         public async Task<Register?> FindRegisteredUserAsync(UserDTO register)
         {
-            try
-            {
-                var user = await _registrationCollection.Find(r => r.Email.ToLower() == register.Email.ToLower()).FirstAsync();
-                if (user == null)
-                    return null;
-                return user;
-            } catch (Exception)
-            {
+            var user = await _registrationCollection.Find(r => r.Email == register.Email.ToLower()).FirstOrDefaultAsync();
+            if (user == null)
                 return null;
-            }
-            
+            return user;
         }
     }
 }

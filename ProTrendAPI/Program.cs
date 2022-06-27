@@ -11,6 +11,7 @@ builder.Services.AddSingleton<PostsService>();
 builder.Services.AddSingleton<UserProfileService>();
 builder.Services.AddSingleton<CategoriesService>();
 builder.Services.AddSingleton<SearchService>();
+builder.Services.AddSingleton<TagsService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

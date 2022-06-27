@@ -51,11 +51,6 @@ namespace ProTrendAPI.Services
             return await _profileCollection.Find(Builders<UserProfile>.Filter.Where(profile => profile.Name.ToLower().Contains(name.ToLower()))).ToListAsync();
         }
 
-        //public async Task<List<string>> GetRelatedSearchAsync(string name)
-        //{
-        //    return await _postsCollection;
-        //}
-
         private static string FormatNumber(int number)
         {
             var numberInString = number.ToString();

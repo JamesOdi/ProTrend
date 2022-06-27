@@ -49,9 +49,12 @@ namespace ProTrendAPI.Services
             return await _commentCollection.Find(Builders<Comment>.Filter.Eq<string>(c => c.UploadId, id)).ToListAsync();
         }
 
-        public async Task<Post> GetSinglePostAsync(string id)
+        public async Task<Post?> GetSinglePostAsync(string id)
         {
-            return await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.Id == id && !p.Disabled)).SingleAsync();
+            var post = await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.Id == id && !p.Disabled)).FirstOrDefaultAsync();
+            if (post == null)
+                return null;
+            return post;
         }
         
         public async Task<List<Post>> GetUserPostsAsync(string userId)
@@ -61,14 +64,20 @@ namespace ProTrendAPI.Services
 
         public async Task DeletePostAsync(string postId)
         {
-            var post = await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.Id == postId)).SingleOrDefaultAsync();
-            post.Disabled = true;
+            var post = await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.Id == postId)).FirstOrDefaultAsync();
+            if (post != null)
+                post.Disabled = true;
             return;
         }
 
         public async Task<List<Post>> GetAllPostsAsync()
         {
             return await _postsCollection.Find(Builders<Post>.Filter.Where(p => !p.Disabled)).ToListAsync();
+        }
+
+        public async Task<List<Post>> GetPostsInCategoryAsync(string category)
+        {
+            return await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.Category == category)).ToListAsync();
         }
     }
 }

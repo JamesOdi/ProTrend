@@ -2,6 +2,7 @@
 using MongoDB.Driver;
 using ProTrendAPI.Models;
 using ProTrendAPI.Settings;
+using Tag = ProTrendAPI.Models.Tag;
 
 namespace ProTrendAPI.Services
 {
@@ -14,6 +15,7 @@ namespace ProTrendAPI.Services
         public readonly IMongoCollection<Register> _registrationCollection;
         public readonly IMongoCollection<Like> _likeCollection;
         public readonly IMongoCollection<Comment> _commentCollection;
+        public readonly IMongoCollection<Tag> _tagsCollection;
 
         public BaseService(IOptions<DBSettings> settings)
         {
@@ -26,6 +28,7 @@ namespace ProTrendAPI.Services
             _categoriesCollection = Database.GetCollection<Category>(settings.Value.CategoriesCollection);
             _registrationCollection = Database.GetCollection<Register>(settings.Value.UserCollection);
             _profileCollection = Database.GetCollection<UserProfile>(settings.Value.UsersProfileCollection);
+            _tagsCollection = Database.GetCollection<Tag>(settings.Value.TagsCollection);
         }
     }
 }

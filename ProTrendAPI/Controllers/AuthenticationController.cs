@@ -27,7 +27,7 @@ namespace ProTrendAPI.Controllers
 
             if (userExists != null)
             {
-                return BadRequest(new BasicResponse { Status = "error", Message = "User already exists!" });
+                return BadRequest(new BasicResponse { Status = ResponsesTemp.Error, Message = ResponsesTemp.UserExists });
             }
 
             CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
@@ -42,7 +42,7 @@ namespace ProTrendAPI.Controllers
                 Country = request.Country!
             };
             await _dbService.InsertAsync(register);
-            return Ok(new BasicResponse { Status = "ok", Message = "Registration successful!" });
+            return Ok(new BasicResponse { Status = ResponsesTemp.OK, Message = ResponsesTemp.RegSuc });
         }
 
         [HttpPost("login")]
@@ -51,11 +51,11 @@ namespace ProTrendAPI.Controllers
             var result = await GetUserResult(request);
             
             if (result == null)
-                return BadRequest(new BasicResponse { Status = "error", Message = "User not found!" });
+                return BadRequest(new BasicResponse { Status = ResponsesTemp.Error, Message = ResponsesTemp.UserNotFound });
             if (!VerifyPasswordHash(result, request.Password, result.PasswordHash, result.PasswordSalt))
-                return BadRequest(new BasicResponse { Status = "error", Message = "Wrong email or password!" });
+                return BadRequest(new BasicResponse { Status = ResponsesTemp.Error, Message = ResponsesTemp.WrongEmailPassword });
 
-            return Ok(new TokenResponse { Status = "ok", Token = CreateToken(result) });
+            return Ok(new TokenResponse { Status = ResponsesTemp.OK, Token = CreateToken(result) });
         }
 
         private async Task<Register?> GetUserResult(UserDTO request)
@@ -72,7 +72,7 @@ namespace ProTrendAPI.Controllers
                 new Claim("_id", user.Id),
                 new Claim("phash", user.PasswordHash.ToString()),
                 new Claim("psalt", user.PasswordSalt.ToString()),
-                new Claim(ClaimTypes.Anonymous, user.AccountType),
+                new Claim("acctype", user.AccountType),
                 new Claim("country", user.Country),
                 new Claim("regDate", user.RegistrationDate.ToString())
             };

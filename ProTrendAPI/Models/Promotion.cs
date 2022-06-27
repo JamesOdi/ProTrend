@@ -6,7 +6,7 @@ namespace ProTrendAPI.Models
 {
     public class Promotion
     {
-        [BsonId()]
+        [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; } = string.Empty;
         [JsonPropertyName("start")]

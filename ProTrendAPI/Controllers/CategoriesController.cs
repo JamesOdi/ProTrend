@@ -17,7 +17,10 @@ namespace ProTrendAPI.Controllers
         [HttpGet("get/{name}/1")]
         public async Task<ActionResult<Category>> GetCategory(string name)
         {
-            return Ok(await _categoriesService.GetSingleCategory(name));
+            var category = await _categoriesService.GetSingleCategory(name);
+            if (category == null)
+                return BadRequest(new BasicResponse { Status = ResponsesTemp.Error, Message = ResponsesTemp.CatNotExist });
+            return Ok(category);
         }
 
         [HttpPost("add")]

@@ -13,5 +13,6 @@
         public string UsersProfileCollection { get; set; } = null!;
         public string ChatsCollection { get; set; } = null!;
         public string CategoriesCollection { get; set; } = null!;
+        public string TagsCollection { get; set; } = null!;
     }
 }

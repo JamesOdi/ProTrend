@@ -37,11 +37,5 @@ namespace ProTrendAPI.Controllers
         {
             return Ok(await _searchService.GetPostsInCategoryAsync(name));
         }
-
-        //[HttpGet("")]
-        //public async Task<ActionResult<List<string>>> GetRelatedSearchAsync(string name)
-        //{
-
-        //}
     }
 }

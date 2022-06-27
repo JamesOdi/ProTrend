@@ -27,15 +27,18 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpGet("get/{id}/post")]
-        public async Task<ActionResult<Post>> GetPost(string postId)
+        public async Task<ActionResult<Post>> GetPost(string id)
         {
-            return Ok(await _uploadService.GetSinglePostAsync(postId));
+            var post = await _uploadService.GetSinglePostAsync(id);
+            if (post == null)
+                return BadRequest(new BasicResponse { Status = ResponsesTemp.Error, Message = ResponsesTemp.PostNotExist });
+            return Ok(post);
         }
 
         [HttpGet("get/{id}/posts")]
-        public async Task<ActionResult<List<Post>>> GetUserPosts(string userId)
+        public async Task<ActionResult<List<Post>>> GetUserPosts(string id)
         {
-            return Ok(await _uploadService.GetUserPostsAsync(userId));
+            return Ok(await _uploadService.GetUserPostsAsync(id));
         }
 
         [HttpGet("get/{id}/likes")]
@@ -48,7 +51,7 @@ namespace ProTrendAPI.Controllers
         public async Task<IActionResult> AddLike(Like like)
         {
             await _uploadService.AddLikeAsync(like);
-            return Ok("Liked successfully!");
+            return Ok(new BasicResponse { Status = ResponsesTemp.OK, Message = ResponsesTemp.LikeOk });
         }
 
         [HttpGet("get/{id}/like/count")]

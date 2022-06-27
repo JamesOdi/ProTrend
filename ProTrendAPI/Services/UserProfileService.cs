@@ -15,9 +15,12 @@ namespace ProTrendAPI.Services
             _profileDeactivated = _configuration.GetSection("AppSettings:AccState").Value;
         }
 
-        public async Task<UserProfile> GetUserProfileAsync(string id)
+        public async Task<UserProfile?> GetUserProfileAsync(string id)
         {
-            return await _profileCollection.Find(Builders<UserProfile>.Filter.Where(profile => profile.Id == id && profile.AccountType != _profileDeactivated)).SingleAsync();
+            var profile = await _profileCollection.Find(profile => profile.Id == id && profile.AccountType != _profileDeactivated).FirstOrDefaultAsync();
+            if (profile == null)
+                return null;
+            return profile;
         }
 
         public async Task<UserProfile?> UpdateProfile(string id, UserProfile profile)

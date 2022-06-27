@@ -7,8 +7,7 @@ namespace ProTrendAPI.Services
 {
     public class CategoriesService : BaseService
     {
-        public CategoriesService(IOptions<DBSettings> settings): base(settings)
-        {}
+        public CategoriesService(IOptions<DBSettings> settings): base(settings) {}
 
         public async Task<Category> AddCategoryAsync(string name)
         {
@@ -17,7 +16,7 @@ namespace ProTrendAPI.Services
             {
                 return category;
             }
-            category = new Category { Name = name };
+            category = new Category { Name = name.ToLower() };
             
             await _categoriesCollection.InsertOneAsync(category);
             return category;
@@ -25,12 +24,15 @@ namespace ProTrendAPI.Services
 
         public async Task<Category?> GetSingleCategory(string name)
         {
-            return await _categoriesCollection.Find(Builders<Category>.Filter.Where(category => category.Name == name)).FirstOrDefaultAsync();
+            var category = await _categoriesCollection.Find(Builders<Category>.Filter.Where(category => category.Name == name.ToLower())).FirstOrDefaultAsync();
+            if (category == null)
+                return null;
+            return category;
         }
 
         public async Task<List<Category>> GetCategoriesAsync(string name)
         {
-            return await _categoriesCollection.Find(Builders<Category>.Filter.Where(category => category.Name.Contains(name))).ToListAsync();
+            return await _categoriesCollection.Find(Builders<Category>.Filter.Where(category => category.Name.Contains(name.ToLower()))).ToListAsync();
         }
     }
 }
