@@ -65,5 +65,10 @@ namespace ProTrendAPI.Services
             post.Disabled = true;
             return;
         }
+
+        public async Task<List<Post>> GetAllPostsAsync()
+        {
+            return await _postsCollection.Find(Builders<Post>.Filter.Where(p => !p.Disabled)).ToListAsync();
+        }
     }
 }

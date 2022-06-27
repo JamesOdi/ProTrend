@@ -14,6 +14,12 @@ namespace ProTrendAPI.Controllers
             _uploadService = service;
         }
 
+        [HttpGet("get/posts")]
+        public async Task<ActionResult<List<Post>>> GetPosts()
+        {
+            return Ok(await _uploadService.GetAllPostsAsync());
+        }
+
         [HttpPost("add/post")]
         public async Task<ActionResult<Post>> AddPost(Post upload)
         {
