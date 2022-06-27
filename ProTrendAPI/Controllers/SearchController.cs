@@ -4,7 +4,7 @@ using ProTrendAPI.Services;
 
 namespace ProTrendAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/search")]
     [ApiController]
     public class SearchController : ControllerBase
     {
@@ -37,5 +37,11 @@ namespace ProTrendAPI.Controllers
         {
             return Ok(await _searchService.GetPostsInCategoryAsync(name));
         }
+
+        //[HttpGet("")]
+        //public async Task<ActionResult<List<string>>> GetRelatedSearchAsync(string name)
+        //{
+
+        //}
     }
 }

@@ -17,8 +17,10 @@ namespace ProTrendAPI.Services
                 Name = register.Name,
                 Email = register.Email,
                 AccountType = register.AccountType,
-                Location = register.Location,
+                Country = register.Country,
                 RegistrationDate = register.RegistrationDate,
+                Phone = register.Phone,
+                Disabled = false
             };
             await _profileCollection.InsertOneAsync(userProfile);
             return userProfile;

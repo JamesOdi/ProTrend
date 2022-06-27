@@ -19,8 +19,10 @@ namespace ProTrendAPI.Models
         public byte[] PasswordSalt { get; set; } = null!;
         [JsonPropertyName("accounttype")]
         public string AccountType { get; set; } = string.Empty;
-        [JsonPropertyName("location")]
-        public string Location { get; set; } = null!;
+        [JsonPropertyName("phone")]
+        public string Phone { get; set; } = string.Empty;
+        [JsonPropertyName("country")]
+        public string Country { get; set; } = null!;
         [JsonPropertyName("registrationdate")]
         public DateTime RegistrationDate { get; set; }
     }

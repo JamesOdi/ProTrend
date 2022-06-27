@@ -5,7 +5,7 @@ using ProTrendAPI.Services;
 
 namespace ProTrendAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/profile")]
     [ApiController]
     public class UserProfileController : ControllerBase
     {

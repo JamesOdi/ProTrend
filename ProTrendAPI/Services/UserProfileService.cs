@@ -29,7 +29,7 @@ namespace ProTrendAPI.Services
             }
 
             user.Name = profile.Name;
-            user.Location = profile.Location;
+            user.Country = profile.Country;
 
             var filter = Builders<UserProfile>.Filter.Eq<string>(id => id.Id, id);
             var updateQueryResult = await _profileCollection.ReplaceOneAsync(filter, user);

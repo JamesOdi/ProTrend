@@ -8,7 +8,7 @@ using ProTrendAPI.Services;
 
 namespace ProTrendAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/authentication")]
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
@@ -35,7 +35,7 @@ namespace ProTrendAPI.Controllers
                 Name = request.Name,
                 RegistrationDate = DateTime.Now,
                 AccountType = request.AccountType,
-                Location = request.Location!
+                Country = request.Country!
             };
             // var token = CreateToken(register);
             return Ok(await _dbService.InsertAsync(register));
@@ -71,14 +71,15 @@ namespace ProTrendAPI.Controllers
                 new Claim("phash", user.PasswordHash.ToString()),
                 new Claim("psalt", user.PasswordSalt.ToString()),
                 new Claim(ClaimTypes.Anonymous, user.AccountType),
-                new Claim("location", user.Location),
+                new Claim("country", user.Country),
                 new Claim("regDate", user.RegistrationDate.ToString())
             };
+
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
             var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddDays(1),
+                expires: DateTime.Now.AddMonths(1),
                 signingCredentials: cred);
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
             return jwt;

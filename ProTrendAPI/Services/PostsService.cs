@@ -51,12 +51,19 @@ namespace ProTrendAPI.Services
 
         public async Task<Post> GetSinglePostAsync(string id)
         {
-            return await _postsCollection.Find(Builders<Post>.Filter.Eq<string>(p => p.Id, id)).SingleAsync();
+            return await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.Id == id && !p.Disabled)).SingleAsync();
         }
         
         public async Task<List<Post>> GetUserPostsAsync(string userId)
         {
-            return await _postsCollection.Find(Builders<Post>.Filter.Eq<string>(p => p.UserId, userId)).ToListAsync();
+            return await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.UserId == userId && !p.Disabled)).ToListAsync();
+        }
+
+        public async Task DeletePostAsync(string postId)
+        {
+            var post = await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.Id == postId)).SingleOrDefaultAsync();
+            post.Disabled = true;
+            return;
         }
     }
 }

@@ -4,7 +4,7 @@ using ProTrendAPI.Services;
 
 namespace ProTrendAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/post")]
     [ApiController]
     public class PostController : ControllerBase
     {
@@ -24,6 +24,12 @@ namespace ProTrendAPI.Controllers
         public async Task<ActionResult<Post>> GetPost(string postId)
         {
             return Ok(await _uploadService.GetSinglePostAsync(postId));
+        }
+
+        [HttpGet("get/{id}/posts")]
+        public async Task<ActionResult<List<Post>>> GetUserPosts(string userId)
+        {
+            return Ok(await _uploadService.GetUserPostsAsync(userId));
         }
 
         [HttpGet("get/{id}/likes")]
@@ -55,6 +61,13 @@ namespace ProTrendAPI.Controllers
         public async Task<ActionResult<List<Comment>>> GetComments(string id)
         {
             return Ok(await _uploadService.GetCommentsAsync(id));
+        }
+
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeletePost(string id)
+        {
+            await _uploadService.DeletePostAsync(id);
+            return Ok("Deletion successful!");
         }
     }
 }

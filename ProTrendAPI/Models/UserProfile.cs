@@ -15,10 +15,13 @@ namespace ProTrendAPI.Models
         public string Email { get; set; } = string.Empty;
         [JsonPropertyName("acctype")]
         public string AccountType { get; set; } = string.Empty;
-        [JsonPropertyName("location")]
-        public string? Location { get; set; } = null;
+        [JsonPropertyName("country")]
+        public string Country { get; set; } = string.Empty;
+        [JsonPropertyName("phone")]
+        public string? Phone { get; set; } = null;
         [JsonPropertyName("regdate")]
         public DateTime RegistrationDate { get; set; }
-
+        [JsonPropertyName("disabled")]
+        public bool Disabled { get; set; } = false;
     }
 }

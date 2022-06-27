@@ -19,5 +19,7 @@ namespace ProTrendAPI.Models
         public string Location { get; set; } = string.Empty;
         [JsonPropertyName("category")]
         public string Category { get; set; } = string.Empty;
+        [JsonPropertyName("disabled")]
+        public bool Disabled { get; set; } = false;
     }
 }
