@@ -4,7 +4,7 @@ using ProTrendAPI.Services;
 
 namespace ProTrendAPI.Controllers
 {
-    [Route("api/post")]
+    [Route("api/[controller]")]
     [ApiController]
     public class PostController : ControllerBase
     {

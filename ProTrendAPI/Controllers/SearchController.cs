@@ -4,7 +4,7 @@ using ProTrendAPI.Services;
 
 namespace ProTrendAPI.Controllers
 {
-    [Route("api/search")]
+    [Route("api/[controller]")]
     [ApiController]
     public class SearchController : ControllerBase
     {

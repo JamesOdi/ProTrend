@@ -8,6 +8,6 @@
         public string Password { get; set; } = string.Empty;
         public string AccountType { get; set; } = string.Empty;
         public string? Country { get; set; } = null;
-        public DateTime? RegistrationDate { get; set; } = null;
+        public DateTime? RegistrationDate { get; set; } = DateTime.Now;
     }
 }

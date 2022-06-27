@@ -8,7 +8,7 @@ using ProTrendAPI.Services;
 
 namespace ProTrendAPI.Controllers
 {
-    [Route("api/authentication")]
+    [Route("api/[controller]")]
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
@@ -24,15 +24,17 @@ namespace ProTrendAPI.Controllers
         public async Task<ActionResult<UserProfile>> Register(UserDTO request)
         {
             var userExists = await GetUserResult(request);
-            if (userExists != null)
-                return BadRequest("User already exists, please login!");
+            if (userExists.Value != null)
+            {
+                return BadRequest(new Response { Status = "Bad request!", Message = "User already exists!" });
+            }
             CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
             var register = new Register
             {
-                Email = request.Email,
+                Email = request.Email.ToLower(),
                 PasswordSalt = passwordSalt,
                 PasswordHash = passwordHash,
-                Name = request.Name,
+                Name = request.Name.ToLower(),
                 RegistrationDate = DateTime.Now,
                 AccountType = request.AccountType,
                 Country = request.Country!
@@ -48,9 +50,9 @@ namespace ProTrendAPI.Controllers
             var loginUser = result.Value;
             
             if (loginUser == null)
-                return BadRequest("User not found!");
+                return BadRequest(new Response { Status = "Bad request!", Message = "User not found!" });
             if (!VerifyPasswordHash(loginUser, request.Password, loginUser.PasswordHash, loginUser.PasswordSalt))
-                return BadRequest("Wrong email or password!");
+                return BadRequest(new Response { Status = "Bad request!", Message = "Wrong email or password!" });
 
             var token = CreateToken(loginUser);
             return Ok(token);

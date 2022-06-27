@@ -31,6 +31,8 @@ namespace ProTrendAPI.Services
             try
             {
                 var user = await _registrationCollection.Find(r => r.Email.ToLower() == register.Email.ToLower()).SingleAsync();
+                if (user == null)
+                    return null;
                 return user;
             } catch (Exception)
             {
