@@ -21,13 +21,15 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<UserProfile>> Register(UserDTO request)
+        public async Task<ActionResult<Response>> Register(UserDTO request)
         {
             var userExists = await GetUserResult(request);
+
             if (userExists != null)
             {
-                return BadRequest(new Response { Status = "Bad request!", Message = "User already exists!" });
+                return BadRequest(new Response { Status = "error", Message = "User already exists!" });
             }
+
             CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
             var register = new Register
             {
@@ -39,19 +41,19 @@ namespace ProTrendAPI.Controllers
                 AccountType = request.AccountType,
                 Country = request.Country!
             };
-            // var token = CreateToken(register);
-            return Ok(await _dbService.InsertAsync(register));
+            await _dbService.InsertAsync(register);
+            return Ok(new Response { Status = "ok", Message = "Registration successful!" });
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(UserDTO request)
+        public async Task<ActionResult<string>> Login(UserDTO request)
         {
             var result = await GetUserResult(request);
             
             if (result == null)
-                return BadRequest(new Response { Status = "Bad request!", Message = "User not found!" });
+                return BadRequest(new Response { Status = "error", Message = "User not found!" });
             if (!VerifyPasswordHash(result, request.Password, result.PasswordHash, result.PasswordSalt))
-                return BadRequest(new Response { Status = "Bad request!", Message = "Wrong email or password!" });
+                return BadRequest(new Response { Status = "error", Message = "Wrong email or password!" });
 
             var token = CreateToken(result);
             return Ok(token);
