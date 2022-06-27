@@ -24,7 +24,7 @@ namespace ProTrendAPI.Controllers
         public async Task<ActionResult<UserProfile>> Register(UserDTO request)
         {
             var userExists = await GetUserResult(request);
-            if (userExists.Value != null)
+            if (userExists != null)
             {
                 return BadRequest(new Response { Status = "Bad request!", Message = "User already exists!" });
             }
@@ -47,20 +47,19 @@ namespace ProTrendAPI.Controllers
         public async Task<IActionResult> Login(UserDTO request)
         {
             var result = await GetUserResult(request);
-            var loginUser = result.Value;
             
-            if (loginUser == null)
+            if (result == null)
                 return BadRequest(new Response { Status = "Bad request!", Message = "User not found!" });
-            if (!VerifyPasswordHash(loginUser, request.Password, loginUser.PasswordHash, loginUser.PasswordSalt))
+            if (!VerifyPasswordHash(result, request.Password, result.PasswordHash, result.PasswordSalt))
                 return BadRequest(new Response { Status = "Bad request!", Message = "Wrong email or password!" });
 
-            var token = CreateToken(loginUser);
+            var token = CreateToken(result);
             return Ok(token);
         }
 
-        private async Task<ActionResult<Register?>> GetUserResult(UserDTO request)
+        private async Task<Register?> GetUserResult(UserDTO request)
         {
-            return Ok(await _dbService.FindRegisteredUserAsync(request));
+            return await _dbService.FindRegisteredUserAsync(request);
         }
 
         private string CreateToken(Register user)

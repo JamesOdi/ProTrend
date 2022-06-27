@@ -30,7 +30,7 @@ namespace ProTrendAPI.Services
         {
             try
             {
-                var user = await _registrationCollection.Find(r => r.Email.ToLower() == register.Email.ToLower()).SingleAsync();
+                var user = await _registrationCollection.Find(r => r.Email.ToLower() == register.Email.ToLower()).FirstAsync();
                 if (user == null)
                     return null;
                 return user;
@@ -38,6 +38,7 @@ namespace ProTrendAPI.Services
             {
                 return null;
             }
+            
         }
     }
 }
