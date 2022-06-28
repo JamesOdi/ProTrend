@@ -23,10 +23,10 @@ namespace ProTrendAPI.Controllers
             _userService = userService;
         }
 
-        [HttpGet, Authorize]
-        public ActionResult<UserProfile> GetMe()
+        [HttpGet(), Authorize]
+        public ActionResult<DataResponse> GetMe()
         {
-            return Ok(_userService.GetUserProfile());
+            return Ok(new DataResponse { Data = _userService.GetUserProfile() });
         }
 
         [HttpPost("register")]
