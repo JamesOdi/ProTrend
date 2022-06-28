@@ -76,15 +76,18 @@ namespace ProTrendAPI.Controllers
         {
             List<Claim> claims = new()
             {
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.Name),
-                new Claim(ClaimTypes.Role, user.AccountType),
                 new Claim("_id", user.Id),
-                new Claim("phash", user.PasswordHash.ToString()),
-                new Claim("psalt", user.PasswordSalt.ToString()),
+                new Claim("name", user.Name),
+                new Claim("email", user.Email),
+                new Claim("acctype", user.AccountType),
                 new Claim("country", user.Country),
-                new Claim("regDate", user.RegistrationDate.ToString())
             };
+
+            bool disabled = false;
+            if (user.AccountType == "disabled")
+                disabled = true;
+
+            claims.Add(new Claim("disabled", disabled.ToString()));
 
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
             var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
