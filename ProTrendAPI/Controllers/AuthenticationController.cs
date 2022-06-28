@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using ProTrendAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ProTrendAPI.Controllers
 {
@@ -14,10 +15,18 @@ namespace ProTrendAPI.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly RegistrationService _dbService;
-        public AuthenticationController(IConfiguration configuration, RegistrationService dBService)
+        private readonly IUserService _userService;
+        public AuthenticationController(IConfiguration configuration, RegistrationService dBService, IUserService userService)
         {
             _configuration = configuration;
             _dbService = dBService;
+            _userService = userService;
+        }
+
+        [HttpGet, Authorize]
+        public ActionResult<UserProfile> GetMe()
+        {
+            return Ok(_userService.GetUserProfile());
         }
 
         [HttpPost("register")]
@@ -69,10 +78,10 @@ namespace ProTrendAPI.Controllers
             {
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.Role, user.AccountType),
                 new Claim("_id", user.Id),
                 new Claim("phash", user.PasswordHash.ToString()),
                 new Claim("psalt", user.PasswordSalt.ToString()),
-                new Claim("acctype", user.AccountType),
                 new Claim("country", user.Country),
                 new Claim("regDate", user.RegistrationDate.ToString())
             };

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ProTrendAPI.Models;
 using ProTrendAPI.Services;
@@ -15,7 +16,7 @@ namespace ProTrendAPI.Controllers
             _profileService = profileService;
         }
 
-        [HttpGet("get/{id}")]
+        [HttpGet("get/{id}"), Authorize]
         public async Task<ActionResult<UserProfile>> GetProfile(string id)
         {
             var profile = await _profileService.GetUserProfileAsync(id);
@@ -24,7 +25,7 @@ namespace ProTrendAPI.Controllers
             return Ok(profile);
         }
 
-        [HttpPut("update/{id}")]
+        [HttpPut("update/{id}"), Authorize]
         public async Task<ActionResult<UserProfile>> UpdateProfile(string id, [FromBody] UserProfile profile)
         {
             var result = await _profileService.UpdateProfile(id, profile);
