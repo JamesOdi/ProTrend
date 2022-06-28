@@ -14,11 +14,11 @@ namespace ProTrendAPI.Models
         [JsonPropertyName("caption")]
         public string Caption { get; set; } = string.Empty;
         [JsonPropertyName("uploadurls")]
-        public List<Dictionary<string,string>>? UploadUrls { get; set; } = null;
+        public List<string>? UploadUrls { get; set; } = null;
         [JsonPropertyName("location")]
         public string Location { get; set; } = string.Empty;
         [JsonPropertyName("category")]
-        public string Category { get; set; } = string.Empty;
+        public List<string>? Category { get; set; } = null;
         [JsonPropertyName("disabled")]
         public bool Disabled { get; set; } = false;
     }

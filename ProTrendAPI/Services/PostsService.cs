@@ -8,16 +8,25 @@ namespace ProTrendAPI.Services
     public class PostsService: BaseService
     {
         private readonly CategoriesService _categoryService;
-
-        public PostsService(IOptions<DBSettings> settings): base(settings)
+        public PostsService(IOptions<DBSettings> settings) : base(settings)
         {
             _categoryService = new CategoriesService(settings);
+        }
+        public async Task<List<Post>> GetAllPostsAsync()
+        {
+            return await _postsCollection.Find(Builders<Post>.Filter.Where(p => !p.Disabled)).ToListAsync();
         }
 
         public async Task<Post> AddPostAsync(Post upload)
         {
             await _postsCollection.InsertOneAsync(upload);
-            await _categoryService.AddCategoryAsync(upload.Category);
+            if (upload.Category != null && upload.Category.Count > 0)
+            {
+                foreach (var cat in upload.Category)
+                {
+                    await _categoryService.AddCategoryAsync(cat);
+                }
+            }
             return upload;
         }
 
@@ -62,22 +71,22 @@ namespace ProTrendAPI.Services
             return await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.UserId == userId && !p.Disabled)).ToListAsync();
         }
 
-        public async Task DeletePostAsync(string postId)
+        public async Task<bool> DeletePostAsync(string postId)
         {
-            var post = await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.Id == postId)).FirstOrDefaultAsync();
+            var filter = Builders<Post>.Filter.Eq<string>(p => p.Id, postId);
+            var post = await _postsCollection.Find(filter).FirstOrDefaultAsync();
             if (post != null)
+            {
                 post.Disabled = true;
-            return;
-        }
-
-        public async Task<List<Post>> GetAllPostsAsync()
-        {
-            return await _postsCollection.Find(Builders<Post>.Filter.Where(p => !p.Disabled)).ToListAsync();
+                await _postsCollection.ReplaceOneAsync(filter, post);
+                return true;
+            }
+            return false;
         }
 
         public async Task<List<Post>> GetPostsInCategoryAsync(string category)
         {
-            return await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.Category == category)).ToListAsync();
+            return await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.Category.Contains(category))).ToListAsync();
         }
     }
 }

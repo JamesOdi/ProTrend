@@ -11,6 +11,8 @@ namespace ProTrendAPI.Models
         public string Id { get; set; } = string.Empty;
         [JsonPropertyName("uploadid")]
         public string UploadId { get; set; } = string.Empty;
+        [JsonPropertyName("userid")]
+        public string UserId { get; set; } = string.Empty;
         [JsonPropertyName("comment")]
         public string CommentContent { get; set; } = string.Empty;
     }

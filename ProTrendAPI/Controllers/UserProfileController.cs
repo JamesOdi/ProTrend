@@ -8,6 +8,7 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UserProfileController : ControllerBase
     {
         private readonly UserProfileService _profileService;
@@ -16,21 +17,21 @@ namespace ProTrendAPI.Controllers
             _profileService = profileService;
         }
 
-        [HttpGet("get/{id}"), Authorize]
+        [HttpGet("get/{id}")]
         public async Task<ActionResult<UserProfile>> GetProfile(string id)
         {
             var profile = await _profileService.GetUserProfileAsync(id);
             if (profile == null)
-                return BadRequest(new BasicResponse { Status = ResponsesTemp.Error, Message = ResponsesTemp.UserNotFound });
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
             return Ok(profile);
         }
 
-        [HttpPut("update/{id}"), Authorize]
+        [HttpPut("update/{id}")]
         public async Task<ActionResult<UserProfile>> UpdateProfile(string id, [FromBody] UserProfile profile)
         {
             var result = await _profileService.UpdateProfile(id, profile);
             if (result == null)
-                return BadRequest(new BasicResponse { Status = ResponsesTemp.Error, Message = ResponsesTemp.UserNotFound });
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
             return Ok(result);
         }
     }

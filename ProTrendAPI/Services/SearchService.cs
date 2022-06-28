@@ -43,7 +43,7 @@ namespace ProTrendAPI.Services
 
         public async Task<List<Post>> GetPostsInCategoryAsync(string category)
         {
-            return await _postsCollection.Find(Builders<Post>.Filter.Where(post => post.Category.ToLower() == category.ToLower())).ToListAsync();
+            return await _postsCollection.Find(Builders<Post>.Filter.Where(post => post.Category.Contains(category.ToLower()))).ToListAsync();
         }
 
         public async Task<List<UserProfile>> GetProfilesWithNameAsync(string name)

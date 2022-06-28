@@ -23,7 +23,7 @@ namespace ProTrendAPI.Controllers
             _userService = userService;
         }
 
-        [HttpGet(), Authorize]
+        [HttpGet, Authorize]
         public ActionResult<DataResponse> GetMe()
         {
             return Ok(new DataResponse { Data = _userService.GetUserProfile() });
@@ -36,10 +36,11 @@ namespace ProTrendAPI.Controllers
 
             if (userExists != null)
             {
-                return BadRequest(new BasicResponse { Status = ResponsesTemp.Error, Message = ResponsesTemp.UserExists });
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserExists });
             }
 
             CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
+
             var register = new Register
             {
                 Email = request.Email.ToLower(),
@@ -50,8 +51,9 @@ namespace ProTrendAPI.Controllers
                 AccountType = request.AccountType,
                 Country = request.Country!
             };
+
             await _dbService.InsertAsync(register);
-            return Ok(new BasicResponse { Status = ResponsesTemp.OK, Message = ResponsesTemp.RegSuc });
+            return Ok(new BasicResponse { Status = Constants.OK, Message = Constants.Success });
         }
 
         [HttpPost("login")]
@@ -60,11 +62,11 @@ namespace ProTrendAPI.Controllers
             var result = await GetUserResult(request);
             
             if (result == null)
-                return BadRequest(new BasicResponse { Status = ResponsesTemp.Error, Message = ResponsesTemp.UserNotFound });
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
             if (!VerifyPasswordHash(result, request.Password, result.PasswordHash, result.PasswordSalt))
-                return BadRequest(new BasicResponse { Status = ResponsesTemp.Error, Message = ResponsesTemp.WrongEmailPassword });
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.WrongEmailPassword });
 
-            return Ok(new TokenResponse { Status = ResponsesTemp.OK, Token = CreateToken(result) });
+            return Ok(new TokenResponse { Status = Constants.OK, Token = CreateToken(result) });
         }
 
         private async Task<Register?> GetUserResult(UserDTO request)
@@ -76,18 +78,18 @@ namespace ProTrendAPI.Controllers
         {
             List<Claim> claims = new()
             {
-                new Claim("_id", user.Id),
-                new Claim("name", user.Name),
-                new Claim("email", user.Email),
-                new Claim("acctype", user.AccountType),
-                new Claim("country", user.Country),
+                new Claim(Constants.ID, user.Id),
+                new Claim(Constants.Name, user.Name),
+                new Claim(Constants.Email, user.Email),
+                new Claim(Constants.AccType, user.AccountType),
+                new Claim(Constants.Country, user.Country),
             };
 
             bool disabled = false;
-            if (user.AccountType == "disabled")
+            if (user.AccountType == Constants.Disabled)
                 disabled = true;
 
-            claims.Add(new Claim("disabled", disabled.ToString()));
+            claims.Add(new Claim(Constants.Disabled, disabled.ToString()));
 
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
             var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);

@@ -4,11 +4,13 @@ using ProTrendAPI.Services;
 using MongoDB.Driver;
 using ProTrendAPI.Models;
 using Tag = ProTrendAPI.Models.Tag;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ProTrendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class TagController : ControllerBase
     {
         private readonly TagsService _tagsService;
@@ -22,7 +24,7 @@ namespace ProTrendAPI.Controllers
         {
             var tags = await _tagsService.GetTagsWithNameAsync(name);
             if (tags == null)
-                return BadRequest(new BasicResponse { Status = ResponsesTemp.Error, Message = ResponsesTemp.InvalidTag });
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.InvalidTag });
             return Ok(tags);
         }
 
@@ -30,7 +32,7 @@ namespace ProTrendAPI.Controllers
         public async Task<IActionResult> AddTag(string name)
         {
             await _tagsService.AddTagAsync(name);
-            return Ok(new BasicResponse { Status = ResponsesTemp.OK, Message = ResponsesTemp.ResultOk });
+            return Ok(new BasicResponse { Status = Constants.OK, Message = Constants.Success });
         }
     }
 }

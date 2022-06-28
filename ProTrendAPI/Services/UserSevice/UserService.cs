@@ -16,12 +16,12 @@ namespace ProTrendAPI.Services.UserSevice
             var result = new UserProfile();
             if (_contextAccessor.HttpContext != null)
             {
-                result.Email = _contextAccessor.HttpContext.User.FindFirstValue("email");
-                result.Name = _contextAccessor.HttpContext.User.FindFirstValue("name");
-                result.AccountType = _contextAccessor.HttpContext.User.FindFirstValue("acctype");
-                result.Country = _contextAccessor.HttpContext.User.FindFirstValue("country");
-                result.Id = _contextAccessor.HttpContext.User.FindFirstValue("_id");
-                result.Disabled = bool.Parse(_contextAccessor.HttpContext.User.FindFirstValue("disabled"));
+                result.Email = _contextAccessor.HttpContext.User.FindFirstValue(Constants.Email);
+                result.Name = _contextAccessor.HttpContext.User.FindFirstValue(Constants.Name);
+                result.AccountType = _contextAccessor.HttpContext.User.FindFirstValue(Constants.AccType);
+                result.Country = _contextAccessor.HttpContext.User.FindFirstValue(Constants.Country);
+                result.Id = _contextAccessor.HttpContext.User.FindFirstValue(Constants.ID);
+                result.Disabled = bool.Parse(_contextAccessor.HttpContext.User.FindFirstValue(Constants.Disabled));
             }
             return result;
         }

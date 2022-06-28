@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ProTrendAPI.Models;
 using ProTrendAPI.Services;
 
@@ -6,6 +7,7 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CategoriesController : ControllerBase
     {
         private readonly CategoriesService _categoriesService;
@@ -19,7 +21,7 @@ namespace ProTrendAPI.Controllers
         {
             var category = await _categoriesService.GetSingleCategory(name);
             if (category == null)
-                return BadRequest(new BasicResponse { Status = ResponsesTemp.Error, Message = ResponsesTemp.CatNotExist });
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.CatNotExist });
             return Ok(category);
         }
 
