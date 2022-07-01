@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ProTrendAPI.Models;
 using ProTrendAPI.Services;
 
 namespace ProTrendAPI.Controllers

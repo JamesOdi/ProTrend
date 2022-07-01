@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace ProTrendAPI.Models
+namespace ProTrendAPI.Models.Response
 {
     public class DataResponse
     {

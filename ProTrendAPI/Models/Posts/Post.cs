@@ -2,7 +2,7 @@
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
 
-namespace ProTrendAPI.Models
+namespace ProTrendAPI.Models.Posts
 {
     public class Post
     {
@@ -10,6 +10,7 @@ namespace ProTrendAPI.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; } = string.Empty;
         [JsonPropertyName("userid")]
+        [BsonRepresentation(BsonType.ObjectId)]
         public string UserId { get; set; } = string.Empty;
         [JsonPropertyName("caption")]
         public string Caption { get; set; } = string.Empty;

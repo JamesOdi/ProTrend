@@ -2,7 +2,7 @@
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
 
-namespace ProTrendAPI.Models
+namespace ProTrendAPI.Models.Posts
 {
     public class Promotion
     {

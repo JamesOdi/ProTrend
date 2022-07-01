@@ -1,13 +1,13 @@
 ﻿using Microsoft.Extensions.Options;
-using ProTrendAPI.Models;
 using ProTrendAPI.Settings;
 using MongoDB.Driver;
+using ProTrendAPI.Models.User;
 
 namespace ProTrendAPI.Services
 {
     public class SearchService: BaseService
     {
-        public SearchService(IOptions<DBSettings> options): base(options) {}
+        public SearchService(IOptions<DBSettings> settings) : base(settings) { }
 
         public async Task<List<List<string>>> GetSearchResultAsync(string search)
         {
@@ -46,36 +46,9 @@ namespace ProTrendAPI.Services
             return await _postsCollection.Find(Builders<Post>.Filter.Where(post => post.Category.Contains(category.ToLower()))).ToListAsync();
         }
 
-        public async Task<List<UserProfile>> GetProfilesWithNameAsync(string name)
+        public async Task<List<Profile>> GetProfilesWithNameAsync(string name)
         {
-            return await _profileCollection.Find(Builders<UserProfile>.Filter.Where(profile => profile.Name.ToLower().Contains(name.ToLower()))).ToListAsync();
-        }
-
-        private static string FormatNumber(int number)
-        {
-            var numberInString = number.ToString();
-            if (numberInString.Length < 4)
-                return numberInString;
-            return Result(numberInString);
-        }
-
-        private static string Result(string numberString)
-        {
-            string? returnResult;
-            if (numberString.Length % 3 == 0)
-                returnResult = numberString[..3] + "." + numberString[3].ToString();
-            else
-                returnResult = numberString[..2] + "." + numberString[2].ToString();
-
-            if (numberString.Length == 4 || numberString.Length == 7 || numberString.Length == 10)
-                returnResult = numberString[0].ToString() + "." + numberString[1].ToString();
-
-            if (numberString.Length >= 4 && numberString.Length < 7)
-                return returnResult + "K";
-            else if (numberString.Length >= 7 && numberString.Length < 10)
-                return returnResult + "M";
-            else
-                return returnResult + "B";
+            return await _profileCollection.Find(Builders<Profile>.Filter.Where(profile => profile.Name.ToLower().Contains(name.ToLower()))).ToListAsync();
         }
     }
 }

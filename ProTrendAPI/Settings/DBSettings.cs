@@ -10,9 +10,10 @@
         public string LikesCollection { get; set; } = null!;
         public string PromotionsCollection { get; set; } = null!;
         public string FavoritesColection { get; set; } = null!;
-        public string UsersProfileCollection { get; set; } = null!;
+        public string ProfilesCollection { get; set; } = null!;
         public string ChatsCollection { get; set; } = null!;
         public string CategoriesCollection { get; set; } = null!;
         public string TagsCollection { get; set; } = null!;
+        public string FollowingsCollection { get; set; } = null!;
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ProTrendAPI.Models;
 using ProTrendAPI.Services;
 
 namespace ProTrendAPI.Controllers
@@ -17,7 +16,7 @@ namespace ProTrendAPI.Controllers
         {
             _uploadService = service;
             _userService = userService;
-            currentUserId = _userService.GetUserProfile().Id;
+            currentUserId = _userService.GetUserProfile().Id.ToString();
         }
 
         [HttpGet("get/all")]
@@ -59,7 +58,7 @@ namespace ProTrendAPI.Controllers
         {
             like.UserId = currentUserId;
             await _uploadService.AddLikeAsync(like);
-            return Ok(new BasicResponse { Status = Constants.OK, Message = Constants.Success });
+            return Ok(new BasicResponse { Message = Constants.Success });
         }
 
         [HttpGet("get/{id}/like/count")]
@@ -87,7 +86,7 @@ namespace ProTrendAPI.Controllers
             var delete = await _uploadService.DeletePostAsync(id);
             if (!delete)
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.PDError });
-            return Ok(new BasicResponse { Status = Constants.OK, Message = Constants.Success });
+            return Ok(new BasicResponse { Message = Constants.Success });
         }
     }
 }

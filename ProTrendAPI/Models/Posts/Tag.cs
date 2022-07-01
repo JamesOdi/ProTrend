@@ -1,15 +1,14 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
 
-namespace ProTrendAPI.Models
+namespace ProTrendAPI.Models.Posts
 {
-    public class Category
+    public class Tag
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; } = string.Empty;
-
         [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;
     }

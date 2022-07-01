@@ -1,5 +1,4 @@
-﻿using ProTrendAPI.Models;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using ProTrendAPI.Settings;
 using MongoDB.Driver;
 
@@ -7,7 +6,7 @@ namespace ProTrendAPI.Services
 {
     public class CategoriesService : BaseService
     {
-        public CategoriesService(IOptions<DBSettings> settings): base(settings) {}
+        public CategoriesService(IOptions<DBSettings> settings) : base(settings) { }
 
         public async Task<Category> AddCategoryAsync(string name)
         {

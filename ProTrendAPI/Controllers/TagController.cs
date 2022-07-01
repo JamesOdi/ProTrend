@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ProTrendAPI.Services;
-using MongoDB.Driver;
-using ProTrendAPI.Models;
-using Tag = ProTrendAPI.Models.Tag;
+using Tag = ProTrendAPI.Models.Posts.Tag;
 using Microsoft.AspNetCore.Authorization;
 
 namespace ProTrendAPI.Controllers
@@ -32,7 +29,7 @@ namespace ProTrendAPI.Controllers
         public async Task<IActionResult> AddTag(string name)
         {
             await _tagsService.AddTagAsync(name);
-            return Ok(new BasicResponse { Status = Constants.OK, Message = Constants.Success });
+            return Ok(new BasicResponse { Message = Constants.Success });
         }
     }
 }

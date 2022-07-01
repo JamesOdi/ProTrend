@@ -1,19 +1,21 @@
 ﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using ProTrendAPI.Models;
+using ProTrendAPI.Models.User;
 using ProTrendAPI.Settings;
 
-namespace ProTrendAPI.Services
+namespace ProTrendAPI.Services.UserSevice
 {
-    public class RegistrationService: BaseService
+    public class RegistrationService : BaseService
     {
-        public RegistrationService(IOptions<DBSettings> settings): base(settings) {}
+        public RegistrationService(IOptions<DBSettings> settings) : base(settings) { }
 
-        public async Task<UserProfile> InsertAsync(Register register)
+        public async Task<Profile> InsertAsync(Register register)
         {
             await _registrationCollection.InsertOneAsync(register);
-            var userProfile = new UserProfile
+            var userProfile = new Profile
             {
+                Id = register.Id,
+                Identifier = register.Id,
                 Name = register.Name.ToLower(),
                 Email = register.Email.ToLower(),
                 AccountType = register.AccountType,

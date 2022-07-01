@@ -1,4 +1,6 @@
-﻿using ProTrendAPI.Models;
+﻿using MongoDB.Bson;
+using ProTrendAPI.Models;
+using ProTrendAPI.Models.User;
 using System.Security.Claims;
 
 namespace ProTrendAPI.Services.UserSevice
@@ -11,16 +13,17 @@ namespace ProTrendAPI.Services.UserSevice
             _contextAccessor = httpContextAccessor;
         }
 
-        public UserProfile GetUserProfile()
+        public Profile GetUserProfile()
         {
-            var result = new UserProfile();
+            var result = new Profile();
             if (_contextAccessor.HttpContext != null)
             {
-                result.Email = _contextAccessor.HttpContext.User.FindFirstValue(Constants.Email);
                 result.Name = _contextAccessor.HttpContext.User.FindFirstValue(Constants.Name);
+                result.Identifier = Guid.Parse(_contextAccessor.HttpContext.User.FindFirstValue(Constants.Identifier));
+                result.Email = _contextAccessor.HttpContext.User.FindFirst(Constants.Email).Value;
                 result.AccountType = _contextAccessor.HttpContext.User.FindFirstValue(Constants.AccType);
                 result.Country = _contextAccessor.HttpContext.User.FindFirstValue(Constants.Country);
-                result.Id = _contextAccessor.HttpContext.User.FindFirstValue(Constants.ID);
+                result.Id = Guid.Parse(_contextAccessor.HttpContext.User.FindFirstValue(Constants.ID));
                 result.Disabled = bool.Parse(_contextAccessor.HttpContext.User.FindFirstValue(Constants.Disabled));
             }
             return result;

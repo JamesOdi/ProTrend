@@ -1,4 +1,7 @@
 global using ProTrendAPI.Services.UserSevice;
+global using ProTrendAPI.Models;
+global using ProTrendAPI.Models.Posts;
+global using ProTrendAPI.Models.Response;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using ProTrendAPI.Services;
 using ProTrendAPI.Settings;
@@ -6,22 +9,19 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
-using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.Configure<DBSettings>(builder.Configuration.GetSection("DBConnection"));
-
 builder.Services.AddSingleton<RegistrationService>();
 builder.Services.AddSingleton<PostsService>();
-builder.Services.AddSingleton<UserProfileService>();
+builder.Services.AddSingleton<ProfileService>();
 builder.Services.AddSingleton<CategoriesService>();
 builder.Services.AddSingleton<SearchService>();
 builder.Services.AddSingleton<TagsService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddHttpContextAccessor();
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -43,7 +43,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value)),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection(Constants.TokenLoc).Value)),
         ValidateIssuer = false,
         ValidateAudience = false
     };

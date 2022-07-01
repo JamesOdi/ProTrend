@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using ProTrendAPI.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using ProTrendAPI.Services;
 using Microsoft.AspNetCore.Authorization;
+using ProTrendAPI.Models.User;
 
 namespace ProTrendAPI.Controllers
 {
@@ -14,12 +13,12 @@ namespace ProTrendAPI.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly IConfiguration _configuration;
-        private readonly RegistrationService _dbService;
+        private readonly RegistrationService _regService;
         private readonly IUserService _userService;
-        public AuthenticationController(IConfiguration configuration, RegistrationService dBService, IUserService userService)
+        public AuthenticationController(IConfiguration configuration, RegistrationService regService, IUserService userService)
         {
             _configuration = configuration;
-            _dbService = dBService;
+            _regService = regService;
             _userService = userService;
         }
 
@@ -52,8 +51,8 @@ namespace ProTrendAPI.Controllers
                 Country = request.Country!
             };
 
-            await _dbService.InsertAsync(register);
-            return Ok(new BasicResponse { Status = Constants.OK, Message = Constants.Success });
+            await _regService.InsertAsync(register);
+            return Ok(new BasicResponse { Message = Constants.Success });
         }
 
         [HttpPost("login")]
@@ -65,20 +64,21 @@ namespace ProTrendAPI.Controllers
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
             if (!VerifyPasswordHash(result, request.Password, result.PasswordHash, result.PasswordSalt))
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.WrongEmailPassword });
-
-            return Ok(new TokenResponse { Status = Constants.OK, Token = CreateToken(result) });
+            
+            return Ok(new TokenResponse { Token = CreateToken(result) });
         }
 
         private async Task<Register?> GetUserResult(UserDTO request)
         {
-            return await _dbService.FindRegisteredUserAsync(request);
+            return await _regService.FindRegisteredUserAsync(request);
         }
 
         private string CreateToken(Register user)
         {
             List<Claim> claims = new()
             {
-                new Claim(Constants.ID, user.Id),
+                new Claim(Constants.ID, user.Id.ToString()),
+                new Claim(Constants.Identifier, user.Id.ToString()),
                 new Claim(Constants.Name, user.Name),
                 new Claim(Constants.Email, user.Email),
                 new Claim(Constants.AccType, user.AccountType),
@@ -91,7 +91,7 @@ namespace ProTrendAPI.Controllers
 
             claims.Add(new Claim(Constants.Disabled, disabled.ToString()));
 
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection(Constants.TokenLoc).Value));
             var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
             var token = new JwtSecurityToken(
                 claims: claims,

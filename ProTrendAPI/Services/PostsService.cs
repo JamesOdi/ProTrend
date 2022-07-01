@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using ProTrendAPI.Models;
+using ProTrendAPI.Models.Posts;
 using ProTrendAPI.Settings;
 
 namespace ProTrendAPI.Services
@@ -12,6 +12,7 @@ namespace ProTrendAPI.Services
         {
             _categoryService = new CategoriesService(settings);
         }
+
         public async Task<List<Post>> GetAllPostsAsync()
         {
             return await _postsCollection.Find(Builders<Post>.Filter.Where(p => !p.Disabled)).ToListAsync();

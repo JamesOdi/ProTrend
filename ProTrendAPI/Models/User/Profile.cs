@@ -2,13 +2,13 @@
 using MongoDB.Bson;
 using System.Text.Json.Serialization;
 
-namespace ProTrendAPI.Models
+namespace ProTrendAPI.Models.User
 {
-    public class UserProfile
+    public class Profile
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; } = string.Empty;
+        public Guid Id { get; set; } = Guid.NewGuid();
+        [JsonPropertyName("identifier")]
+        public Guid Identifier { get; set; }
         [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;
         [JsonPropertyName("email")]

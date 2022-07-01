@@ -1,14 +1,13 @@
 ﻿using Microsoft.Extensions.Options;
-using ProTrendAPI.Models;
 using ProTrendAPI.Settings;
 using MongoDB.Driver;
-using Tag = ProTrendAPI.Models.Tag;
+using Tag = ProTrendAPI.Models.Posts.Tag;
 
 namespace ProTrendAPI.Services
 {
     public class TagsService: BaseService
     {
-        public TagsService(IOptions<DBSettings> options): base(options) {}
+        public TagsService(IOptions<DBSettings> settings) : base(settings) { }
 
         public async Task<List<Tag>?> GetTagsWithNameAsync(string name)
         {
