@@ -18,6 +18,7 @@ namespace ProTrendAPI.Services
         public readonly IMongoCollection<Comment> _commentCollection;
         public readonly IMongoCollection<Tag> _tagsCollection;
         public readonly IMongoCollection<Followings> _followingsCollection;
+        public readonly IMongoCollection<Notification> _notificationsCollection;
 
         public BaseService(IOptions<DBSettings> settings)
         {
@@ -32,6 +33,7 @@ namespace ProTrendAPI.Services
             _profileCollection = Database.GetCollection<Profile>(settings.Value.ProfilesCollection);
             _tagsCollection = Database.GetCollection<Tag>(settings.Value.TagsCollection);
             _followingsCollection = Database.GetCollection<Followings>(settings.Value.FollowingsCollection);
+            _notificationsCollection = Database.GetCollection<Notification>(settings.Value.NotificationsCollection);
         }
 
         public static string FormatNumber(int number)

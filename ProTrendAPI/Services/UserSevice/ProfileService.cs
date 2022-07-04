@@ -9,11 +9,6 @@ namespace ProTrendAPI.Services.UserSevice
     {
         public ProfileService(IOptions<DBSettings> settings) : base(settings) {}
 
-        public async Task<Profile?> GetUserProfileByEmailAsync(string email)
-        {
-            return await _profileCollection.Find(Builders<Profile>.Filter.Where(profile => profile.Email == email && profile.Disabled == false)).FirstOrDefaultAsync();
-        }
-
         public async Task<Profile?> GetUserProfileByIdAsync(Guid id)
         {
             return await _profileCollection.Find(Builders<Profile>.Filter.Where(profile => profile.Identifier == id)).FirstOrDefaultAsync();
@@ -37,18 +32,27 @@ namespace ProTrendAPI.Services.UserSevice
             return user;
         }
 
-        public async Task<object> Follow(Guid id, Guid receiver)
+        public async Task<object> Follow(Profile profile, Guid receiver)
         {
-            var user = await GetUserProfileByIdAsync(id);
-            if (user != null)
+            if (profile != null)
             {
-                var follow = await _followingsCollection.Find(follow => follow.SenderId == user.Identifier && follow.ReceiverId == receiver).FirstOrDefaultAsync();
+                var follow = await _followingsCollection.Find(follow => follow.SenderId == profile.Identifier && follow.ReceiverId == receiver).FirstOrDefaultAsync();
                 if (follow != null)
                     return Constants.ErrorFollowing;
-                await _followingsCollection.InsertOneAsync(new Followings { SenderId = user.Identifier, ReceiverId = receiver });
+                await _followingsCollection.InsertOneAsync(new Followings { SenderId = profile.Identifier, ReceiverId = receiver });
                 return new BasicResponse { Status = Constants.OK, Message = Constants.Success };
             }
             return new BasicResponse { Status = Constants.Error, Message = Constants.ErrorFollowing};
+        }
+
+        public async Task<BasicResponse> UnFollow(Profile profile, Guid receiver)
+        {
+            if (profile != null)
+            {
+                await _followingsCollection.DeleteOneAsync(Builders<Followings>.Filter.Where(f => f.SenderId == profile.Identifier && f.ReceiverId == receiver));
+                return new BasicResponse { Status = Constants.OK, Message = Constants.Success };
+            }
+            return new BasicResponse { Status = Constants.Error, Message = Constants.ErrorUnFollowing };
         }
 
         public async Task<List<Profile>> GetFollowersAsync(Guid id)

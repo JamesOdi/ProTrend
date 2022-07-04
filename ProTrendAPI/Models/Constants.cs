@@ -21,5 +21,10 @@
         public const string PDError = "Error deleting post!";
         public const string TokenLoc = "AppSettings:Token";
         public const string ErrorFollowing = "Error Following!";
+        public const string ErrorUnFollowing = "Error UnFollowing!";
+        public const string SentMessage = " sent you a message";
+        public const string StartedFollowing = " started following you";
+        public const string Commented = " commented on your post";
+        public const string Liked = " liked your post";
     }
 }

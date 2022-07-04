@@ -6,12 +6,11 @@ namespace ProTrendAPI.Models.Posts
 {
     public class Post
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; } = string.Empty;
+        public Guid Id { get; set; } = Guid.NewGuid();
+        [JsonPropertyName("identifier")]
+        public Guid Identifier { get; set; }
         [JsonPropertyName("userid")]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string UserId { get; set; } = string.Empty;
+        public Guid UserId { get; set; }
         [JsonPropertyName("caption")]
         public string Caption { get; set; } = string.Empty;
         [JsonPropertyName("uploadurls")]
@@ -22,5 +21,7 @@ namespace ProTrendAPI.Models.Posts
         public List<string>? Category { get; set; } = null;
         [JsonPropertyName("disabled")]
         public bool Disabled { get; set; } = false;
+        [JsonPropertyName("time")]
+        public DateTime Time { get; set; } = DateTime.Now;
     }
 }

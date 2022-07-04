@@ -6,14 +6,12 @@ namespace ProTrendAPI.Models.Posts
 {
     public class Saved
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; } = string.Empty;
+        public Guid Id { get; set; }
         [JsonPropertyName("userid")]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string UserId { get; set; } = string.Empty;
+        public Guid UserId { get; set; }
         [JsonPropertyName("postid")]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string PostId { get; set; } = string.Empty;
+        public Guid PostId { get; set; }
+        [JsonPropertyName("time")]
+        public DateTime Time { get; set; } = DateTime.Now;
     }
 }

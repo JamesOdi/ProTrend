@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProTrendAPI.Models.User;
+using ProTrendAPI.Services;
 
 namespace ProTrendAPI.Controllers
 {
@@ -10,21 +11,13 @@ namespace ProTrendAPI.Controllers
     public class ProfileController : ControllerBase
     {
         private readonly ProfileService _profileService;
-        private Profile? user;
         private readonly IUserService _userService;
-        public ProfileController(ProfileService profileService, IUserService userService)
+        private readonly NotificationService _notificationService;
+        public ProfileController(ProfileService profileService, NotificationService notificationService, IUserService userService)
         {
             _userService = userService;
             _profileService = profileService;
-        }
-
-        [HttpGet("get/email/{email}")]
-        public async Task<ActionResult<Profile?>> GetProfileByEmail(string email)
-        {
-            var profile = await _profileService.GetUserProfileByEmailAsync(email.ToLower());
-            if (profile == null)
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
-            return Ok(profile);
+            _notificationService = notificationService;
         }
 
         [HttpGet("get/id/{id}")]
@@ -48,8 +41,16 @@ namespace ProTrendAPI.Controllers
         [HttpPost("follow/{id}")]
         public async Task<ActionResult<object>> Follow(Guid id)
         {
-            user = _userService.GetUserProfile();
-            return Ok(await _profileService.Follow(user.Identifier, id));
+            var profile = _userService.GetProfile();
+            var follow = await _profileService.Follow(profile, id);
+            await _notificationService.FollowNotification(profile,id);
+            return Ok(follow);
+        }
+
+        [HttpDelete("unfollow/{id}")]
+        public async Task<ActionResult<BasicResponse>> UnFollow(Guid id)
+        {
+            return Ok(await _profileService.UnFollow(_userService.GetProfile(), id));
         }
 
         [HttpGet("get/followers/{id}")]

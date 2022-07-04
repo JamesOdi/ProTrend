@@ -15,5 +15,6 @@
         public string CategoriesCollection { get; set; } = null!;
         public string TagsCollection { get; set; } = null!;
         public string FollowingsCollection { get; set; } = null!;
+        public string NotificationsCollection { get; set; } = null!;
     }
 }

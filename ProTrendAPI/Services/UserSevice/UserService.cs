@@ -13,7 +13,7 @@ namespace ProTrendAPI.Services.UserSevice
             _contextAccessor = httpContextAccessor;
         }
 
-        public Profile GetUserProfile()
+        public Profile GetProfile()
         {
             var result = new Profile();
             if (_contextAccessor.HttpContext != null)

@@ -6,14 +6,12 @@ namespace ProTrendAPI.Models.Posts
 {
     public class Like
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; } = string.Empty;
-        [JsonPropertyName("userid")]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string UserId { get; set; } = string.Empty;
+        public Guid Id { get; set; } = Guid.NewGuid();
+        [JsonPropertyName("senderid")]
+        public Guid SenderId { get; set; }
         [JsonPropertyName("uploadid")]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string UploadId { get; set; } = string.Empty;
+        public Guid UploadId { get; set; }
+        [JsonPropertyName("time")]
+        public DateTime Time { get; set; } = DateTime.Now;
     }
 }

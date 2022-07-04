@@ -25,7 +25,7 @@ namespace ProTrendAPI.Controllers
         [HttpGet, Authorize]
         public ActionResult<DataResponse> GetMe()
         {
-            return Ok(new DataResponse { Data = _userService.GetUserProfile() });
+            return Ok(new DataResponse { Data = _userService.GetProfile() });
         }
 
         [HttpPost("register")]

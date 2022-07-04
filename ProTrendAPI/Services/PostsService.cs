@@ -20,6 +20,7 @@ namespace ProTrendAPI.Services
 
         public async Task<Post> AddPostAsync(Post upload)
         {
+            upload.Identifier = upload.Id;
             await _postsCollection.InsertOneAsync(upload);
             if (upload.Category != null && upload.Category.Count > 0)
             {
@@ -31,9 +32,9 @@ namespace ProTrendAPI.Services
             return upload;
         }
 
-        public async Task<List<Like>> GetPostLikesAsync(string id)
+        public async Task<List<Like>> GetPostLikesAsync(Guid id)
         {
-            return await _likeCollection.Find(Builders<Like>.Filter.Eq<string>(l => l.UploadId, id)).ToListAsync();
+            return await _likeCollection.Find(Builders<Like>.Filter.Eq<Guid>(l => l.UploadId, id)).ToListAsync();
         }
 
         public async Task AddLikeAsync(Like like)
@@ -42,7 +43,7 @@ namespace ProTrendAPI.Services
             return;
         }
 
-        public async Task<int> GetLikesCountAsync(string id)
+        public async Task<int> GetLikesCountAsync(Guid id)
         {
             var likes = await GetPostLikesAsync(id);
             return likes.Count;
@@ -54,12 +55,12 @@ namespace ProTrendAPI.Services
             return comment;
         }
 
-        public async Task<List<Comment>> GetCommentsAsync(string id)
+        public async Task<List<Comment>> GetCommentsAsync(Guid id)
         {
-            return await _commentCollection.Find(Builders<Comment>.Filter.Eq<string>(c => c.UploadId, id)).ToListAsync();
+            return await _commentCollection.Find(Builders<Comment>.Filter.Eq<Guid>(c => c.PostId, id)).ToListAsync();
         }
 
-        public async Task<Post?> GetSinglePostAsync(string id)
+        public async Task<Post?> GetSinglePostAsync(Guid id)
         {
             var post = await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.Id == id && !p.Disabled)).FirstOrDefaultAsync();
             if (post == null)
@@ -67,14 +68,14 @@ namespace ProTrendAPI.Services
             return post;
         }
         
-        public async Task<List<Post>> GetUserPostsAsync(string userId)
+        public async Task<List<Post>> GetUserPostsAsync(Guid userId)
         {
-            return await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.UserId == userId && !p.Disabled)).ToListAsync();
+            return await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.UserId == userId && !p.Disabled)).SortBy(p => p.Time).ToListAsync();
         }
 
-        public async Task<bool> DeletePostAsync(string postId)
+        public async Task<bool> DeletePostAsync(Guid postId)
         {
-            var filter = Builders<Post>.Filter.Eq<string>(p => p.Id, postId);
+            var filter = Builders<Post>.Filter.Eq<Guid>(p => p.Id, postId);
             var post = await _postsCollection.Find(filter).FirstOrDefaultAsync();
             if (post != null)
             {

@@ -6,16 +6,16 @@ namespace ProTrendAPI.Models.Posts
 {
     public class Comment
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; } = string.Empty;
+        public Guid Id { get; set; } = Guid.NewGuid();
+        [JsonPropertyName("identifier")]
+        public Guid Identifier { get; set; }
         [JsonPropertyName("uploadid")]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string UploadId { get; set; } = string.Empty;
+        public Guid PostId { get; set; }
         [JsonPropertyName("userid")]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string UserId { get; set; } = string.Empty;
+        public Guid UserId { get; set; }
         [JsonPropertyName("comment")]
         public string CommentContent { get; set; } = string.Empty;
+        [JsonPropertyName("time")]
+        public DateTime Time { get; set; } = DateTime.Now;
     }
 }

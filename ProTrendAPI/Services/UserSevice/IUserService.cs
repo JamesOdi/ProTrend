@@ -4,6 +4,6 @@ namespace ProTrendAPI.Services.UserSevice
 {
     public interface IUserService
     {
-        Profile GetUserProfile();
+        Profile GetProfile();
     }
 }

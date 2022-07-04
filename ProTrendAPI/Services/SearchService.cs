@@ -11,19 +11,19 @@ namespace ProTrendAPI.Services
 
         public async Task<List<List<string>>> GetSearchResultAsync(string search)
         {
-            var posts = await GetPostsWithNameAsync(search);
+            var posts = await SearchPostsByNameAsync(search);
             string? postsCount;
             if (posts == null)
                 postsCount = "0";
             else
                 postsCount = FormatNumber(posts.Count);
-            var people = await GetProfilesWithNameAsync(search);
+            var people = await SearchProfilesByNameAsync(search);
             string? peopleCount;
             if (people == null)
                 peopleCount = "0";
             else
                 peopleCount = FormatNumber(people.Count);
-            var category = await GetPostsInCategoryAsync(search);
+            var category = await SearchPostsByCategoryAsync(search);
             string? categoryCount;
             if (category == null)
                 categoryCount = "0";
@@ -36,19 +36,24 @@ namespace ProTrendAPI.Services
             return new List<List<string>> { postsFormat, peopleFormat, categoryFormat };
         }
 
-        public async Task<List<Post>> GetPostsWithNameAsync(string name)
+        public async Task<List<Post>> SearchPostsByNameAsync(string name)
         {
             return await _postsCollection.Find(Builders<Post>.Filter.Where(post => post.Caption.ToLower().Contains(name.ToLower()))).ToListAsync();
         }
 
-        public async Task<List<Post>> GetPostsInCategoryAsync(string category)
+        public async Task<List<Post>> SearchPostsByCategoryAsync(string category)
         {
             return await _postsCollection.Find(Builders<Post>.Filter.Where(post => post.Category.Contains(category.ToLower()))).ToListAsync();
         }
 
-        public async Task<List<Profile>> GetProfilesWithNameAsync(string name)
+        public async Task<List<Profile>> SearchProfilesByNameAsync(string name)
         {
-            return await _profileCollection.Find(Builders<Profile>.Filter.Where(profile => profile.Name.ToLower().Contains(name.ToLower()))).ToListAsync();
+            return await _profileCollection.Find(Builders<Profile>.Filter.Where(profile => profile.Name.Contains(name.ToLower()) && profile.Disabled == false)).ToListAsync();
+        }
+
+        public async Task<List<Profile>> SearchProfilesByEmailAsync(string email)
+        {
+            return await _profileCollection.Find(Builders<Profile>.Filter.Where(profile => profile.Email.Contains(email.ToLower()) && profile.Disabled == false)).ToListAsync();
         }
     }
 }

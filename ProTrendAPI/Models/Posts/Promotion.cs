@@ -11,8 +11,8 @@ namespace ProTrendAPI.Models.Posts
         public string Id { get; set; } = string.Empty;
         [JsonPropertyName("start")]
         public DateTime Start { get; set; }
-        [JsonPropertyName("expires")]
-        public DateTime Expires { get; set; }
+        [JsonPropertyName("expire")]
+        public DateTime Expire { get; set; }
         [JsonPropertyName("status")]
         public string PromotionStatus { get; set; } = string.Empty;
         [JsonPropertyName("currency")]
