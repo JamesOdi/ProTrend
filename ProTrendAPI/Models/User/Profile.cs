@@ -1,6 +1,4 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace ProTrendAPI.Models.User
 {
@@ -15,6 +13,8 @@ namespace ProTrendAPI.Models.User
         public string Email { get; set; } = string.Empty;
         [JsonPropertyName("acctype")]
         public string AccountType { get; set; } = string.Empty;
+        [JsonPropertyName("bgimg")]
+        public string BackgroundImageUrl { get; set; } = string.Empty;
         [JsonPropertyName("country")]
         public string Country { get; set; } = string.Empty;
         [JsonPropertyName("phone")]

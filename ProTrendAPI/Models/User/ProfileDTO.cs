@@ -1,6 +1,6 @@
 ﻿namespace ProTrendAPI.Models.User
 {
-    public class UserDTO
+    public class ProfileDTO
     {
         public string Name { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;

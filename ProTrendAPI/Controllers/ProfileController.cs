@@ -23,7 +23,7 @@ namespace ProTrendAPI.Controllers
         [HttpGet("get/id/{id}")]
         public async Task<IActionResult> GetProfileById(Guid id)
         {
-            var profile = await _profileService.GetUserProfileByIdAsync(id);
+            var profile = await _profileService.GetProfileByIdAsync(id);
             if (profile == null)
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
             return Ok(profile);

@@ -9,7 +9,7 @@ namespace ProTrendAPI.Services
     {
         public SearchService(IOptions<DBSettings> settings) : base(settings) { }
 
-        public async Task<List<List<string>>> GetSearchResultAsync(string search)
+        public async Task<object> GetSearchResultAsync(string search)
         {
             var posts = await SearchPostsByNameAsync(search);
             string? postsCount;
@@ -29,11 +29,8 @@ namespace ProTrendAPI.Services
                 categoryCount = "0";
             else
                 categoryCount = FormatNumber(category.Count);
-            var postsFormat = new List<string> { postsCount , "Posts" };
-            var peopleFormat = new List<string> { peopleCount, "People" };
-            var categoryFormat = new List<string> { categoryCount, "Category" };
 
-            return new List<List<string>> { postsFormat, peopleFormat, categoryFormat };
+            return new DataResponse { Status = Constants.OK, Data = new List<List<string>> { SearchCountResult(postsCount, "Posts"), SearchCountResult(peopleCount, "People"), SearchCountResult(categoryCount, "Category") } };
         }
 
         public async Task<List<Post>> SearchPostsByNameAsync(string name)
@@ -54,6 +51,11 @@ namespace ProTrendAPI.Services
         public async Task<List<Profile>> SearchProfilesByEmailAsync(string email)
         {
             return await _profileCollection.Find(Builders<Profile>.Filter.Where(profile => profile.Email.Contains(email.ToLower()) && profile.Disabled == false)).ToListAsync();
+        }
+
+        private static List<string> SearchCountResult(string count, string category)
+        {
+            return new List<string> { count, category };
         }
     }
 }

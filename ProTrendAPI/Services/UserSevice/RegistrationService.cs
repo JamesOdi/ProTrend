@@ -28,7 +28,7 @@ namespace ProTrendAPI.Services.UserSevice
             return userProfile;
         }
 
-        public async Task<Register?> FindRegisteredUserAsync(UserDTO register)
+        public async Task<Register?> FindRegisteredUserAsync(ProfileDTO register)
         {
             var user = await _registrationCollection.Find(r => r.Email == register.Email.ToLower()).FirstOrDefaultAsync();
             if (user == null)

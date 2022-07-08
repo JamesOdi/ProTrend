@@ -9,14 +9,14 @@ namespace ProTrendAPI.Services.UserSevice
     {
         public ProfileService(IOptions<DBSettings> settings) : base(settings) {}
 
-        public async Task<Profile?> GetUserProfileByIdAsync(Guid id)
+        public async Task<Profile?> GetProfileByIdAsync(Guid id)
         {
-            return await _profileCollection.Find(Builders<Profile>.Filter.Where(profile => profile.Identifier == id)).FirstOrDefaultAsync();
+            return await _profileCollection.Find(Builders<Profile>.Filter.Where(profile => profile.Identifier == id && !profile.Disabled)).FirstOrDefaultAsync();
         }
 
         public async Task<Profile?> UpdateProfile(Guid id, Profile profile)
         {
-            var user = await GetUserProfileByIdAsync(id);
+            var user = await GetProfileByIdAsync(id);
             if (user == null)
             {
                 return null;
@@ -24,6 +24,7 @@ namespace ProTrendAPI.Services.UserSevice
 
             user.Name = profile.Name;
             user.Country = profile.Country;
+            user.BackgroundImageUrl = profile.BackgroundImageUrl;
 
             var filter = Builders<Profile>.Filter.Eq(p => p.Identifier, id);
             var updateQueryResult = await _profileCollection.ReplaceOneAsync(filter, user);
@@ -36,7 +37,7 @@ namespace ProTrendAPI.Services.UserSevice
         {
             if (profile != null)
             {
-                var follow = await _followingsCollection.Find(follow => follow.SenderId == profile.Identifier && follow.ReceiverId == receiver).FirstOrDefaultAsync();
+                var follow = await _followingsCollection.Find(follow => follow.SenderId == profile.Identifier && follow.ReceiverId == receiver && !profile.Disabled).FirstOrDefaultAsync();
                 if (follow != null)
                     return Constants.ErrorFollowing;
                 await _followingsCollection.InsertOneAsync(new Followings { SenderId = profile.Identifier, ReceiverId = receiver });
@@ -49,7 +50,7 @@ namespace ProTrendAPI.Services.UserSevice
         {
             if (profile != null)
             {
-                await _followingsCollection.DeleteOneAsync(Builders<Followings>.Filter.Where(f => f.SenderId == profile.Identifier && f.ReceiverId == receiver));
+                await _followingsCollection.DeleteOneAsync(Builders<Followings>.Filter.Where(f => f.SenderId == profile.Identifier && f.ReceiverId == receiver && !profile.Disabled));
                 return new BasicResponse { Status = Constants.OK, Message = Constants.Success };
             }
             return new BasicResponse { Status = Constants.Error, Message = Constants.ErrorUnFollowing };
@@ -62,7 +63,7 @@ namespace ProTrendAPI.Services.UserSevice
             var followerProfiles = new List<Profile>();
             foreach (var follower in followers)
             {
-                var profile = await GetUserProfileByIdAsync(follower.SenderId);
+                var profile = await GetProfileByIdAsync(follower.SenderId);
                 if (profile != null)
                     followerProfiles.Add(profile);
             }
@@ -75,7 +76,7 @@ namespace ProTrendAPI.Services.UserSevice
             var followingProfiles = new List<Profile>();
             foreach (var following in followings)
             {
-                var profile = await GetUserProfileByIdAsync(following.ReceiverId);
+                var profile = await GetProfileByIdAsync(following.ReceiverId);
                 if (profile != null)
                 {
                     followingProfiles.Add(profile);

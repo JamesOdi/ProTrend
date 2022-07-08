@@ -26,5 +26,9 @@
         public const string StartedFollowing = " started following you";
         public const string Commented = " commented on your post";
         public const string Liked = " liked your post";
+        public const string PaymentError = "Payment Error!";
+        public const string InvalidAmount = "Invalid amount selected";
+        public const string All = "all";
+        public const string InvalidEmail = "Invalid Email";
     }
 }

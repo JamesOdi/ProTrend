@@ -18,7 +18,7 @@ namespace ProTrendAPI.Models.Posts
         [JsonPropertyName("location")]
         public string Location { get; set; } = string.Empty;
         [JsonPropertyName("category")]
-        public List<string>? Category { get; set; } = null;
+        public List<string> Category { get; set; } = new List<string>();
         [JsonPropertyName("disabled")]
         public bool Disabled { get; set; } = false;
         [JsonPropertyName("time")]

@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
 using ProTrendAPI.Models.User;
+using System.Text.RegularExpressions;
 
 namespace ProTrendAPI.Controllers
 {
@@ -29,8 +30,18 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<BasicResponse>> Register(UserDTO request)
+        public async Task<ActionResult<BasicResponse>> Register(ProfileDTO request)
         {
+            if (!IsValidEmail(request.Email))
+            {
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.InvalidEmail });
+            }
+
+            if(request.Name.Contains(' '))
+            {
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "Name cannot contain whitespace" });
+            }
+
             var userExists = await GetUserResult(request);
 
             if (userExists != null)
@@ -42,13 +53,13 @@ namespace ProTrendAPI.Controllers
 
             var register = new Register
             {
-                Email = request.Email.ToLower(),
+                Email = request.Email.Trim().ToLower(),
                 PasswordSalt = passwordSalt,
                 PasswordHash = passwordHash,
-                Name = request.Name.ToLower(),
+                Name = request.Name.Trim().ToLower(),
                 RegistrationDate = DateTime.Now,
-                AccountType = request.AccountType,
-                Country = request.Country!
+                AccountType = request.AccountType.Trim().ToLower(),
+                Country = request.Country!.Trim().ToLower()
             };
 
             await _regService.InsertAsync(register);
@@ -56,19 +67,24 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login(UserDTO request)
+        public async Task<ActionResult<string>> Login(ProfileDTO request)
         {
+            if (!IsValidEmail(request.Email))
+            {
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.InvalidEmail });
+            }
+
             var result = await GetUserResult(request);
             
             if (result == null)
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
-            if (!VerifyPasswordHash(result, request.Password, result.PasswordHash, result.PasswordSalt))
+            if (!VerifyPasswordHash(result, request.Password, result.PasswordHash))
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.WrongEmailPassword });
             
             return Ok(new TokenResponse { Token = CreateToken(result) });
         }
 
-        private async Task<Register?> GetUserResult(UserDTO request)
+        private async Task<Register?> GetUserResult(ProfileDTO request)
         {
             return await _regService.FindRegisteredUserAsync(request);
         }
@@ -108,11 +124,23 @@ namespace ProTrendAPI.Controllers
             passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
         }
 
-        private static bool VerifyPasswordHash(Register user, string password, byte[] passwordHash, byte[] passwordSalt)
+        private static bool VerifyPasswordHash(Register user, string password, byte[] passwordHash)
         {
             using var hmac = new HMACSHA512(user.PasswordSalt);
             var computeHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             return computeHash.SequenceEqual(passwordHash);
+        }
+
+        private static bool IsValidEmail(string email)
+        {
+            try
+            {
+                return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
+            }
+            catch (RegexMatchTimeoutException)
+            {
+                return false;
+            }
         }
     }
 }

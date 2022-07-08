@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using ProTrendAPI.Models.Payments;
 using ProTrendAPI.Models.Posts;
+using ProTrendAPI.Models.User;
 using ProTrendAPI.Settings;
 
 namespace ProTrendAPI.Services
@@ -16,6 +18,35 @@ namespace ProTrendAPI.Services
         public async Task<List<Post>> GetAllPostsAsync()
         {
             return await _postsCollection.Find(Builders<Post>.Filter.Where(p => !p.Disabled)).ToListAsync();
+        }
+
+        public async Task PromoteAsync(Profile profile, Promotion promotion)
+        {
+            promotion.Identifier = promotion.Id;
+            promotion.ProfileId = profile.Identifier;
+            await _promotionCollection.InsertOneAsync(promotion);
+            return;
+        }
+
+        public async Task InsertTransactionAsync(Transaction transaction)
+        {
+            await _transactionCollection.InsertOneAsync(transaction);
+            return;
+        }
+
+        public async Task<Transaction> GetTransactionByRefAsync(string reference)
+        {
+            return await _transactionCollection.Find(Builders<Transaction>.Filter.Eq(t => t.TrxRef, reference)).SingleOrDefaultAsync();
+        }
+
+        public async Task<Transaction?> VerifyTransactionAsync(Transaction transaction)
+        {
+            transaction.Status = true;
+            var filter = Builders<Transaction>.Filter.Eq(t => t.TrxRef, transaction.TrxRef);
+            var update = await _transactionCollection.FindOneAndReplaceAsync(filter, transaction);
+            if (update != null)
+                return transaction;
+            return null;
         }
 
         public async Task<Post> AddPostAsync(Post upload)
@@ -37,6 +68,10 @@ namespace ProTrendAPI.Services
             return await _likeCollection.Find(Builders<Like>.Filter.Eq<Guid>(l => l.UploadId, id)).ToListAsync();
         }
 
+        public async Task<List<Promotion>> GetPromotionsAsync(Profile profile)
+        {
+            return await _promotionCollection.Find(Builders<Promotion>.Filter.Where(p => p.Audience == profile.Country || p.Audience == Constants.All)).ToListAsync();
+        }
         public async Task AddLikeAsync(Like like)
         {
             await _likeCollection.InsertOneAsync(like);

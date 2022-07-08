@@ -17,7 +17,7 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpGet("get/{search}")]
-        public async Task<ActionResult<List<List<string>>>> GetSearchResults(string search)
+        public async Task<ActionResult<object>> GetSearchResults(string search)
         {
             return Ok(await _searchService.GetSearchResultAsync(search));
         }
