@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using ProTrendAPI.Models.Payments;
-using ProTrendAPI.Models.Posts;
-using ProTrendAPI.Models.User;
 using ProTrendAPI.Settings;
 using Tag = ProTrendAPI.Models.Posts.Tag;
 
@@ -22,6 +20,7 @@ namespace ProTrendAPI.Services
         public readonly IMongoCollection<Notification> _notificationsCollection;
         public readonly IMongoCollection<Promotion> _promotionCollection;
         public readonly IMongoCollection<Transaction> _transactionCollection;
+        public readonly IMongoCollection<Favorite> _favoriteCollection;
 
         public BaseService(IOptions<DBSettings> settings)
         {
@@ -39,6 +38,7 @@ namespace ProTrendAPI.Services
             _notificationsCollection = Database.GetCollection<Notification>(settings.Value.NotificationsCollection);
             _promotionCollection = Database.GetCollection<Promotion>(settings.Value.PromotionsCollection);
             _transactionCollection = Database.GetCollection<Transaction>(settings.Value.TransactionsCollection);
+            _favoriteCollection = Database.GetCollection<Favorite>(settings.Value.FavoritesCollection);
         }
 
         public static string FormatNumber(int number)

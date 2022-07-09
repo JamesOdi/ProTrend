@@ -2,6 +2,7 @@ global using ProTrendAPI.Services.UserSevice;
 global using ProTrendAPI.Models;
 global using ProTrendAPI.Models.Posts;
 global using ProTrendAPI.Models.Response;
+global using ProTrendAPI.Models.User;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using ProTrendAPI.Services;
 using ProTrendAPI.Settings;

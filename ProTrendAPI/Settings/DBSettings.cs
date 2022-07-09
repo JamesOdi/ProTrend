@@ -9,7 +9,6 @@
         public string CommentsCollection { get; set; } = null!;
         public string LikesCollection { get; set; } = null!;
         public string PromotionsCollection { get; set; } = null!;
-        public string FavoritesColection { get; set; } = null!;
         public string ProfilesCollection { get; set; } = null!;
         public string ChatsCollection { get; set; } = null!;
         public string CategoriesCollection { get; set; } = null!;
@@ -17,5 +16,6 @@
         public string FollowingsCollection { get; set; } = null!;
         public string NotificationsCollection { get; set; } = null!;
         public string TransactionsCollection { get; set; } = null!;
+        public string FavoritesCollection { get; set; } = null!;
     }
 }

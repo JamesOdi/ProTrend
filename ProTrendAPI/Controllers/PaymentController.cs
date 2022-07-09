@@ -51,6 +51,10 @@ namespace ProTrendAPI.Controllers
             else
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.InvalidAmount });
 
+            var post = await _postsService.GetSinglePostAsync(promotion.PostId);
+            if (post == null)
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.PostNotExist });
+
             TransactionInitializeRequest request = new()
             {
                 AmountInKobo = promotion.Amount * 100,
