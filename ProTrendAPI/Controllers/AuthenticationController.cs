@@ -63,7 +63,7 @@ namespace ProTrendAPI.Controllers
             };
 
             await _regService.InsertAsync(register);
-            return Ok(new TokenResponse { Status = Constants.OK, Token = CreateToken(register) });
+            return Ok(new TokenResponse { Token = CreateToken(register) });
         }
 
         [HttpPost("login")]
