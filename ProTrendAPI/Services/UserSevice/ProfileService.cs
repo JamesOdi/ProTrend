@@ -22,7 +22,7 @@ namespace ProTrendAPI.Services.UserSevice
                 return null;
             }
 
-            user.Name = profile.Name;
+            user.UserName = profile.UserName;
             user.Country = profile.Country;
             user.BackgroundImageUrl = profile.BackgroundImageUrl;
 

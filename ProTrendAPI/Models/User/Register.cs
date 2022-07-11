@@ -7,8 +7,10 @@ namespace ProTrendAPI.Models.User
     public class Register
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        [JsonPropertyName("name")]
-        public string Name { get; set; } = string.Empty;
+        [JsonPropertyName("username")]
+        public string UserName { get; set; } = string.Empty;
+        [JsonPropertyName("fullname")]
+        public string FullName { get; set; } = string.Empty;
         [JsonPropertyName("email")]
         public string Email { get; set; } = string.Empty;
         [JsonPropertyName("phash")]

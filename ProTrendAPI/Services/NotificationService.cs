@@ -2,7 +2,8 @@
 using ProTrendAPI.Models.User;
 using ProTrendAPI.Settings;
 using MongoDB.Driver;
- 
+using ProTrendAPI.Models.Payments;
+
 namespace ProTrendAPI.Services
 {
     public class NotificationService: BaseService
@@ -11,28 +12,35 @@ namespace ProTrendAPI.Services
 
         public async Task ChatNotification(Profile sender, Guid receiverId)
         {
-            var message = sender.Name + Constants.SentMessage;
+            var message = sender.UserName + Constants.SentMessage;
             await _notificationsCollection.InsertOneAsync(Notification(sender.Identifier, receiverId, message));
             return;
         }
 
         public async Task FollowNotification(Profile sender, Guid receiverId)
         {
-            var message = sender.Name + Constants.StartedFollowing;
+            var message = sender.UserName + Constants.StartedFollowing;
             await _notificationsCollection.InsertOneAsync(Notification(sender.Identifier, receiverId, message));
             return;
         }
 
         public async Task LikeNotification(Profile sender, Guid receiverId)
         {
-            var message = sender.Name + Constants.Liked;
+            var message = sender.UserName + Constants.Liked;
             await _notificationsCollection.InsertOneAsync(Notification(sender.Identifier, receiverId, message));
             return;
         }
 
         public async Task CommentNotification(Profile sender, Guid receiverId)
         {
-            var message = sender.Name + Constants.Commented;
+            var message = sender.UserName + Constants.Commented;
+            await _notificationsCollection.InsertOneAsync(Notification(sender.Identifier, receiverId, message));
+            return;
+        }
+
+        public async Task SupportNotification(Profile sender, Guid receiverId)
+        {
+            var message = sender.UserName + Constants.Commented;
             await _notificationsCollection.InsertOneAsync(Notification(sender.Identifier, receiverId, message));
             return;
         }

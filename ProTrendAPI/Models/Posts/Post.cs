@@ -10,7 +10,7 @@ namespace ProTrendAPI.Models.Posts
         [JsonPropertyName("identifier")]
         public Guid Identifier { get; set; }
         [JsonPropertyName("userid")]
-        public Guid UserId { get; set; }
+        public Guid ProfileId { get; set; }
         [JsonPropertyName("caption")]
         public string Caption { get; set; } = string.Empty;
         [JsonPropertyName("uploadurls")]

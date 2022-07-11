@@ -17,5 +17,6 @@
         public string NotificationsCollection { get; set; } = null!;
         public string TransactionsCollection { get; set; } = null!;
         public string FavoritesCollection { get; set; } = null!;
+        public string SupportCollection { get; set; } = null!;
     }
 }

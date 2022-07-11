@@ -16,7 +16,7 @@ namespace ProTrendAPI.Services.UserSevice
             {
                 Id = register.Id,
                 Identifier = register.Id,
-                Name = register.Name.ToLower(),
+                UserName = register.UserName.ToLower(),
                 Email = register.Email.ToLower(),
                 AccountType = register.AccountType,
                 Country = register.Country,
@@ -30,10 +30,7 @@ namespace ProTrendAPI.Services.UserSevice
 
         public async Task<Register?> FindRegisteredUserAsync(ProfileDTO register)
         {
-            var user = await _registrationCollection.Find(r => r.Email == register.Email.ToLower()).FirstOrDefaultAsync();
-            if (user == null)
-                return null;
-            return user;
+            return await _registrationCollection.Find(r => r.Email == register.Email.Trim().ToLower() || r.UserName == register.UserName.Trim().ToLower() && r.AccountType != Constants.Disabled).FirstOrDefaultAsync();            
         }
     }
 }

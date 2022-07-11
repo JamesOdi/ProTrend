@@ -15,13 +15,15 @@ namespace ProTrendAPI.Controllers
         private readonly string token;
         private readonly PostsService _postsService;
         private readonly IUserService _userService;
+        private readonly NotificationService _notificationService;
 
-        public PaymentController(IUserService userService, IConfiguration configuration, PostsService postService)
+        public PaymentController(IUserService userService, IConfiguration configuration, PostsService postService, NotificationService notificationService)
         {
             _postsService = postService;
             _userService = userService;
             token = configuration["Payment:PaystackSK"];
             PayStack = new(token);
+            _notificationService = notificationService;
         }
 
         [HttpPost("promote")]
@@ -70,13 +72,55 @@ namespace ProTrendAPI.Controllers
                 var transaction = new Transaction
                 {
                     Amount = promotion.Amount,
-                    ProfileId = promotion.ProfileId,
+                    ProfileId = profile.Identifier,
                     CreatedAt = DateTime.Now,
                     TrxRef = request.Reference,
                     PromotionId = promotion.Identifier,
                     Status = false
                 };
                 await _postsService.InsertTransactionAsync(transaction);
+                return Ok(new DataResponse { Status = Constants.OK, Data = response.Data.AuthorizationUrl });
+            }
+            // CallbackUrl = response after payment url to go to in request
+            return BadRequest(new BasicResponse { Status = Constants.Error, Message = response.Message });
+        }
+
+        [HttpPost("support")]
+        public async Task<ActionResult<object>> Support(Support support)
+        {
+            var profile = _userService.GetProfile();
+            if (support.Amount < 1000)
+            {
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.InvalidAmount });
+            }                
+
+            var post = await _postsService.GetSinglePostAsync(support.PostId);
+            if (post == null)
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.PostNotExist });
+
+            TransactionInitializeRequest request = new()
+            {
+                AmountInKobo = support.Amount * 100,
+                Email = profile.Email,
+                Reference = Generate().ToString(),
+                Currency = support.Currency.ToUpper().Trim()
+            };
+
+            TransactionInitializeResponse response = PayStack.Transactions.Initialize(request);
+            if (response.Status)
+            {
+                await _postsService.SupportAsync(profile, support);
+                var transaction = new Transaction
+                {
+                    Amount = support.Amount,
+                    ProfileId = profile.Identifier,
+                    CreatedAt = DateTime.Now,
+                    TrxRef = request.Reference,
+                    PromotionId = support.Identifier,
+                    Status = false
+                };
+                await _postsService.InsertTransactionAsync(transaction);
+                await _notificationService.SupportNotification(profile, post.ProfileId);
                 return Ok(new DataResponse { Status = Constants.OK, Data = response.Data.AuthorizationUrl });
             }
             // CallbackUrl = response after payment url to go to in request

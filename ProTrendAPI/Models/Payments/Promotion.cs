@@ -19,7 +19,7 @@ namespace ProTrendAPI.Models.Payments
         public DateTime ExpireAt { get; set; } = DateTime.Now.AddDays(7);
         [JsonPropertyName("currency")]
         public string Currency { get; set; } = string.Empty;
-        [JsonPropertyName("total")]
+        [JsonPropertyName("amount")]
         public int Amount { get; set; }
         [JsonPropertyName("audience")]
         public string Audience { get; set; } = string.Empty;

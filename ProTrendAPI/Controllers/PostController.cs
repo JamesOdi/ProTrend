@@ -37,7 +37,7 @@ namespace ProTrendAPI.Controllers
         [HttpPost("add/post")]
         public async Task<ActionResult<Post>> AddPost(Post upload)
         {
-            upload.UserId = profile.Id;
+            upload.ProfileId = profile.Id;
             return Ok(await _uploadService.AddPostAsync(upload));
         }
 
@@ -70,7 +70,7 @@ namespace ProTrendAPI.Controllers
             {
                 like.SenderId = profile.Id;
                 await _uploadService.AddLikeAsync(like);
-                await _notificationService.LikeNotification(profile, post.UserId);
+                await _notificationService.LikeNotification(profile, post.ProfileId);
                 return Ok(new BasicResponse { Message = Constants.Success });
             }
             return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.PostNotExist });
@@ -90,7 +90,7 @@ namespace ProTrendAPI.Controllers
             {
                 comment.UserId = profile.Id;
                 comment.Identifier = comment.Id;
-                await _notificationService.CommentNotification(profile, post.UserId);
+                await _notificationService.CommentNotification(profile, post.ProfileId);
                 var commentResult = await _uploadService.InsertCommentAsync(comment);
                 return Ok(commentResult);
             }

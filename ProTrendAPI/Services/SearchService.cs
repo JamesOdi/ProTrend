@@ -45,7 +45,7 @@ namespace ProTrendAPI.Services
 
         public async Task<List<Profile>> SearchProfilesByNameAsync(string name)
         {
-            return await _profileCollection.Find(Builders<Profile>.Filter.Where(profile => profile.Name.Contains(name.ToLower()) && profile.Disabled == false)).ToListAsync();
+            return await _profileCollection.Find(Builders<Profile>.Filter.Where(profile => profile.UserName.Contains(name.ToLower()) && profile.Disabled == false)).ToListAsync();
         }
 
         public async Task<List<Profile>> SearchProfilesByEmailAsync(string email)

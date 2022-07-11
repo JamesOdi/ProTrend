@@ -28,6 +28,15 @@ namespace ProTrendAPI.Services
             return;
         }
 
+        public async Task SupportAsync(Profile profile, Support support)
+        {
+            support.Identifier = support.Id;
+            support.SenderId = profile.Identifier;
+            await _supportCollection.InsertOneAsync(support);
+
+            return;
+        }
+
         public async Task InsertTransactionAsync(Transaction transaction)
         {
             await _transactionCollection.InsertOneAsync(transaction);
@@ -105,7 +114,7 @@ namespace ProTrendAPI.Services
         
         public async Task<List<Post>> GetUserPostsAsync(Guid userId)
         {
-            return await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.UserId == userId && !p.Disabled)).SortBy(p => p.Time).ToListAsync();
+            return await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.ProfileId == userId && !p.Disabled)).SortBy(p => p.Time).ToListAsync();
         }
 
         public async Task<bool> DeletePostAsync(Guid postId)

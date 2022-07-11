@@ -14,6 +14,7 @@
         public const string ID = "_id";
         public const string Identifier = "identifier";
         public const string Name = "name";
+        public const string FullName = "fullname";
         public const string Email = "email_value";
         public const string AccType = "acctype";
         public const string Country = "country";
@@ -30,5 +31,6 @@
         public const string InvalidAmount = "Invalid amount selected";
         public const string All = "all";
         public const string InvalidEmail = "Invalid Email";
+        public const string AccountDisabled = "Account disabled!";
     }
 }

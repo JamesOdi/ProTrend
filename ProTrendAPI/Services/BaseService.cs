@@ -21,6 +21,7 @@ namespace ProTrendAPI.Services
         public readonly IMongoCollection<Promotion> _promotionCollection;
         public readonly IMongoCollection<Transaction> _transactionCollection;
         public readonly IMongoCollection<Favorite> _favoriteCollection;
+        public readonly IMongoCollection<Support> _supportCollection;
 
         public BaseService(IOptions<DBSettings> settings)
         {
@@ -39,6 +40,7 @@ namespace ProTrendAPI.Services
             _promotionCollection = Database.GetCollection<Promotion>(settings.Value.PromotionsCollection);
             _transactionCollection = Database.GetCollection<Transaction>(settings.Value.TransactionsCollection);
             _favoriteCollection = Database.GetCollection<Favorite>(settings.Value.FavoritesCollection);
+            _supportCollection = Database.GetCollection<Support>(settings.Value.SupportCollection);
         }
 
         public static string FormatNumber(int number)
@@ -53,12 +55,12 @@ namespace ProTrendAPI.Services
         {
             string? returnResult;
             if (numberString.Length % 3 == 0)
-                returnResult = numberString[..3] + "." + numberString[3].ToString();
+                returnResult = $"{numberString[..3]}.{numberString[3]}";
             else
-                returnResult = numberString[..2] + "." + numberString[2].ToString();
+                returnResult = $"{numberString[..2]}.{numberString[2]}";
 
             if (numberString.Length == 4 || numberString.Length == 7 || numberString.Length == 10)
-                returnResult = numberString[0].ToString() + "." + numberString[1].ToString();
+                returnResult = $"{numberString[0]}.{numberString[1]}";
 
             if (numberString.Length >= 4 && numberString.Length < 7)
                 return returnResult + "K";

@@ -18,7 +18,8 @@ namespace ProTrendAPI.Services.UserSevice
             var result = new Profile();
             if (_contextAccessor.HttpContext != null)
             {
-                result.Name = _contextAccessor.HttpContext.User.FindFirstValue(Constants.Name);
+                result.UserName = _contextAccessor.HttpContext.User.FindFirstValue(Constants.Name);
+                result.FullName = _contextAccessor.HttpContext.User.FindFirstValue(Constants.FullName);
                 result.Identifier = Guid.Parse(_contextAccessor.HttpContext.User.FindFirstValue(Constants.Identifier));
                 result.Email = _contextAccessor.HttpContext.User.FindFirst(Constants.Email).Value;
                 result.AccountType = _contextAccessor.HttpContext.User.FindFirstValue(Constants.AccType);

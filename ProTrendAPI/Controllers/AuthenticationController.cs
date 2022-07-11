@@ -16,6 +16,7 @@ namespace ProTrendAPI.Controllers
         private readonly IConfiguration _configuration;
         private readonly RegistrationService _regService;
         private readonly IUserService _userService;
+
         public AuthenticationController(IConfiguration configuration, RegistrationService regService, IUserService userService)
         {
             _configuration = configuration;
@@ -37,9 +38,9 @@ namespace ProTrendAPI.Controllers
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.InvalidEmail });
             }
 
-            if(request.Name.Contains(' '))
+            if(request.UserName.Contains(' '))
             {
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "Name cannot contain whitespace" });
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "User Name cannot contain whitespace" });
             }
 
             var userExists = await GetUserResult(request);
@@ -56,7 +57,8 @@ namespace ProTrendAPI.Controllers
                 Email = request.Email.Trim().ToLower(),
                 PasswordSalt = passwordSalt,
                 PasswordHash = passwordHash,
-                Name = request.Name.Trim().ToLower(),
+                UserName = request.UserName.Trim().ToLower(),
+                FullName = request.FullName.Trim().ToLower(),
                 RegistrationDate = DateTime.Now,
                 AccountType = request.AccountType.Trim().ToLower(),
                 Country = request.Country!.Trim().ToLower()
@@ -78,6 +80,8 @@ namespace ProTrendAPI.Controllers
             
             if (result == null)
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
+            if (result.AccountType == Constants.Disabled)
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.AccountDisabled });
             if (!VerifyPasswordHash(result, request.Password, result.PasswordHash))
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.WrongEmailPassword });
             
@@ -95,8 +99,9 @@ namespace ProTrendAPI.Controllers
             {
                 new Claim(Constants.ID, user.Id.ToString()),
                 new Claim(Constants.Identifier, user.Id.ToString()),
-                new Claim(Constants.Name, user.Name),
+                new Claim(Constants.Name, user.UserName),
                 new Claim(Constants.Email, user.Email),
+                new Claim(Constants.FullName, user.FullName),
                 new Claim(Constants.AccType, user.AccountType),
                 new Claim(Constants.Country, user.Country),
             };
