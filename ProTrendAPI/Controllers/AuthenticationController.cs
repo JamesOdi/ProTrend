@@ -40,7 +40,7 @@ namespace ProTrendAPI.Controllers
 
             if(request.UserName.Contains(' '))
             {
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "User Name cannot contain whitespace" });
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "Username cannot contain whitespace" });
             }
 
             var userExists = await GetUserResult(request);
