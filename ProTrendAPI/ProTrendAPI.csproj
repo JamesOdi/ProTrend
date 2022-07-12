@@ -11,7 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MailKit" Version="3.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.6" />
+    <PackageReference Include="MimeKit" Version="3.3.0" />
     <PackageReference Include="MongoDB.Bson" Version="2.16.1" />
     <PackageReference Include="MongoDB.Driver" Version="2.16.1" />
     <PackageReference Include="PayStack.Net" Version="0.7.7" />

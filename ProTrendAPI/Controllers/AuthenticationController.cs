@@ -4,8 +4,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
-using ProTrendAPI.Models.User;
 using System.Text.RegularExpressions;
+using MimeKit;
+using MailKit.Net.Smtp;
 
 namespace ProTrendAPI.Controllers
 {
@@ -50,8 +51,25 @@ namespace ProTrendAPI.Controllers
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserExists });
             }
 
-            CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
+            var emailAddress = "maryse.abshire24@ethereal.email";
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse(emailAddress));
+            email.To.Add(MailboxAddress.Parse(request.Email));
+            email.Subject = "Your ProTrend One-Time-Password";
+            var otp = GenerateOTP();
+            email.Body = new TextPart(MimeKit.Text.TextFormat.Html) { Text = $"Your OTP is {otp}" };
+            using var smtp = new SmtpClient();
+            smtp.Connect("smtp.ethereal.email", 587, MailKit.Security.SecureSocketOptions.StartTls);
+            smtp.Authenticate(emailAddress, "9sSpFDJsceTZ1aUD8E");
+            smtp.Send(email);
+            smtp.Disconnect(true);
+            return Ok(new DataResponse { Data = otp });
+        }
 
+        [HttpPost("verify/otp")]
+        public async Task<ActionResult<object>> VerifyToken(ProfileDTO request)
+        {
+            CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
             var register = new Register
             {
                 Email = request.Email.Trim().ToLower(),
@@ -63,7 +81,6 @@ namespace ProTrendAPI.Controllers
                 AccountType = request.AccountType.Trim().ToLower(),
                 Country = request.Country!.Trim().ToLower()
             };
-
             await _regService.InsertAsync(register);
             return Ok(new TokenResponse { Token = CreateToken(register) });
         }
@@ -146,6 +163,12 @@ namespace ProTrendAPI.Controllers
             {
                 return false;
             }
+        }
+
+        private static int GenerateOTP()
+        {
+            var r = new Random();
+            return r.Next(1000, 9999);
         }
     }
 }
