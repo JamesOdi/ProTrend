@@ -28,7 +28,10 @@ namespace ProTrendAPI.Controllers
         [HttpGet, Authorize]
         public ActionResult<DataResponse> GetMe()
         {
-            return Ok(new DataResponse { Data = _userService.GetProfile() });
+            var profile = _userService.GetProfile();
+            if (profile == null)
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "Please Login" });
+            return Ok(new DataResponse { Data =  profile});
         }
 
         [HttpPost("register")]
@@ -51,19 +54,58 @@ namespace ProTrendAPI.Controllers
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserExists });
             }
 
-            var emailAddress = "maryse.abshire24@ethereal.email";
+            var otp = SendEmail(request.Email, request.Password);
+            return Ok(new DataResponse { Data = otp });
+        }
+
+        //[HttpPost("forgot-password")]
+        //public async Task<IActionResult> ForgotPassword(string email)
+        //{
+        //    if (!IsValidEmail(email))
+        //        return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.InvalidEmail });
+            
+        //    var userExists = await GetUserResult(new ProfileDTO { Email = email });
+        //    if (userExists == null)
+        //    {
+        //        return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
+        //    }
+
+        //    return Ok(SendEmail(email));
+        //}
+
+        [HttpPut("reset-password")]
+        public async Task<IActionResult> ResetPassword(ProfileDTO profile)
+        {
+            if(!IsValidEmail(profile.Email))
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.InvalidEmail });
+            var register = await GetUserResult(new ProfileDTO { Email = profile.Email });
+            if (register == null)
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
+            
+            CreatePasswordHash(profile.Password, out byte[] passwordHash, out byte[] passwordSalt);
+            register.PasswordHash = passwordHash;
+            register.PasswordSalt = passwordSalt;
+            var result = await _regService.ResetPassword(register);
+            if (result == null)
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "Error occured when resseting password, please try again!" });
+            return Ok(new TokenResponse { Token = CreateToken(result) });
+        }
+
+        private static int SendEmail(string to, string password)
+        {
+            var emailAddress = to;
             var email = new MimeMessage();
             email.From.Add(MailboxAddress.Parse(emailAddress));
-            email.To.Add(MailboxAddress.Parse(request.Email));
+            email.To.Add(MailboxAddress.Parse(to));
             email.Subject = "Your ProTrend One-Time-Password";
             var otp = GenerateOTP();
             email.Body = new TextPart(MimeKit.Text.TextFormat.Html) { Text = $"Your OTP is {otp}" };
             using var smtp = new SmtpClient();
-            smtp.Connect("smtp.ethereal.email", 587, MailKit.Security.SecureSocketOptions.StartTls);
-            smtp.Authenticate(emailAddress, "9sSpFDJsceTZ1aUD8E");
+            smtp.Connect(to, 587, MailKit.Security.SecureSocketOptions.StartTls);
+            smtp.Authenticate(emailAddress, password);
             smtp.Send(email);
             smtp.Disconnect(true);
-            return Ok(new DataResponse { Data = otp });
+            return otp;
         }
 
         [HttpPost("verify/otp")]
@@ -81,7 +123,9 @@ namespace ProTrendAPI.Controllers
                 AccountType = request.AccountType.Trim().ToLower(),
                 Country = request.Country!.Trim().ToLower()
             };
-            await _regService.InsertAsync(register);
+            var result = await _regService.InsertAsync(register);
+            if (result == null)
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "Error when registering user!" });
             return Ok(new TokenResponse { Token = CreateToken(register) });
         }
 

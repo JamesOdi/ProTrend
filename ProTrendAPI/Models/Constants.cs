@@ -32,5 +32,6 @@
         public const string All = "all";
         public const string InvalidEmail = "Invalid Email";
         public const string AccountDisabled = "Account disabled!";
+        public const string Business = "business";
     }
 }

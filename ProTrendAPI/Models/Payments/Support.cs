@@ -9,6 +9,8 @@ namespace ProTrendAPI.Models.Payments
         public Guid Identifier { get; set; }
         [JsonPropertyName("senderid")]
         public Guid SenderId { get; set; }
+        [JsonPropertyName("receiverid")]
+        public Guid ReceiverId { get; set; }
         [JsonPropertyName("postid")]
         public Guid PostId { get; set; }
         [JsonPropertyName("time")]

@@ -13,10 +13,12 @@ namespace ProTrendAPI.Controllers
         private readonly ProfileService _profileService;
         private readonly IUserService _userService;
         private readonly NotificationService _notificationService;
-        public ProfileController(ProfileService profileService, NotificationService notificationService, IUserService userService)
+        private readonly PostsService _postsService;
+        public ProfileController(ProfileService profileService, PostsService postsService, NotificationService notificationService, IUserService userService)
         {
             _userService = userService;
             _profileService = profileService;
+            _postsService = postsService;
             _notificationService = notificationService;
         }
 
@@ -75,6 +77,17 @@ namespace ProTrendAPI.Controllers
         public async Task<ActionResult<List<Profile>>> GetFollowingCount(Guid id)
         {
             return Ok(await _profileService.GetFollowingCount(id));
+        }
+
+        [HttpGet("get/total")]
+        public async Task<IActionResult> GetSupportTotal()
+        {
+            var profile = _userService.GetProfile();
+            if (profile == null || profile.AccountType != Constants.Business)
+            {
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "No support on non-business profiles" });
+            }
+            return Ok(new DataResponse { Data = await _postsService.GetTotalBalanceAsync(profile) });
         }
     }
 }

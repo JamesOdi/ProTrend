@@ -109,7 +109,8 @@ namespace ProTrendAPI.Controllers
             TransactionInitializeResponse response = PayStack.Transactions.Initialize(request);
             if (response.Status)
             {
-                await _postsService.SupportAsync(profile, support);
+                await _postsService.SupportAsync(support);
+
                 var transaction = new Transaction
                 {
                     Amount = support.Amount,
@@ -119,12 +120,22 @@ namespace ProTrendAPI.Controllers
                     PromotionId = support.Identifier,
                     Status = false
                 };
+
                 await _postsService.InsertTransactionAsync(transaction);
                 await _notificationService.SupportNotification(profile, post.ProfileId);
                 return Ok(new DataResponse { Status = Constants.OK, Data = response.Data.AuthorizationUrl });
             }
             // CallbackUrl = response after payment url to go to in request
             return BadRequest(new BasicResponse { Status = Constants.Error, Message = response.Message });
+        }
+
+        [HttpPost("withdraw/{total}")]
+        public async Task<IActionResult> RequestWithdrawal(int total)
+        {
+            var withdraw = await _postsService.RequestWithdrawalAsync(_userService.GetProfile(), total);
+            if (withdraw == null)
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "Error requesting withdrawal" });
+            return Ok(new BasicResponse { Message = (string) withdraw });
         }
 
         [HttpGet("verify/{reference}")]
