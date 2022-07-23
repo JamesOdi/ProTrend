@@ -34,7 +34,7 @@ namespace ProTrendAPI.Controllers
             return Ok(new DataResponse { Data =  profile});
         }
 
-        [HttpPost("register")]
+        [HttpGet("register")]
         public async Task<ActionResult<BasicResponse>> Register(ProfileDTO request)
         {
             if (!IsValidEmail(request.Email))
