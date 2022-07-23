@@ -54,8 +54,9 @@ namespace ProTrendAPI.Controllers
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserExists });
             }
 
-            var otp = SendEmail(request.Email, request.Password);
-            return Ok(new DataResponse { Data = otp });
+            //Please modify before launching
+            // var otp = SendEmail(request.Email, request.Password);
+            return Ok(new DataResponse { Data = GenerateOTP() });
         }
 
         //[HttpPost("forgot-password")]
@@ -93,16 +94,15 @@ namespace ProTrendAPI.Controllers
 
         private static int SendEmail(string to, string password)
         {
-            var emailAddress = to;
             var email = new MimeMessage();
-            email.From.Add(MailboxAddress.Parse(emailAddress));
+            email.From.Add(MailboxAddress.Parse(to));
             email.To.Add(MailboxAddress.Parse(to));
             email.Subject = "Your ProTrend One-Time-Password";
             var otp = GenerateOTP();
             email.Body = new TextPart(MimeKit.Text.TextFormat.Html) { Text = $"Your OTP is {otp}" };
             using var smtp = new SmtpClient();
             smtp.Connect(to, 587, MailKit.Security.SecureSocketOptions.StartTls);
-            smtp.Authenticate(emailAddress, password);
+            smtp.Authenticate(to, password);
             smtp.Send(email);
             smtp.Disconnect(true);
             return otp;
