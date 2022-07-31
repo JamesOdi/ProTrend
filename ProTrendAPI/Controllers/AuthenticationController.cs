@@ -32,6 +32,7 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<ActionResult<BasicResponse>> Register(ProfileDTO request)
         {
             if (!IsValidEmail(request.Email))
@@ -57,6 +58,7 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpPost("forgot-password")]
+        [AllowAnonymous]
         public async Task<IActionResult> ForgotPassword(string email)
         {
             if (!IsValidEmail(email))
@@ -72,6 +74,7 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpPut("reset-password")]
+        [AllowAnonymous]
         public async Task<IActionResult> ResetPassword(ProfileDTO profile)
         {
             if (!IsValidEmail(profile.Email))
@@ -107,6 +110,7 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpPost("verify/otp")]
+        [AllowAnonymous]
         public async Task<ActionResult<object>> VerifyToken(ProfileDTO request)
         {
             CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
