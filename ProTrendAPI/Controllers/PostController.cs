@@ -8,13 +8,13 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class PostController : ControllerBase
     {
         private readonly PostsService _postsService;
         private readonly IUserService _userService;
-        private readonly Profile profile;
+        private readonly Profile? profile;
         private readonly NotificationService _notificationService;
+
         public PostController(PostsService service, NotificationService notificationService, IUserService userService)
         {
             _notificationService = notificationService;
@@ -26,7 +26,12 @@ namespace ProTrendAPI.Controllers
         [HttpGet("get/all")]
         public async Task<ActionResult<List<Post>>> GetPosts()
         {
-            return Ok(await _postsService.GetAllPostsAsync());
+            if (Request.Cookies["access_token"] != null)
+            {
+                return Ok(await _postsService.GetAllPostsAsync());
+            }
+            Response.StatusCode = 401;
+            return BadRequest();
         }
 
         [HttpGet("get/promotions/all")]
@@ -35,13 +40,9 @@ namespace ProTrendAPI.Controllers
             return Ok(await _postsService.GetPromotionsAsync(profile));
         }
 
-        [HttpGet("get/support/profiles")]
+        [HttpGet("get/support/profiles"), Authorize(Roles = Constants.Business)]
         public async Task<ActionResult<List<Profile>>> GetSupporters(Post post)
         {
-            if (profile.AccountType != Constants.Business)
-            {
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "Non-business accounts cannot view post supporters" });
-            }
             return await _postsService.GetSupportersAsync(post);
         }
 

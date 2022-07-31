@@ -8,7 +8,6 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class PaymentController : ControllerBase
     {
         private PayStackApi PayStack { get; set; }
@@ -26,7 +25,7 @@ namespace ProTrendAPI.Controllers
             _notificationService = notificationService;
         }
 
-        [HttpPost("promote")]
+        [HttpPost("promote"), Authorize(Roles =Constants.Business)]
         public async Task<ActionResult<object>> Promote(Promotion promotion)
         {
             var profile = _userService.GetProfile();
@@ -129,7 +128,7 @@ namespace ProTrendAPI.Controllers
             return BadRequest(new BasicResponse { Status = Constants.Error, Message = response.Message });
         }
 
-        [HttpPost("withdraw/{total}")]
+        [HttpPost("withdraw/{total}"), Authorize(Roles = Constants.Business)]
         public async Task<IActionResult> RequestWithdrawal(int total)
         {
             var withdraw = await _postsService.RequestWithdrawalAsync(_userService.GetProfile(), total);

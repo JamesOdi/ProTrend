@@ -7,7 +7,6 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class TagController : ControllerBase
     {
         private readonly TagsService _tagsService;

@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using Microsoft.AspNetCore.Authorization;
 using System.Text.RegularExpressions;
 using MimeKit;
 using MailKit.Net.Smtp;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ProTrendAPI.Controllers
 {
@@ -14,24 +13,22 @@ namespace ProTrendAPI.Controllers
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
-        private readonly IConfiguration _configuration;
         private readonly RegistrationService _regService;
         private readonly IUserService _userService;
 
         public AuthenticationController(IConfiguration configuration, RegistrationService regService, IUserService userService)
         {
-            _configuration = configuration;
             _regService = regService;
             _userService = userService;
         }
 
-        [HttpGet, Authorize]
+        [HttpGet]
         public ActionResult<DataResponse> GetMe()
         {
             var profile = _userService.GetProfile();
             if (profile == null)
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = "Please Login" });
-            return Ok(new DataResponse { Data =  profile});
+            return Ok(new DataResponse { Data = profile });
         }
 
         [HttpPost("register")]
@@ -42,7 +39,7 @@ namespace ProTrendAPI.Controllers
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.InvalidEmail });
             }
 
-            if(request.UserName.Contains(' '))
+            if (request.UserName.Contains(' '))
             {
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = "Username cannot contain whitespace" });
             }
@@ -59,37 +56,38 @@ namespace ProTrendAPI.Controllers
             return Ok(new DataResponse { Data = GenerateOTP() });
         }
 
-        //[HttpPost("forgot-password")]
-        //public async Task<IActionResult> ForgotPassword(string email)
-        //{
-        //    if (!IsValidEmail(email))
-        //        return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.InvalidEmail });
-            
-        //    var userExists = await GetUserResult(new ProfileDTO { Email = email });
-        //    if (userExists == null)
-        //    {
-        //        return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
-        //    }
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            if (!IsValidEmail(email))
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.InvalidEmail });
 
-        //    return Ok(SendEmail(email));
-        //}
+            var userExists = await GetUserResult(new ProfileDTO { Email = email });
+            if (userExists == null)
+            {
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
+            }
+            //SendEmail(email)
+            return Ok();
+        }
 
         [HttpPut("reset-password")]
         public async Task<IActionResult> ResetPassword(ProfileDTO profile)
         {
-            if(!IsValidEmail(profile.Email))
+            if (!IsValidEmail(profile.Email))
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.InvalidEmail });
             var register = await GetUserResult(new ProfileDTO { Email = profile.Email });
             if (register == null)
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
-            
+
             CreatePasswordHash(profile.Password, out byte[] passwordHash, out byte[] passwordSalt);
             register.PasswordHash = passwordHash;
             register.PasswordSalt = passwordSalt;
             var result = await _regService.ResetPassword(register);
             if (result == null)
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "Error occured when resseting password, please try again!" });
-            return Ok(new TokenResponse { Token = CreateToken(result) });
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "Error occurred when resetting password, please try again!" });
+            CreateToken(result);
+            return Ok("Rest");
         }
 
         private static int SendEmail(string to, string password)
@@ -126,10 +124,12 @@ namespace ProTrendAPI.Controllers
             var result = await _regService.InsertAsync(register);
             if (result == null)
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = "Error when registering user!" });
-            return Ok(new TokenResponse { Token = CreateToken(register) });
+            CreateToken(register);
+            return Ok("Finished");
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<ActionResult<string>> Login(ProfileDTO request)
         {
             if (!IsValidEmail(request.Email))
@@ -138,15 +138,22 @@ namespace ProTrendAPI.Controllers
             }
 
             var result = await GetUserResult(request);
-            
+
             if (result == null)
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
             if (result.AccountType == Constants.Disabled)
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.AccountDisabled });
             if (!VerifyPasswordHash(result, request.Password, result.PasswordHash))
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.WrongEmailPassword });
-            
-            return Ok(new TokenResponse { Token = CreateToken(result) });
+            CreateToken(result);
+            return Ok(new BasicResponse { Message = "Login Successful" });
+        }
+
+        [HttpPost("logout")]
+        public async Task<ActionResult<object>> Logout()
+        {
+            await HttpContext.SignOutAsync("ProTrendAuth");
+            return Ok();
         }
 
         private async Task<Register?> GetUserResult(ProfileDTO request)
@@ -154,7 +161,7 @@ namespace ProTrendAPI.Controllers
             return await _regService.FindRegisteredUserAsync(request);
         }
 
-        private string CreateToken(Register user)
+        private async void CreateToken(Register user)
         {
             List<Claim> claims = new()
             {
@@ -172,15 +179,9 @@ namespace ProTrendAPI.Controllers
                 disabled = true;
 
             claims.Add(new Claim(Constants.Disabled, disabled.ToString()));
-
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection(Constants.TokenLoc).Value));
-            var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-            var token = new JwtSecurityToken(
-                claims: claims,
-                expires: DateTime.Now.AddMonths(1),
-                signingCredentials: cred);
-            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-            return jwt;
+            var identity = new ClaimsIdentity(claims, "ProTrendAuth");
+            var principal = new ClaimsPrincipal(identity);
+            await HttpContext.SignInAsync("ProTrendAuth", principal);
         }
 
         private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)

@@ -7,7 +7,6 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class NotificationController : ControllerBase
     {
         private readonly NotificationService _notificationService;
