@@ -11,6 +11,7 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class AuthenticationController : ControllerBase
     {
         private readonly RegistrationService _regService;
@@ -27,7 +28,7 @@ namespace ProTrendAPI.Controllers
         {
             var profile = _userService.GetProfile();
             if (profile == null)
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "Please Login" });
+                throw new Exception();
             return Ok(new DataResponse { Data = profile });
         }
 
@@ -136,6 +137,9 @@ namespace ProTrendAPI.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<string>> Login(ProfileDTO request)
         {
+            if (_userService.GetProfile() != null)
+                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "You are already logged in, please log out first!" });
+
             if (!IsValidEmail(request.Email))
             {
                 return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.InvalidEmail });
@@ -157,7 +161,7 @@ namespace ProTrendAPI.Controllers
         public async Task<ActionResult<object>> Logout()
         {
             await HttpContext.SignOutAsync("ProTrendAuth");
-            return Ok();
+            return Ok(new BasicResponse { Status = Constants.OK, Message = "Logged out successfully" });
         }
 
         private async Task<Register?> GetUserResult(ProfileDTO request)

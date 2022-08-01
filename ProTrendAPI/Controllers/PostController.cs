@@ -8,6 +8,7 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class PostController : ControllerBase
     {
         private readonly PostsService _postsService;
@@ -26,12 +27,7 @@ namespace ProTrendAPI.Controllers
         [HttpGet("get/all")]
         public async Task<ActionResult<List<Post>>> GetPosts()
         {
-            if (Request.Cookies["access_token"] != null)
-            {
-                return Ok(await _postsService.GetAllPostsAsync());
-            }
-            Response.StatusCode = 401;
-            return BadRequest();
+            return Ok(await _postsService.GetAllPostsAsync());
         }
 
         [HttpGet("get/promotions/all")]
