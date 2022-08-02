@@ -11,6 +11,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 // Add services to the container.
+
+builder.Services.AddCors(p => p.AddPolicy(Constants.CORS, builder =>
+{
+    builder.SetIsOriginAllowed(origin => true).AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+}));
+
 builder.Services.Configure<DBSettings>(builder.Configuration.GetSection("DBConnection"));
 builder.Services.AddSingleton<RegistrationService>();
 builder.Services.AddSingleton<PostsService>();
@@ -35,11 +41,6 @@ builder.Services.AddAuthorization(options =>
     options.DefaultPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
 });
 
-builder.Services.AddCors(p => p.AddPolicy(Constants.CORS, builder =>
-{
-    builder.SetIsOriginAllowed(origin => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
-}));
-
 var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -48,11 +49,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors(Constants.CORS);
-
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
+
+app.UseCors(Constants.CORS);
 
 app.UseAuthorization();
 
