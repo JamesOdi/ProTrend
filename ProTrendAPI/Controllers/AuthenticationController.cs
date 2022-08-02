@@ -6,6 +6,7 @@ using MimeKit;
 using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 
 namespace ProTrendAPI.Controllers
 {
@@ -134,6 +135,7 @@ namespace ProTrendAPI.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
+        [EnableCors(Constants.CORS)]
         public async Task<ActionResult<object>> Login(Login request)
         {
             if (!IsValidEmail(request.Email))
