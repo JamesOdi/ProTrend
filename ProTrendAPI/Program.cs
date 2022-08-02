@@ -3,17 +3,12 @@ global using ProTrendAPI.Models;
 global using ProTrendAPI.Models.Posts;
 global using ProTrendAPI.Models.Response;
 global using ProTrendAPI.Models.User;
-global using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using ProTrendAPI.Services;
 using ProTrendAPI.Settings;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.Filters;
 using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 // Add services to the container.
 builder.Services.Configure<DBSettings>(builder.Configuration.GetSection("DBConnection"));
@@ -30,9 +25,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddAuthentication("ProTrendAuth").AddCookie("ProTrendAuth", options =>
+builder.Services.AddAuthentication(Constants.AUTH).AddCookie(Constants.AUTH, options =>
 {
-    options.Cookie.Name = "ProTrendAuth";
+    options.Cookie.Name = Constants.AUTH;
 });
 
 builder.Services.AddAuthorization(options =>
@@ -40,7 +35,7 @@ builder.Services.AddAuthorization(options =>
     options.DefaultPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
 });
 
-builder.Services.AddCors(p => p.AddPolicy("corsapp", builder =>
+builder.Services.AddCors(p => p.AddPolicy(Constants.CORS, builder =>
 {
     builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
 }));
@@ -53,9 +48,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseMiddleware<ErrorHandlingMiddleware>();
-
-app.UseCors("corsapp");
+app.UseCors(Constants.CORS);
 
 app.UseHttpsRedirection();
 
