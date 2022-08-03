@@ -4,6 +4,8 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <DocumentationFile>C:\Users\James\Desktop\ProTrendAPI Documentation\ProtrendAPIDocumentation.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

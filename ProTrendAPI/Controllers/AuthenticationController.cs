@@ -7,6 +7,7 @@ using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace ProTrendAPI.Controllers
 {
@@ -155,7 +156,7 @@ namespace ProTrendAPI.Controllers
         [HttpPost("logout")]
         public async Task<ActionResult<object>> Logout()
         {
-            await HttpContext.SignOutAsync("ProTrendAuth");
+            await HttpContext.SignOutAsync(Constants.AUTH);
             return Ok(new { Success = true, Message = "Logout successful" });
         }
 
@@ -182,9 +183,16 @@ namespace ProTrendAPI.Controllers
                 disabled = true;
 
             claims.Add(new Claim(Constants.Disabled, disabled.ToString()));
-            var identity = new ClaimsIdentity(claims, "ProTrendAuth");
+            var identity = new ClaimsIdentity(claims, Constants.AUTH);
             var principal = new ClaimsPrincipal(identity);
-            await HttpContext.SignInAsync("ProTrendAuth", principal);
+            var authProperties = new AuthenticationProperties
+            {
+                AllowRefresh = true,
+                IsPersistent = true,
+                IssuedUtc = DateTimeOffset.Now,
+                ExpiresUtc = DateTimeOffset.Now.AddMinutes(10)
+            };
+            await HttpContext.SignInAsync(Constants.AUTH, principal, authProperties);
         }
 
         private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)

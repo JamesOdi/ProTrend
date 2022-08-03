@@ -6,6 +6,8 @@ global using ProTrendAPI.Models.User;
 using ProTrendAPI.Services;
 using ProTrendAPI.Settings;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,9 +33,19 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.ConsentCookie.IsEssential = true;
+    options.CheckConsentNeeded = context => false;
+    options.MinimumSameSitePolicy = SameSiteMode.Strict;
+});
+
 builder.Services.AddAuthentication(Constants.AUTH).AddCookie(Constants.AUTH, options =>
 {
     options.Cookie.Name = Constants.AUTH;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Strict;
 });
 
 builder.Services.AddAuthorization(options =>
@@ -50,7 +62,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseRouting();
+
+app.UseStaticFiles();
+
 app.UseMiddleware<AuthenticationMiddleware>();
 
 app.UseAuthentication();
