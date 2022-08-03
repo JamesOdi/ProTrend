@@ -35,28 +35,28 @@ namespace ProTrendAPI.Controllers
 
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<ActionResult<BasicResponse>> Register(ProfileDTO request)
+        public async Task<ActionResult<object>> Register(ProfileDTO request)
         {
             if (!IsValidEmail(request.Email))
             {
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.InvalidEmail });
+                return BadRequest(new { Success = false, Message = Constants.InvalidEmail });
             }
 
             if (request.UserName.Contains(' '))
             {
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "Username cannot contain whitespace" });
+                return BadRequest(new { Success = false, Message = "Username cannot contain whitespace" });
             }
 
             var userExists = await GetUserResult(request);
 
             if (userExists != null)
             {
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserExists });
+                return BadRequest(new { Success = false, Message = Constants.UserExists });
             }
 
             //Please modify before launching
             // var otp = SendEmail(request.Email, request.Password);
-            return Ok(new { Status = "success", OTP = GenerateOTP() });
+            return Ok(new { Success = true, OTP = GenerateOTP() });
         }
 
         [HttpPost("forgot-password")]
@@ -64,12 +64,12 @@ namespace ProTrendAPI.Controllers
         public async Task<IActionResult> ForgotPassword(string email)
         {
             if (!IsValidEmail(email))
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.InvalidEmail });
+                return BadRequest(new { Success = false, Message = Constants.InvalidEmail });
 
             var userExists = await GetUserResult(new ProfileDTO { Email = email });
             if (userExists == null)
             {
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
+                return BadRequest(new { Success = false, Message = Constants.UserNotFound });
             }
             //SendEmail(email)
             return Ok();
@@ -80,18 +80,18 @@ namespace ProTrendAPI.Controllers
         public async Task<IActionResult> ResetPassword(ProfileDTO profile)
         {
             if (!IsValidEmail(profile.Email))
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.InvalidEmail });
+                return BadRequest(new { Success = false, Message = Constants.InvalidEmail });
             var register = await GetUserResult(new ProfileDTO { Email = profile.Email });
             if (register == null)
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
+                return BadRequest(new { Success = false, Message = Constants.UserNotFound });
 
             CreatePasswordHash(profile.Password, out byte[] passwordHash, out byte[] passwordSalt);
             register.PasswordHash = passwordHash;
             register.PasswordSalt = passwordSalt;
             var result = await _regService.ResetPassword(register);
             if (result == null)
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "Error occurred when resetting password, please try again!" });
-            return Ok(new DataResponse { Status = "success", Data = true });
+                return BadRequest(new { Success = false, Message = "Error occurred when resetting password, please try again!" });
+            return Ok(new { Success = true, Message = "Password reset" });
         }
 
         private static int SendEmail(string to, string password)
@@ -112,7 +112,7 @@ namespace ProTrendAPI.Controllers
 
         [HttpPost("verify/otp")]
         [AllowAnonymous]
-        public async Task<ActionResult<object>> VerifyToken(ProfileDTO request)
+        public async Task<ActionResult<object>> VerifyOTP(ProfileDTO request)
         {
             CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
             var register = new Register
@@ -128,9 +128,9 @@ namespace ProTrendAPI.Controllers
             };
             var result = await _regService.InsertAsync(register);
             if (result == null)
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "Error when registering user!" });
+                return BadRequest(new { Success = false, Message = "Error when registering user!" });
             CreateToken(register);
-            return Ok(new DataResponse { Status = "success", Data = true });
+            return Ok(new { Success = true, Message = "OTP verified" });
         }
 
         [HttpPost("login")]
@@ -140,26 +140,26 @@ namespace ProTrendAPI.Controllers
         {
             if (!IsValidEmail(request.Email))
             {
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.InvalidEmail });
+                return BadRequest(new { Success = false, Message = Constants.InvalidEmail });
             }
 
             var result = await GetUserResult(new ProfileDTO { Email = request.Email, Password = request.Password });
 
             if (result == null)
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
+                return BadRequest(new { Success = false, Message = Constants.UserNotFound });
             if (result.AccountType == Constants.Disabled)
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.AccountDisabled });
+                return BadRequest(new { Success = false, Message = Constants.AccountDisabled });
             if (!VerifyPasswordHash(result, request.Password, result.PasswordHash))
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.WrongEmailPassword });
+                return BadRequest(new { Success = false, Message = Constants.WrongEmailPassword });
             CreateToken(result);
-            return Ok(new DataResponse { Status = "success", Data = true });
+            return Ok(new { Success = true, Message = "Login successful" });
         }
 
         [HttpPost("logout")]
         public async Task<ActionResult<object>> Logout()
         {
             await HttpContext.SignOutAsync("ProTrendAuth");
-            return Ok(new DataResponse { Status = "success", Data = true });
+            return Ok(new { Success = true, Message = "Logout successful" });
         }
 
         private async Task<Register?> GetUserResult(ProfileDTO request)

@@ -14,7 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(p => p.AddPolicy(Constants.CORS, builder =>
 {
-    builder.SetIsOriginAllowed(origin => true).AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+    builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
 }));
 
 builder.Services.Configure<DBSettings>(builder.Configuration.GetSection("DBConnection"));
