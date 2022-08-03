@@ -133,23 +133,20 @@ namespace ProTrendAPI.Controllers
             return Ok(new { Success = true, Message = "OTP verified" });
         }
 
-        [HttpPost("login")]
+        [HttpPost("/auth/login")]
         [AllowAnonymous]
-        [EnableCors(Constants.CORS)]
-        public async Task<ActionResult<object>> Login(Login request)
+        public async Task<ActionResult<object>> Login(Login login)
         {
-            if (!IsValidEmail(request.Email))
+            if (!IsValidEmail(login.Email))
             {
                 return BadRequest(new { Success = false, Message = Constants.InvalidEmail });
             }
 
-            var result = await GetUserResult(new ProfileDTO { Email = request.Email, Password = request.Password });
+            var result = await _regService.FindRegisteredUserByEmailAsync(login);
 
             if (result == null)
                 return BadRequest(new { Success = false, Message = Constants.UserNotFound });
-            if (result.AccountType == Constants.Disabled)
-                return BadRequest(new { Success = false, Message = Constants.AccountDisabled });
-            if (!VerifyPasswordHash(result, request.Password, result.PasswordHash))
+            if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
                 return BadRequest(new { Success = false, Message = Constants.WrongEmailPassword });
             CreateToken(result);
             return Ok(new { Success = true, Message = "Login successful" });

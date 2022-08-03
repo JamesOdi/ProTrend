@@ -39,5 +39,10 @@ namespace ProTrendAPI.Services.UserSevice
         {
             return await _registrationCollection.Find(r => r.Email == register.Email.Trim().ToLower() || r.UserName == register.UserName.Trim().ToLower() && r.AccountType != Constants.Disabled).FirstOrDefaultAsync();            
         }
+
+        public async Task<Register?> FindRegisteredUserByEmailAsync(Login login)
+        {
+            return await _registrationCollection.Find(r => r.Email == login.Email.Trim().ToLower() && r.AccountType != Constants.Disabled).FirstOrDefaultAsync();
+        }
     }
 }
