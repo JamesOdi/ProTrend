@@ -16,7 +16,7 @@ namespace ProTrendAPI.Controllers
         private readonly RegistrationService _regService;
         private readonly IUserService _userService;
 
-        public AuthenticationController(IConfiguration configuration, RegistrationService regService, IUserService userService)
+        public AuthenticationController(RegistrationService regService, IUserService userService)
         {
             _regService = regService;
             _userService = userService;
