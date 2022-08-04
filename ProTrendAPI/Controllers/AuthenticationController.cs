@@ -6,14 +6,11 @@ using MimeKit;
 using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace ProTrendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class AuthenticationController : ControllerBase
     {
         private readonly RegistrationService _regService;
@@ -26,6 +23,7 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public ActionResult<DataResponse> GetMe()
         {
             var profile = _userService.GetProfile();
@@ -130,8 +128,10 @@ namespace ProTrendAPI.Controllers
             var result = await _regService.InsertAsync(register);
             if (result == null)
                 return BadRequest(new { Success = false, Message = "Error when registering user!" });
-            CreateToken(register);
-            return Ok(new { Success = true, Message = "OTP verified" });
+            var authenticated = await CreateToken(register);
+            if (authenticated)
+                return Ok(new { Success = true, Message = "OTP verified" });
+            return BadRequest(new { Success = false, Message = "Verification failed" });
         }
 
         [HttpPost("/auth/login")]
@@ -149,15 +149,26 @@ namespace ProTrendAPI.Controllers
                 return BadRequest(new { Success = false, Message = Constants.UserNotFound });
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
                 return BadRequest(new { Success = false, Message = Constants.WrongEmailPassword });
-            CreateToken(result);
-            return Ok(new { Success = true, Message = "Login successful" });
+            var loginOk = await CreateToken(result);
+
+            if (loginOk)
+                return Ok(new { Success = true, Message = "Login successful" });
+            return Ok(new { Success = false, Message = "Login failed" });
         }
 
         [HttpPost("logout")]
+        [Authorize]
         public async Task<ActionResult<object>> Logout()
         {
-            await HttpContext.SignOutAsync(Constants.AUTH);
-            return Ok(new { Success = true, Message = "Logout successful" });
+            try
+            {
+                await HttpContext.SignOutAsync(Constants.AUTH);
+                return Ok(new { Success = true, Message = "Logout successful" });
+            }
+            catch (Exception)
+            {
+                return BadRequest(new { Success = false, Message = "Logout failed" });
+            }
         }
 
         private async Task<Register?> GetUserResult(ProfileDTO request)
@@ -165,9 +176,11 @@ namespace ProTrendAPI.Controllers
             return await _regService.FindRegisteredUserAsync(request);
         }
 
-        private async void CreateToken(Register user)
+        private async Task<bool> CreateToken(Register user)
         {
-            List<Claim> claims = new()
+            try
+            {
+                List<Claim> claims = new()
             {
                 new Claim(Constants.ID, user.Id.ToString()),
                 new Claim(Constants.Identifier, user.Id.ToString()),
@@ -178,21 +191,27 @@ namespace ProTrendAPI.Controllers
                 new Claim(Constants.Country, user.Country),
             };
 
-            bool disabled = false;
-            if (user.AccountType == Constants.Disabled)
-                disabled = true;
+                bool disabled = false;
+                if (user.AccountType == Constants.Disabled)
+                    disabled = true;
 
-            claims.Add(new Claim(Constants.Disabled, disabled.ToString()));
-            var identity = new ClaimsIdentity(claims, Constants.AUTH);
-            var principal = new ClaimsPrincipal(identity);
-            var authProperties = new AuthenticationProperties
+                claims.Add(new Claim(Constants.Disabled, disabled.ToString()));
+                var identity = new ClaimsIdentity(claims, Constants.AUTH);
+                var principal = new ClaimsPrincipal(identity);
+                var authProperties = new AuthenticationProperties
+                {
+                    AllowRefresh = true,
+                    IsPersistent = true,
+                    IssuedUtc = DateTimeOffset.Now,
+                    ExpiresUtc = DateTimeOffset.Now.AddDays(1)
+                };
+                await HttpContext.SignInAsync(Constants.AUTH, principal, authProperties);
+                return true;
+            }
+            catch (Exception)
             {
-                AllowRefresh = true,
-                IsPersistent = true,
-                IssuedUtc = DateTimeOffset.Now,
-                ExpiresUtc = DateTimeOffset.Now.AddMinutes(10)
-            };
-            await HttpContext.SignInAsync(Constants.AUTH, principal, authProperties);
+                return false;
+            }
         }
 
         private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)

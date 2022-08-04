@@ -6,11 +6,8 @@ global using ProTrendAPI.Models.User;
 using ProTrendAPI.Services;
 using ProTrendAPI.Settings;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore;
-using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 // Add services to the container.
 
@@ -32,12 +29,13 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddDistributedMemoryCache();
 
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
     options.ConsentCookie.IsEssential = true;
-    options.CheckConsentNeeded = context => false;
-    options.MinimumSameSitePolicy = SameSiteMode.Strict;
+    options.CheckConsentNeeded = context => true;
+    options.MinimumSameSitePolicy = SameSiteMode.None;
 });
 
 builder.Services.AddAuthentication(Constants.AUTH).AddCookie(Constants.AUTH, options =>
@@ -45,7 +43,9 @@ builder.Services.AddAuthentication(Constants.AUTH).AddCookie(Constants.AUTH, opt
     options.Cookie.Name = Constants.AUTH;
     options.Cookie.IsEssential = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.HttpOnly = true;
+    options.SlidingExpiration = true;
 });
 
 builder.Services.AddAuthorization(options =>
@@ -59,6 +59,9 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+} else
+{
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
@@ -66,8 +69,6 @@ app.UseHttpsRedirection();
 app.UseRouting();
 
 app.UseStaticFiles();
-
-app.UseMiddleware<AuthenticationMiddleware>();
 
 app.UseAuthentication();
 
