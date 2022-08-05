@@ -64,6 +64,11 @@ if (app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseCookiePolicy(new CookiePolicyOptions
+{
+    Secure = CookieSecurePolicy.Always
+});
+
 app.UseHttpsRedirection();
 
 app.UseRouting();

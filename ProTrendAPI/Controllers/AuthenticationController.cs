@@ -152,7 +152,7 @@ namespace ProTrendAPI.Controllers
             var loginOk = await CreateToken(result);
 
             if (loginOk)
-                return Ok(new { Success = true, Message = "Login successful" });
+                return Ok(new { Success = true, Message = "Login success" });
             return Ok(new { Success = false, Message = "Login failed" });
         }
 
