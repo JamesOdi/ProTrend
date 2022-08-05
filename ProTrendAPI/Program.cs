@@ -34,18 +34,18 @@ builder.Services.AddDistributedMemoryCache();
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
     options.ConsentCookie.IsEssential = true;
-    options.CheckConsentNeeded = context => true;
-    options.MinimumSameSitePolicy = SameSiteMode.None;
+    options.CheckConsentNeeded = context => false;
+    options.MinimumSameSitePolicy = SameSiteMode.Strict;
 });
 
 builder.Services.AddAuthentication(Constants.AUTH).AddCookie(Constants.AUTH, options =>
 {
     options.Cookie.Name = Constants.AUTH;
     options.Cookie.IsEssential = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SameSite = SameSiteMode.Strict;
     options.Cookie.HttpOnly = true;
     options.SlidingExpiration = true;
+    
 });
 
 builder.Services.AddAuthorization(options =>
@@ -66,7 +66,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseCookiePolicy(new CookiePolicyOptions
 {
-    Secure = CookieSecurePolicy.Always
+    Secure = CookieSecurePolicy.None,
+    HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always,
+    MinimumSameSitePolicy = SameSiteMode.Strict
 });
 
 app.UseHttpsRedirection();
