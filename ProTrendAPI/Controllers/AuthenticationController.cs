@@ -202,23 +202,15 @@ namespace ProTrendAPI.Controllers
                     disabled = true;
 
                 claims.Add(new Claim(Constants.Disabled, disabled.ToString()));
-                var identity = new ClaimsIdentity(claims, Constants.AUTH);
-                var principal = new ClaimsPrincipal(identity);
-
-                var authProperties = new AuthenticationProperties
-                {
-                    AllowRefresh = true,
-                    IsPersistent = true,
-                    IssuedUtc = DateTimeOffset.Now,
-                    ExpiresUtc = DateTimeOffset.Now.AddDays(1)
-                };
 
                 var cookie = new CookieOptions
                 {
                     Secure = true,
+                    IsEssential = true,
                     HttpOnly = true,
                     SameSite = SameSiteMode.None
                 };
+
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection(Constants.TokenLoc).Value));
                 var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
                 var token = new JwtSecurityToken(

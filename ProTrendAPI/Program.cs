@@ -39,13 +39,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDistributedMemoryCache();
 
-//builder.Services.Configure<CookiePolicyOptions>(options =>
-//{
-//    options.ConsentCookie.IsEssential = true;
-//    options.CheckConsentNeeded = context => false;
-//    options.MinimumSameSitePolicy = SameSiteMode.Strict;
-//    options.Secure = CookieSecurePolicy.Always;
-//});
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.CheckConsentNeeded = context => true;
+    options.MinimumSameSitePolicy = SameSiteMode.None;
+});
 
 //builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
 //{
@@ -67,14 +65,14 @@ builder.Services.AddDistributedMemoryCache();
 //        ValidateIssuer = false,
 //        ValidateAudience = false
 //    };
+////});
+//builder.Services.ConfigureApplicationCookie(options =>
+//{
+//    // Cookie settings
+//    options.Cookie.HttpOnly = true;
+//    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+//    options.SlidingExpiration = true;
 //});
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    // Cookie settings
-    options.Cookie.HttpOnly = true;
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
-    options.SlidingExpiration = true;
-});
 
 builder.Services.AddAuthorization(options =>
 {
@@ -92,12 +90,7 @@ if (app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseCookiePolicy(new CookiePolicyOptions
-{
-    Secure = CookieSecurePolicy.Always,
-    HttpOnly = HttpOnlyPolicy.Always,
-    MinimumSameSitePolicy = SameSiteMode.Strict
-});
+app.UseCookiePolicy();
 
 app.UseHttpsRedirection();
 
