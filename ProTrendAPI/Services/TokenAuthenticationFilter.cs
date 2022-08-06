@@ -15,7 +15,8 @@ namespace ProTrendAPI.Services
             //string token = string.Empty;
             //if (result) 
             //{
-            //    token = context.HttpContext.Response.Headers.First(x => x.Key == "Authorization").Value;
+            //    var response = 
+            //    token = context.HttpContext.Request.Headers.Getc;
             //    if (!tokenManager.VerifyToken(token))
             //    {
             //        result = false;

@@ -32,10 +32,10 @@ namespace ProTrendAPI.Controllers
         [Authorize]
         public ActionResult<DataResponse> GetMe()
         {
-            var profile = _userService.GetProfile();
-            if (profile == null)
-                return BadRequest(new { Success = false, Messgae = "User is not authorized" });
-            return Ok(new DataResponse { Data = profile });
+            //var profile = _userService.GetProfile();
+            //if (profile == null)
+            //    return BadRequest(new { Success = false, Messgae = "User is not authorized" });
+            return Ok(new DataResponse { Data = User.Identity.IsAuthenticated });
         }
 
         [HttpPost("register")]
@@ -134,7 +134,7 @@ namespace ProTrendAPI.Controllers
             var result = await _regService.InsertAsync(register);
             if (result == null)
                 return BadRequest(new { Success = false, Message = "Error when registering user!" });
-            var authenticated = CreateToken(register);
+            var authenticated = await CreateToken(register);
             if (authenticated)
                 return Ok(new { Success = true, Message = "OTP verified" });
             return BadRequest(new { Success = false, Message = "Verification failed" });
@@ -155,7 +155,7 @@ namespace ProTrendAPI.Controllers
                 return BadRequest(new { Success = false, Message = Constants.UserNotFound });
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
                 return BadRequest(new { Success = false, Message = Constants.WrongEmailPassword });
-            var loginOk = CreateToken(result);
+            var loginOk = await CreateToken(result);
 
             if (loginOk)
                 return Ok(new { Success = true, Message = "Login success!" });
@@ -182,7 +182,7 @@ namespace ProTrendAPI.Controllers
             return await _regService.FindRegisteredUserAsync(request);
         }
 
-        private bool CreateToken(Register user)
+        private async Task<bool> CreateToken(Register user)
         {
             try
             {
@@ -202,15 +202,32 @@ namespace ProTrendAPI.Controllers
                     disabled = true;
 
                 claims.Add(new Claim(Constants.Disabled, disabled.ToString()));
-                
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection(Constants.TokenLoc).Value));
-                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-                var token = new JwtSecurityToken(
-                    claims: claims,
-                    expires:DateTime.Now.AddHours(1),
-                    signingCredentials: creds);
-                var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-                Response.Cookies.Append(Constants.AUTH, jwt, new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Strict });
+                var identity = new ClaimsIdentity(claims, Constants.AUTH);
+                var principal = new ClaimsPrincipal(identity);
+
+                var authProperties = new AuthenticationProperties
+                {
+                    AllowRefresh = true,
+                    IsPersistent = true,
+                    IssuedUtc = DateTimeOffset.Now,
+                    ExpiresUtc = DateTimeOffset.Now.AddDays(1)
+                };
+
+                //var cookie = new CookieOptions
+                //{
+                //    Secure = true,
+                //    HttpOnly = true,
+                //    SameSite = SameSiteMode.None
+                //};
+                //var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection(Constants.TokenLoc).Value));
+                //var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+                //var token = new JwtSecurityToken(
+                //    claims: claims,
+                //    signingCredentials: creds);
+                //var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+                //Response.Cookies.Append(Constants.AUTH, jwt, cookie);
+
+                await HttpContext.SignInAsync(Constants.AUTH,principal,authProperties);
                 return true;
             }
             catch (Exception)
