@@ -8,6 +8,7 @@ using ProTrendAPI.Settings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.CookiePolicy;
 using System.Net;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,30 +34,18 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDistributedMemoryCache();
 
-builder.Services.AddHsts(options =>
-{
-    options.Preload = true;
-    options.IncludeSubDomains = true;
-    options.MaxAge = TimeSpan.FromDays(60);
-});
 
-builder.Services.AddHttpsRedirection(options =>
-{
-    options.RedirectStatusCode = (int)HttpStatusCode.PermanentRedirect;
-    options.HttpsPort = 443;
-});
+//builder.Services.Configure<CookiePolicyOptions>(options =>
+//{
+//    options.ConsentCookie.IsEssential = true;
+//    options.CheckConsentNeeded = context => false;
+//    options.MinimumSameSitePolicy = SameSiteMode.Strict;
+//    options.Secure = CookieSecurePolicy.Always;
+//});
 
-builder.Services.Configure<CookiePolicyOptions>(options =>
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
 {
-    options.ConsentCookie.IsEssential = true;
-    options.CheckConsentNeeded = context => false;
-    options.MinimumSameSitePolicy = SameSiteMode.Strict;
-    options.Secure = CookieSecurePolicy.Always;
-});
-
-builder.Services.AddAuthentication(Constants.AUTH).AddCookie(Constants.AUTH, options =>
-{
-    options.Cookie.Name = Constants.AUTH;
+    options.Cookie.Name = CookieAuthenticationDefaults.AuthenticationScheme;
     options.Cookie.IsEssential = true;
     options.Cookie.SameSite = SameSiteMode.Strict;
     options.Cookie.HttpOnly = true;

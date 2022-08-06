@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace ProTrendAPI.Controllers
 {
@@ -167,7 +168,7 @@ namespace ProTrendAPI.Controllers
         {
             try
             {
-                await HttpContext.SignOutAsync(Constants.AUTH);
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                 return Ok(new { Success = true, Message = "Logout successful" });
             }
             catch (Exception)
@@ -209,7 +210,8 @@ namespace ProTrendAPI.Controllers
                     AllowRefresh = true,
                     IsPersistent = true,
                     IssuedUtc = DateTimeOffset.Now,
-                    ExpiresUtc = DateTimeOffset.Now.AddDays(1)
+                    ExpiresUtc = DateTimeOffset.Now.AddDays(1),
+                    
                 };
 
                 //var resp = new HttpResponseMessage();
@@ -226,7 +228,7 @@ namespace ProTrendAPI.Controllers
                 //    signingCredentials: creds);
                 //var jwt = new JwtSecurityTokenHandler().WriteToken(token);
                 //Response.Cookies.Append(Constants.AUTH, jwt, cookie);
-                await HttpContext.SignInAsync(Constants.AUTH, principal, authProperties);
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
                 return true;
             }
             catch (Exception)
