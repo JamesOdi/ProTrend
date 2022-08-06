@@ -215,9 +215,10 @@ namespace ProTrendAPI.Controllers
                 var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
                 var token = new JwtSecurityToken(
                     claims: claims,
+                    expires:DateTime.Now.AddHours(1),
                     signingCredentials: creds);
                 var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-                Response.Cookies.Append(Constants.AUTH, jwt, cookie);
+                Response.Headers.Add("Authorization", "Bearer " + jwt);
                 return true;
             }
             catch (Exception)
