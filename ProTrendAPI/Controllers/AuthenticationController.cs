@@ -6,10 +6,10 @@ using MimeKit;
 using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 namespace ProTrendAPI.Controllers
 {
@@ -19,7 +19,7 @@ namespace ProTrendAPI.Controllers
     {
         private readonly RegistrationService _regService;
         private readonly IUserService _userService;
-        IConfiguration _configuration;
+        private readonly IConfiguration _configuration;
 
         public AuthenticationController(IConfiguration configuration, RegistrationService regService, IUserService userService)
         {
@@ -134,7 +134,7 @@ namespace ProTrendAPI.Controllers
             var result = await _regService.InsertAsync(register);
             if (result == null)
                 return BadRequest(new { Success = false, Message = "Error when registering user!" });
-            var authenticated = await CreateToken(register);
+            var authenticated = CreateToken(register);
             if (authenticated)
                 return Ok(new { Success = true, Message = "OTP verified" });
             return BadRequest(new { Success = false, Message = "Verification failed" });
@@ -155,7 +155,7 @@ namespace ProTrendAPI.Controllers
                 return BadRequest(new { Success = false, Message = Constants.UserNotFound });
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
                 return BadRequest(new { Success = false, Message = Constants.WrongEmailPassword });
-            var loginOk = await CreateToken(result);
+            var loginOk = CreateToken(result);
 
             if (loginOk)
                 return Ok(new { Success = true, Message = "Login success!" });
@@ -182,7 +182,7 @@ namespace ProTrendAPI.Controllers
             return await _regService.FindRegisteredUserAsync(request);
         }
 
-        private async Task<bool> CreateToken(Register user)
+        private bool CreateToken(Register user)
         {
             try
             {
@@ -204,7 +204,7 @@ namespace ProTrendAPI.Controllers
                 claims.Add(new Claim(Constants.Disabled, disabled.ToString()));
                 var identity = new ClaimsIdentity(claims, Constants.AUTH);
                 var principal = new ClaimsPrincipal(identity);
-                
+
                 var authProperties = new AuthenticationProperties
                 {
                     AllowRefresh = true,
@@ -213,21 +213,19 @@ namespace ProTrendAPI.Controllers
                     ExpiresUtc = DateTimeOffset.Now.AddDays(1)
                 };
 
-                //var resp = new HttpResponseMessage();
-                //var cookie = new CookieOptions
-                //{
-                //    Secure = true,
-                //    HttpOnly = true,
-                //    SameSite = SameSiteMode.None
-                //};
-                //var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection(Constants.TokenLoc).Value));
-                //var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-                //var token = new JwtSecurityToken(
-                //    claims: claims,
-                //    signingCredentials: creds);
-                //var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-                //Response.Cookies.Append(Constants.AUTH, jwt, cookie);
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
+                var cookie = new CookieOptions
+                {
+                    Secure = true,
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.None
+                };
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection(Constants.TokenLoc).Value));
+                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+                var token = new JwtSecurityToken(
+                    claims: claims,
+                    signingCredentials: creds);
+                var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+                Response.Cookies.Append(Constants.AUTH, jwt, cookie);
                 return true;
             }
             catch (Exception)

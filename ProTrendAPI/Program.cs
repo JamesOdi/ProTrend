@@ -9,6 +9,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.CookiePolicy;
 using System.Net;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,22 +39,41 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDistributedMemoryCache();
 
-builder.Services.Configure<CookiePolicyOptions>(options =>
-{
-    options.ConsentCookie.IsEssential = true;
-    options.CheckConsentNeeded = context => false;
-    options.MinimumSameSitePolicy = SameSiteMode.Strict;
-    options.Secure = CookieSecurePolicy.Always;
-});
+//builder.Services.Configure<CookiePolicyOptions>(options =>
+//{
+//    options.ConsentCookie.IsEssential = true;
+//    options.CheckConsentNeeded = context => false;
+//    options.MinimumSameSitePolicy = SameSiteMode.Strict;
+//    options.Secure = CookieSecurePolicy.Always;
+//});
 
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+//builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+//{
+//    options.Cookie.Name = CookieAuthenticationDefaults.AuthenticationScheme;
+//    options.Cookie.IsEssential = true;
+//    options.Cookie.SameSite = SameSiteMode.Strict;
+//    options.Cookie.HttpOnly = true;
+//    options.SlidingExpiration = true;
+//});
+
+//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+//{
+//    options.RequireHttpsMetadata = false;
+//    options.SaveToken = true;
+//    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+//    {
+//        ValidateIssuerSigningKey = true,
+//        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection(Constants.TokenLoc).Value)),
+//        ValidateIssuer = false,
+//        ValidateAudience = false
+//    };
+//});
+builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.Cookie.Name = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.Cookie.IsEssential = true;
-    options.Cookie.SameSite = SameSiteMode.Strict;
+    // Cookie settings
     options.Cookie.HttpOnly = true;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
     options.SlidingExpiration = true;
-    
 });
 
 builder.Services.AddAuthorization(options =>
