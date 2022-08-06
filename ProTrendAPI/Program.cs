@@ -37,18 +37,6 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDistributedMemoryCache();
-
-builder.Services.Configure<CookiePolicyOptions>(options =>
-{
-    options.CheckConsentNeeded = context => true;
-    options.MinimumSameSitePolicy = SameSiteMode.None;
-});
-
-builder.Services.AddAuthorization(options =>
-{
-    options.DefaultPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
-});
 
 var app = builder.Build();
 // Configure the HTTP request pipeline.
@@ -60,8 +48,6 @@ if (app.Environment.IsDevelopment())
 {
     app.UseHsts();
 }
-
-app.UseCookiePolicy();
 
 app.UseHttpsRedirection();
 

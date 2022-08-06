@@ -202,15 +202,7 @@ namespace ProTrendAPI.Controllers
                     disabled = true;
 
                 claims.Add(new Claim(Constants.Disabled, disabled.ToString()));
-
-                var cookie = new CookieOptions
-                {
-                    Secure = true,
-                    IsEssential = true,
-                    HttpOnly = true,
-                    SameSite = SameSiteMode.None
-                };
-
+                
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection(Constants.TokenLoc).Value));
                 var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
                 var token = new JwtSecurityToken(
@@ -218,7 +210,7 @@ namespace ProTrendAPI.Controllers
                     expires:DateTime.Now.AddHours(1),
                     signingCredentials: creds);
                 var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-                Response.Headers.Add("Authorization", "Bearer " + jwt);
+                Response.Cookies.Append(Constants.AUTH, jwt, new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Strict });
                 return true;
             }
             catch (Exception)
