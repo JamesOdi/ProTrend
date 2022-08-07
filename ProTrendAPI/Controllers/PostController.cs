@@ -2,12 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using ProTrendAPI.Models.Payments;
 using ProTrendAPI.Services;
+using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [TokenAuthenticationFilter]
+    [CookieAuthenticationFilter]
     public class PostController : ControllerBase
     {
         private readonly PostsService _postsService;

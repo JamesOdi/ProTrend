@@ -2,12 +2,13 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ProTrendAPI.Services;
+using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [CookieAuthenticationFilter]
     public class NotificationController : ControllerBase
     {
         private readonly NotificationService _notificationService;

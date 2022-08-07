@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProTrendAPI.Services;
 using Tag = ProTrendAPI.Models.Posts.Tag;
-using Microsoft.AspNetCore.Authorization;
+using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [CookieAuthenticationFilter]
     public class TagController : ControllerBase
     {
         private readonly TagsService _tagsService;

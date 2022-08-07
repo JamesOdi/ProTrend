@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProTrendAPI.Services;
+using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [CookieAuthenticationFilter]
     public class ProfileController : ControllerBase
     {
         private readonly ProfileService _profileService;

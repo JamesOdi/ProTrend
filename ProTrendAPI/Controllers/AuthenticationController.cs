@@ -7,9 +7,7 @@ using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Text;
+using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
 {
@@ -29,13 +27,10 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpGet]
-        [Authorize]
-        public ActionResult<DataResponse> GetMe()
+        [CookieAuthenticationFilter]
+        public ActionResult<Profile> GetMe()
         {
-            //var profile = _userService.GetProfile();
-            //if (profile == null)
-            //    return BadRequest(new { Success = false, Messgae = "User is not authorized" });
-            return Ok(new DataResponse { Data = User.Identity.IsAuthenticated });
+            return Ok(_userService.GetProfile());
         }
 
         [HttpPost("register")]
@@ -155,20 +150,22 @@ namespace ProTrendAPI.Controllers
                 return BadRequest(new { Success = false, Message = Constants.UserNotFound });
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
                 return BadRequest(new { Success = false, Message = Constants.WrongEmailPassword });
-            var loginOk = await CreateToken(result);
-
-            if (loginOk)
+            
+            
+            if (await CreateToken(result))
+            {
                 return Ok(new { Success = true, Message = "Login success!" });
-            return Ok(new { Success = false, Message = "Login failed!" });
+            }
+            return BadRequest(new { Success = false, Message = "Login failed!" });
         }
 
         [HttpPost("logout")]
-        [Authorize]
+        [CookieAuthenticationFilter]
         public async Task<ActionResult<object>> Logout()
         {
             try
             {
-                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                await HttpContext.SignOutAsync(Constants.AUTH);
                 return Ok(new { Success = true, Message = "Logout successful" });
             }
             catch (Exception)
@@ -213,21 +210,7 @@ namespace ProTrendAPI.Controllers
                     ExpiresUtc = DateTimeOffset.Now.AddDays(1)
                 };
 
-                //var cookie = new CookieOptions
-                //{
-                //    Secure = true,
-                //    HttpOnly = true,
-                //    SameSite = SameSiteMode.None
-                //};
-                //var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection(Constants.TokenLoc).Value));
-                //var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-                //var token = new JwtSecurityToken(
-                //    claims: claims,
-                //    signingCredentials: creds);
-                //var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-                //Response.Cookies.Append(Constants.AUTH, jwt, cookie);
-
-                await HttpContext.SignInAsync(Constants.AUTH,principal,authProperties);
+                await HttpContext.SignInAsync(Constants.AUTH, principal, authProperties);
                 return true;
             }
             catch (Exception)

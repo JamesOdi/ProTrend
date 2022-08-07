@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using PayStack.Net;
 using ProTrendAPI.Models.Payments;
 using ProTrendAPI.Services;
+using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [CookieAuthenticationFilter]
     public class PaymentController : ControllerBase
     {
         private PayStackApi PayStack { get; set; }
