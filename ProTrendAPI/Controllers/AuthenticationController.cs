@@ -209,7 +209,7 @@ namespace ProTrendAPI.Controllers
                     IssuedUtc = DateTimeOffset.Now,
                     ExpiresUtc = DateTimeOffset.Now.AddDays(1)
                 };
-
+                
                 await HttpContext.SignInAsync(Constants.AUTH, principal, authProperties);
                 return true;
             }
