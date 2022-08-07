@@ -32,6 +32,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAuthentication(Constants.AUTH).AddCookie(Constants.AUTH, options =>
 {
     options.Cookie.Name = Constants.AUTH;
+    options.Cookie.HttpOnly = true;
     options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
     options.SlidingExpiration = true;
 });
