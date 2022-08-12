@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using ProTrendAPI.Services;
+﻿using Microsoft.AspNetCore.Mvc;
 using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
@@ -9,13 +6,9 @@ namespace ProTrendAPI.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [CookieAuthenticationFilter]
-    public class NotificationController : ControllerBase
+    public class NotificationController : BaseController
     {
-        private readonly NotificationService _notificationService;
-        public NotificationController(NotificationService service)
-        {
-            _notificationService = service;
-        }
+        public NotificationController(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
         [HttpGet("get/{id}")]
         public async Task<ActionResult<List<Notification>>> GetNotifications(Guid id)
@@ -27,7 +20,7 @@ namespace ProTrendAPI.Controllers
         public async Task<IActionResult> SetNotificationViewed(Guid id)
         {
             await _notificationService.SetNotificationViewedAsync(id);
-            return Ok(new BasicResponse { Status = Constants.OK, Message = Constants.Success });
+            return Ok(new BasicResponse { Success = true, Message = Constants.Success });
         }
     }
 }

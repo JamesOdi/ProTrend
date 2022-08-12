@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProTrendAPI.Models.Payments;
-using ProTrendAPI.Services;
 using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
@@ -9,20 +8,10 @@ namespace ProTrendAPI.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [CookieAuthenticationFilter]
-    public class PostController : ControllerBase
+    public class PostController : BaseController
     {
-        private readonly PostsService _postsService;
-        private readonly IUserService _userService;
-        private readonly Profile? profile;
-        private readonly NotificationService _notificationService;
 
-        public PostController(PostsService service, NotificationService notificationService, IUserService userService)
-        {
-            _notificationService = notificationService;
-            _postsService = service;
-            _userService = userService;
-            profile = _userService.GetProfile();
-        }
+        public PostController(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
         [HttpGet("get/all")]
         public async Task<ActionResult<List<Post>>> GetPosts()
@@ -33,19 +22,23 @@ namespace ProTrendAPI.Controllers
         [HttpGet("get/promotions/all")]
         public async Task<ActionResult<List<Promotion>>> GetPromotions()
         {
-            return Ok(await _postsService.GetPromotionsAsync(profile));
+            return Ok(await _postsService.GetPromotionsAsync(_profile));
         }
 
         [HttpGet("get/support/profiles"), Authorize(Roles = Constants.Business)]
         public async Task<ActionResult<List<Profile>>> GetSupporters(Post post)
         {
-            return await _postsService.GetSupportersAsync(post);
+            return await _postsService.GetGiftersAsync(post);
         }
 
         [HttpPost("add/post")]
         public async Task<ActionResult<Post>> AddPost(Post upload)
         {
-            upload.ProfileId = profile.Id;
+            if (_profile == null)
+                return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is not Authorized" });
+            upload.ProfileId = _profile.Id;
+            upload.AcceptGift = false;
+            upload.Disabled = false;
             return Ok(await _postsService.AddPostAsync(upload));
         }
 
@@ -54,7 +47,7 @@ namespace ProTrendAPI.Controllers
         {
             var post = await _postsService.GetSinglePostAsync(id);
             if (post == null)
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.PostNotExist });
+                return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
             return Ok(post);
         }
 
@@ -74,14 +67,16 @@ namespace ProTrendAPI.Controllers
         public async Task<IActionResult> AddLike(Like like)
         {
             var post = await _postsService.GetSinglePostAsync(like.UploadId);
+            if (_profile == null)
+                return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is not Authorized" });
             if (post != null)
             {
-                like.SenderId = profile.Id;
+                like.SenderId = _profile.Id;
                 await _postsService.AddLikeAsync(like);
-                await _notificationService.LikeNotification(profile, post.ProfileId);
+                await _notificationService.LikeNotification(_profile, post.ProfileId);
                 return Ok(new BasicResponse { Message = Constants.Success });
             }
-            return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.PostNotExist });
+            return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
         }
 
         [HttpGet("get/{id}/like/count")]
@@ -96,13 +91,21 @@ namespace ProTrendAPI.Controllers
             var post = await _postsService.GetSinglePostAsync(comment.PostId);
             if (post != null)
             {
-                comment.UserId = profile.Id;
+                comment.UserId = _profile.Id;
                 comment.Identifier = comment.Id;
-                await _notificationService.CommentNotification(profile, post.ProfileId);
+                await _notificationService.CommentNotification(_profile, post.ProfileId);
                 var commentResult = await _postsService.InsertCommentAsync(comment);
                 return Ok(commentResult);
             }
-            return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.PostNotExist });
+            return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
+        }
+
+        [HttpGet("get/{id}/gifts")]
+        public async Task<ActionResult> GetAllGiftsOnPost(Guid id)
+        {
+            if (_profile == null)
+                return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is not Authorized" });
+            return Ok(await _postsService.GetAllGiftOnPostAsync(_profile.Identifier, id));
         }
 
         [HttpGet("get/{id}/comments")]
@@ -116,8 +119,8 @@ namespace ProTrendAPI.Controllers
         {
             var delete = await _postsService.DeletePostAsync(id);
             if (!delete)
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.PDError });
-            return Ok(new BasicResponse { Message = Constants.Success });
+                return BadRequest(new BasicResponse { Message = Constants.PDError });
+            return Ok(new BasicResponse { Message = "Post deleted" });
         }
     }
 }

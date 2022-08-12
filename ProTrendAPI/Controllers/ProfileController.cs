@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using ProTrendAPI.Services;
+﻿using Microsoft.AspNetCore.Mvc;
 using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
@@ -8,51 +6,40 @@ namespace ProTrendAPI.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [CookieAuthenticationFilter]
-    public class ProfileController : ControllerBase
+    public class ProfileController : BaseController
     {
-        private readonly ProfileService _profileService;
-        private readonly IUserService _userService;
-        private readonly NotificationService _notificationService;
-        private readonly PostsService _postsService;
-        public ProfileController(ProfileService profileService, PostsService postsService, NotificationService notificationService, IUserService userService)
-        {
-            _userService = userService;
-            _profileService = profileService;
-            _postsService = postsService;
-            _notificationService = notificationService;
-        }
+        public ProfileController(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
         [HttpGet("get/id/{id}")]
         public async Task<IActionResult> GetProfileById(Guid id)
         {
             var profile = await _profileService.GetProfileByIdAsync(id);
             if (profile == null)
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
+                return BadRequest(new BasicResponse { Message = Constants.UserNotFound });
             return Ok(profile);
         }
 
         [HttpPut("update/{id}")]
-        public async Task<ActionResult<Profile>> UpdateProfile(Guid id, [FromBody] Profile profile)
+        public async Task<ActionResult<Profile>> UpdateProfile([FromBody] Profile updateProfile)
         {
-            var result = await _profileService.UpdateProfile(id, profile);
+            var result = await _profileService.UpdateProfile(_profile, updateProfile);
             if (result == null)
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.UserNotFound });
+                return BadRequest(new BasicResponse { Message = "Update failed" });
             return Ok(result);
         }
 
         [HttpPost("follow/{id}")]
         public async Task<ActionResult<object>> Follow(Guid id)
         {
-            var profile = _userService.GetProfile();
-            var follow = await _profileService.Follow(profile, id);
-            await _notificationService.FollowNotification(profile,id);
+            var follow = await _profileService.Follow(_profile, id);
+            await _notificationService.FollowNotification(_profile, id);
             return Ok(follow);
         }
 
         [HttpDelete("unfollow/{id}")]
         public async Task<ActionResult<BasicResponse>> UnFollow(Guid id)
         {
-            return Ok(await _profileService.UnFollow(_userService.GetProfile(), id));
+            return Ok(await _profileService.UnFollow(_profile, id));
         }
 
         [HttpGet("get/followers/{id}")]
@@ -79,15 +66,14 @@ namespace ProTrendAPI.Controllers
             return Ok(await _profileService.GetFollowingCount(id));
         }
 
-        [HttpGet("get/total")]
-        public async Task<IActionResult> GetSupportTotal()
+        [HttpGet("get/gifts/total")]
+        public async Task<IActionResult> GetGiftTotal()
         {
-            var profile = _userService.GetProfile();
-            if (profile == null || profile.AccountType != Constants.Business)
+            if (_profile == null || _profile.AccountType != Constants.Business)
             {
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = "No support on non-business profiles" });
+                return BadRequest(new BasicResponse { Message = "No support on non-business profiles" });
             }
-            return Ok(new DataResponse { Data = await _postsService.GetTotalBalanceAsync(profile) });
+            return Ok(new DataResponse { Data = await _postsService.GetTotalGiftsAsync(_profile.Identifier) });
         }
     }
 }

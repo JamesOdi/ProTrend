@@ -34,6 +34,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
     options.HttpOnly = HttpOnlyPolicy.Always;
+    options.Secure = CookieSecurePolicy.Always;
 });
 
 builder.Services.AddAuthentication(Constants.AUTH).AddCookie(Constants.AUTH, options =>
@@ -51,7 +52,8 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-} else
+}
+else
 {
     app.UseHsts();
 }

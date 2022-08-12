@@ -8,8 +8,8 @@ namespace ProTrendAPI.Models.Payments
         public Guid Identifier { get; set; }
         [JsonPropertyName("profileid")]
         public Guid ProfileId { get; set; }
-        [JsonPropertyName("promotionid")]
-        public Guid PromotionId { get; set; }
+        [JsonPropertyName("itemid")]
+        public Guid ItemId { get; set; }
         [JsonPropertyName("amount")]
         public int Amount { get; set; }
         [JsonPropertyName("status")]

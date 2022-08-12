@@ -9,14 +9,16 @@ using ProTrendAPI.Settings;
 
 namespace ProTrendAPI.Services
 {
-    public class PostsService: BaseService
+    public class PostsService : BaseService
     {
         private readonly CategoriesService _categoryService;
-        private readonly ProfileService _profileService; 
+        private readonly ProfileService _profileService;
+        private readonly NotificationService _notificationService;
         public PostsService(IOptions<DBSettings> settings) : base(settings)
         {
             _categoryService = new CategoriesService(settings);
             _profileService = new ProfileService(settings);
+            _notificationService = new NotificationService(settings);
         }
 
         public async Task<List<Post>> GetAllPostsAsync()
@@ -32,76 +34,93 @@ namespace ProTrendAPI.Services
             return;
         }
 
-        public async Task<object> SupportAsync(Support support)
+        public async Task<bool> BuyGiftsAsync(Guid profileId, int count)
         {
-            var post = await GetSinglePostAsync(support.PostId);
-            if (post != null)
+            var gift = new Gift { ProfileId = profileId };
+            var gifts = Enumerable.Repeat(gift, count).ToList();
+            try
+            {
+                await _giftsCollection.InsertManyAsync(gifts);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public async Task<object> SendGiftToPostAsync(Post post, int count, Guid userId)
+        {
+            if (post != null && post.AcceptGift)
             {
                 var userProfile = await _profileService.GetProfileByIdAsync(post.ProfileId);
                 if (userProfile == null || userProfile.AccountType != Constants.Business)
                 {
-                    return new BasicResponse { Status = Constants.Error, Message = "Cannot support a non-business account" };
+                    return new BasicResponse { Message = "Cannot support a non-business account" };
                 }
-                support.Identifier = support.Id;
-                support.SenderId = userProfile.Identifier;
-                support.ReceiverId = post.ProfileId;
-                await _supportCollection.InsertOneAsync(support);
-            }
-            return new BasicResponse { Status = Constants.Error, Message = Constants.PostNotExist };
-        }
 
-        public async Task<List<Support>> GetAllSupportAsync(Profile profile)
-        {
-            return await _supportCollection.Find(Builders<Support>.Filter.Where(s => s.ReceiverId == profile.Identifier)).ToListAsync();
-        }
-
-        public async Task<List<Profile>> GetSupportersAsync(Post post)
-        {
-            var userProfile = await _profileService.GetProfileByIdAsync(post.ProfileId);
-            var supporters = await GetAllSupportAsync(userProfile);
-            var profiles = new List<Profile>();
-            foreach(var supporter in supporters)
-            {
-                if (supporter.PostId == post.Identifier)
+                var filter = Builders<Gift>.Filter.Eq(g => g.ProfileId, userId);
+                var gifts = await _giftsCollection.Find(filter).ToListAsync();
+                if (gifts.Count < 1 || count > gifts.Count)
                 {
-                    var profile = await _profileService.GetProfileByIdAsync(supporter.SenderId);
-                    if (profile != null)
-                        profiles.Add(profile);
+                    return new BasicResponse { Message = "Insufficient gifts" };
                 }
+
+                var updateBuilder = Builders<Gift>.Update;
+                var update = updateBuilder.Set(g => g.ProfileId, post.ProfileId);
+                update = update.Set(g => g.PostId, post.Identifier);
+                var updateResult = await _giftsCollection.UpdateManyAsync(filter, update);
+                if (updateResult.ModifiedCount < 0)
+                {
+                    return new ErrorDetails { StatusCode = 500, Message = "Internal Server Error" };
+                }
+                return new BasicResponse { Success = true, Message = "Gift sent" };
+            }
+            return new BasicResponse { Message = Constants.PostNotExist };
+        }
+
+        public async Task<List<Gift>> GetAllGiftAsync(Guid profileId)
+        {
+            return await _giftsCollection.Find(Builders<Gift>.Filter.Where(s => s.ProfileId == profileId && !s.Disabled)).ToListAsync();
+        }
+
+        public async Task<List<Gift>> GetAllGiftOnPostAsync(Guid profileId, Guid postId)
+        {
+            return await _giftsCollection.Find(Builders<Gift>.Filter.Where(s => s.ProfileId == profileId && s.PostId == postId)).ToListAsync();
+        }
+
+        public async Task<List<Profile>> GetGiftersAsync(Post post)
+        {
+            var profiles = new List<Profile>();
+            var giftNotifications = await _notificationService.GetGiftNotificationsByIdAsync(post.Identifier.ToString());
+            foreach (var notification in giftNotifications)
+            {
+                var sender = await _profileService.GetProfileByIdAsync(notification.SenderId.Value);
+                profiles.Add(sender);
             }
             return profiles;
         }
 
-        public async Task<int> GetTotalBalanceAsync(Profile profile)
+        public async Task<int> GetTotalGiftsAsync(Guid profileId)
         {
-            var support = await GetAllSupportAsync(profile);
-            var total = 0;
-            foreach(var s in support)
-            {
-                total += s.Amount;
-            }
-            return total;
+            var gifts = await GetAllGiftAsync(profileId);
+            return gifts.Count;
         }
 
-        public async Task<object?> RequestWithdrawalAsync(Profile profile, int total)
+        public async Task<bool> RequestWithdrawalAsync(Profile profile, int total)
         {
-            int balance = await GetTotalBalanceAsync(profile);
-            if (balance <= 1000 || balance - total <= 1000 || total <= 1000)
-            {
-                return null;
-            }
+            int balance = await GetTotalGiftsAsync(profile.Identifier);
+            if (balance < 1 || total < 1)
+                return false;
 
-            if (total > 0)
-            {
-                var support = new Support { Amount = -total, ReceiverId = profile.Identifier, Currency = "ngn", Time = DateTime.Now };
-                await _supportCollection.InsertOneAsync(support);
-                var companyBody = $"Reqest for withdrawal of {total} Naira from {profile.Email}";
-                SendMail("maryse.abshire24@ethereal.email", companyBody);
-                var senderBody = $"Your reqest for withdrawal of <b>{total} Naira</b> is being processed. Your withdrawal will be sent to you within <b>24hrs</b>. Thank you. <p>If you face any challenges please send an email to customer support with request ID {support.Identifier} and we will get back to you as soon as we can</p>";
-                SendMail(profile.Email, senderBody);
-                return Constants.Success;
-            }
-            return null;
+            await _giftsCollection.Find(g => !g.Disabled).Limit(total).ForEachAsync(g => g.Disabled = true);
+            var transaction = new Transaction { Amount = total, CreatedAt = DateTime.Now, ProfileId = profile.Identifier, Status = true, TrxRef = Generate().ToString() };
+            await _transactionCollection.InsertOneAsync(transaction);
+            var companyBody = $"Reqest for withdrawal of {total} Gifts from {profile.Email}";
+            SendMail("maryse.abshire24@ethereal.email", companyBody);
+            var senderBody = $"Your reqest for withdrawal of <b>{total} Gifts</b> is being processed. Your withdrawal will be sent to you within <b>24hrs</b>. Thank you. <p>If you face any challenges please send an email to customer support with request ID {transaction.Identifier} and we will get back to you as soon as we can</p>";
+            SendMail(profile.Email, senderBody);
+            return true;
         }
 
         private static void SendMail(string To, string Body)
@@ -120,15 +139,32 @@ namespace ProTrendAPI.Services
             smtp1.Disconnect(true);
         }
 
-        public async Task InsertTransactionAsync(Transaction transaction)
+        public async Task<bool> InsertTransactionAsync(Transaction transaction)
         {
-            await _transactionCollection.InsertOneAsync(transaction);
-            return;
+            try
+            {
+                await _transactionCollection.InsertOneAsync(transaction);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public async Task<Transaction> GetTransactionByRefAsync(string reference)
         {
             return await _transactionCollection.Find(Builders<Transaction>.Filter.Eq(t => t.TrxRef, reference)).SingleOrDefaultAsync();
+        }
+
+        public async Task<bool> AcceptGift(Guid id)
+        {
+            var filter = Builders<Post>.Filter.Eq(p => p.Identifier, id);
+            var update = Builders<Post>.Update.Set(p => p.AcceptGift, true);
+            var result = await _postsCollection.FindOneAndUpdateAsync(filter, update);
+            if (result != null)
+                return true;
+            return false;
         }
 
         public async Task<Transaction?> VerifyTransactionAsync(Transaction transaction)
@@ -195,7 +231,7 @@ namespace ProTrendAPI.Services
                 return null;
             return post;
         }
-        
+
         public async Task<List<Post>> GetUserPostsAsync(Guid userId)
         {
             return await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.ProfileId == userId && !p.Disabled)).SortBy(p => p.Time).ToListAsync();
@@ -217,6 +253,12 @@ namespace ProTrendAPI.Services
         public async Task<List<Post>> GetPostsInCategoryAsync(string category)
         {
             return await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.Category.Contains(category))).ToListAsync();
+        }
+
+        private static int Generate()
+        {
+            Random r = new((int)DateTime.Now.Ticks);
+            return r.Next(100000000, 999999999);
         }
     }
 }

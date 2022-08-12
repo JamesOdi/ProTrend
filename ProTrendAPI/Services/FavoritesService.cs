@@ -12,7 +12,7 @@ namespace ProTrendAPI.Services
         {
             favorite.UserId = profile.Identifier;
             await _favoriteCollection.InsertOneAsync(favorite);
-            return new BasicResponse { Status = Constants.OK, Message = Constants.Success };
+            return new BasicResponse { Success = true, Message = Constants.Success };
         }
 
         public async Task<List<Favorite>> GetFavoritesAsync(Profile profile)
@@ -34,7 +34,7 @@ namespace ProTrendAPI.Services
         {
             var filter = Builders<Favorite>.Filter.Where(f => f.PostId == post.Identifier && f.UserId == profile.Identifier);
             await _favoriteCollection.DeleteOneAsync(filter);
-            return new BasicResponse { Status = Constants.OK, Message = Constants.Success };
+            return new BasicResponse { Success = true, Message = Constants.Success };
         }
     }
 }

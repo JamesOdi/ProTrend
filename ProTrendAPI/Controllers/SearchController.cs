@@ -1,21 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using ProTrendAPI.Models.User;
+﻿using Microsoft.AspNetCore.Mvc;
 using ProTrendAPI.Services.Network;
-using ProTrendAPI.Services;
 
 namespace ProTrendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [CookieAuthenticationFilter]
-    public class SearchController : ControllerBase
+    public class SearchController : BaseController
     {
-        private readonly SearchService _searchService;
-        public SearchController(SearchService service)
-        {
-            _searchService = service;
-        }
+        public SearchController(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
         [HttpGet("get/{search}")]
         public async Task<ActionResult<object>> GetSearchResults(string search)

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ProTrendAPI.Services;
 using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
@@ -7,20 +6,17 @@ namespace ProTrendAPI.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [CookieAuthenticationFilter]
-    public class CategoriesController : ControllerBase
+    public class CategoriesController : BaseController
     {
-        private readonly CategoriesService _categoriesService;
-        public CategoriesController(CategoriesService service)
-        {
-            _categoriesService = service;
-        }
+        
+        public CategoriesController(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
         [HttpGet("get/{name}/1")]
         public async Task<ActionResult<Category>> GetCategory(string name)
         {
             var category = await _categoriesService.GetSingleCategory(name);
             if (category == null)
-                return BadRequest(new BasicResponse { Status = Constants.Error, Message = Constants.CatNotExist });
+                return BadRequest(new BasicResponse { Message = Constants.CatNotExist });
             return Ok(category);
         }
 

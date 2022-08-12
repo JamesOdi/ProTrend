@@ -4,7 +4,7 @@ namespace ProTrendAPI.Models.Response
     public class BasicResponse
     {
         [JsonPropertyName("status")]
-        public string Status { get; set; } = Constants.OK;
+        public bool Success { get; set; } = false;
         [JsonPropertyName("message")]
         public string Message { get; set; } = null!;
     }

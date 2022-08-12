@@ -6,31 +6,23 @@ using MimeKit;
 using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthenticationController : ControllerBase
+    public class AuthenticationController : BaseController
     {
-        private readonly RegistrationService _regService;
-        private readonly IUserService _userService;
-        private readonly IConfiguration _configuration;
-
-        public AuthenticationController(IConfiguration configuration, RegistrationService regService, IUserService userService)
-        {
-            _regService = regService;
-            _userService = userService;
-            _configuration = configuration;
-        }
+        public AuthenticationController(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
         [HttpGet]
         [CookieAuthenticationFilter]
         public ActionResult<Profile> GetMe()
         {
-            return Ok(_userService.GetProfile());
+            if (_profile == null)
+                return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is UnAuthorized" });
+            return Ok(_profile);
         }
 
         [HttpPost("register")]
@@ -150,8 +142,7 @@ namespace ProTrendAPI.Controllers
                 return BadRequest(new { Success = false, Message = Constants.UserNotFound });
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
                 return BadRequest(new { Success = false, Message = Constants.WrongEmailPassword });
-            
-            
+
             if (await CreateToken(result))
             {
                 return Ok(new { Success = true, Message = "Login success!" });
@@ -209,7 +200,7 @@ namespace ProTrendAPI.Controllers
                     IssuedUtc = DateTimeOffset.Now,
                     ExpiresUtc = DateTimeOffset.Now.AddDays(1)
                 };
-                
+
                 await HttpContext.SignInAsync(Constants.AUTH, principal, authProperties);
                 return true;
             }

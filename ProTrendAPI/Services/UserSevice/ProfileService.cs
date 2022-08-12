@@ -14,19 +14,13 @@ namespace ProTrendAPI.Services.UserSevice
             return await _profileCollection.Find(Builders<Profile>.Filter.Where(profile => profile.Identifier == id && !profile.Disabled)).FirstOrDefaultAsync();
         }
 
-        public async Task<Profile?> UpdateProfile(Guid id, Profile profile)
+        public async Task<Profile?> UpdateProfile(Profile user, Profile profile)
         {
-            var user = await GetProfileByIdAsync(id);
-            if (user == null)
-            {
-                return null;
-            }
-
             user.UserName = profile.UserName;
             user.Country = profile.Country;
             user.BackgroundImageUrl = profile.BackgroundImageUrl;
 
-            var filter = Builders<Profile>.Filter.Eq(p => p.Identifier, id);
+            var filter = Builders<Profile>.Filter.Eq(p => p.Identifier, user.Identifier);
             var updateQueryResult = await _profileCollection.ReplaceOneAsync(filter, user);
             if (updateQueryResult == null)
                 return null;
@@ -41,9 +35,9 @@ namespace ProTrendAPI.Services.UserSevice
                 if (follow != null)
                     return Constants.ErrorFollowing;
                 await _followingsCollection.InsertOneAsync(new Followings { SenderId = profile.Identifier, ReceiverId = receiver });
-                return new BasicResponse { Status = Constants.OK, Message = Constants.Success };
+                return new BasicResponse { Success = true, Message = Constants.Success };
             }
-            return new BasicResponse { Status = Constants.Error, Message = Constants.ErrorFollowing};
+            return new BasicResponse { Message = Constants.ErrorFollowing};
         }
 
         public async Task<BasicResponse> UnFollow(Profile profile, Guid receiver)
@@ -51,9 +45,9 @@ namespace ProTrendAPI.Services.UserSevice
             if (profile != null)
             {
                 await _followingsCollection.DeleteOneAsync(Builders<Followings>.Filter.Where(f => f.SenderId == profile.Identifier && f.ReceiverId == receiver && !profile.Disabled));
-                return new BasicResponse { Status = Constants.OK, Message = Constants.Success };
+                return new BasicResponse { Success = true, Message = Constants.Success };
             }
-            return new BasicResponse { Status = Constants.Error, Message = Constants.ErrorUnFollowing };
+            return new BasicResponse {Message = Constants.ErrorUnFollowing };
         }
 
         public async Task<List<Profile>> GetFollowersAsync(Guid id)
