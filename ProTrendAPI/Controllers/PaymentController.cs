@@ -5,7 +5,7 @@ using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/payment")]
     [ApiController]
     [CookieAuthenticationFilter]
     public class PaymentController : BaseController
@@ -13,7 +13,7 @@ namespace ProTrendAPI.Controllers
         private PayStackApi PayStack { get; set; }
         private readonly string token;
 
-        public PaymentController(IServiceProvider serviceProvider, IConfiguration configuration):base(serviceProvider)
+        public PaymentController(IServiceProvider serviceProvider, IConfiguration configuration) : base(serviceProvider)
         {
             token = configuration["Payment:PaystackSK"];
             PayStack = new(token);
@@ -235,8 +235,9 @@ namespace ProTrendAPI.Controllers
                 var profile = _userService.GetProfile();
                 if (verifyStatus != null && verifyStatus.Status && profile != null)
                 {
-                    await _postsService.BuyGiftsAsync(profile.Identifier, count);
-                    return Ok(new BasicResponse { Success = true, Message = response.Message });
+                    var giftsBought = await _postsService.BuyGiftsAsync(profile.Identifier, count);
+                    if (giftsBought)
+                        return Ok(new BasicResponse { Success = true, Message = response.Message });
                 }
             }
             return BadRequest(new BasicResponse { Message = response.Message });

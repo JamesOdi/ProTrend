@@ -4,7 +4,7 @@ using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/tag")]
     [ApiController]
     [CookieAuthenticationFilter]
     public class TagController : BaseController

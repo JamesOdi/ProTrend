@@ -3,7 +3,7 @@ using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/search")]
     [ApiController]
     [CookieAuthenticationFilter]
     public class SearchController : BaseController

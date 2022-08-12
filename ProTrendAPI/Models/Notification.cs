@@ -9,7 +9,7 @@ namespace ProTrendAPI.Models
         [JsonPropertyName("receiverid")]
         public Guid ReceiverId { get; set; }
         [JsonPropertyName("senderid")]
-        public Guid? SenderId { get; set; } = null;
+        public Guid SenderId { get; set; } = Guid.Empty;
         [JsonPropertyName("message")]
         public string Message { get; set; } = string.Empty;
         [JsonPropertyName("viewed")]

@@ -5,12 +5,11 @@ using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/post")]
     [ApiController]
     [CookieAuthenticationFilter]
     public class PostController : BaseController
     {
-
         public PostController(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
         [HttpGet("get/all")]

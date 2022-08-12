@@ -3,7 +3,7 @@ using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/profile")]
     [ApiController]
     [CookieAuthenticationFilter]
     public class ProfileController : BaseController

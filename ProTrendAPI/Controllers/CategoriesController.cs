@@ -3,7 +3,7 @@ using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/category")]
     [ApiController]
     [CookieAuthenticationFilter]
     public class CategoriesController : BaseController
@@ -20,7 +20,7 @@ namespace ProTrendAPI.Controllers
             return Ok(category);
         }
 
-        [HttpPost("add")]
+        [HttpPost("add/{name}")]
         public async Task<ActionResult<Category>> AddCategory(string name)
         {
             return Ok(await _categoriesService.AddCategoryAsync(name));

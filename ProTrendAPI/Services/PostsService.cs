@@ -3,8 +3,6 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using MongoDB.Driver;
 using ProTrendAPI.Models.Payments;
-using ProTrendAPI.Models.Posts;
-using ProTrendAPI.Models.User;
 using ProTrendAPI.Settings;
 
 namespace ProTrendAPI.Services
@@ -14,6 +12,7 @@ namespace ProTrendAPI.Services
         private readonly CategoriesService _categoryService;
         private readonly ProfileService _profileService;
         private readonly NotificationService _notificationService;
+
         public PostsService(IOptions<DBSettings> settings) : base(settings)
         {
             _categoryService = new CategoriesService(settings);
@@ -36,7 +35,8 @@ namespace ProTrendAPI.Services
 
         public async Task<bool> BuyGiftsAsync(Guid profileId, int count)
         {
-            var gift = new Gift { ProfileId = profileId };
+            var gift = new Gift { ProfileId = profileId, Disabled = false, PostId = Guid.Empty };
+            gift.Identifier = gift.Id;
             var gifts = Enumerable.Repeat(gift, count).ToList();
             try
             {
@@ -95,7 +95,7 @@ namespace ProTrendAPI.Services
             var giftNotifications = await _notificationService.GetGiftNotificationsByIdAsync(post.Identifier.ToString());
             foreach (var notification in giftNotifications)
             {
-                var sender = await _profileService.GetProfileByIdAsync(notification.SenderId.Value);
+                var sender = await _profileService.GetProfileByIdAsync(notification.SenderId);
                 profiles.Add(sender);
             }
             return profiles;

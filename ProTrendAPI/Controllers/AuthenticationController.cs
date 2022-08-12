@@ -10,7 +10,7 @@ using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthenticationController : BaseController
     {
@@ -127,7 +127,7 @@ namespace ProTrendAPI.Controllers
             return BadRequest(new { Success = false, Message = "Verification failed" });
         }
 
-        [HttpPost("/auth/login")]
+        [HttpPost("login")]
         [AllowAnonymous]
         public async Task<ActionResult<object>> Login(Login login)
         {
