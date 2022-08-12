@@ -42,6 +42,7 @@ builder.Services.AddAuthentication(Constants.AUTH).AddCookie(Constants.AUTH, opt
     options.Cookie.Name = Constants.AUTH;
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
     options.SlidingExpiration = true;
 });
@@ -61,7 +62,8 @@ else
 app.UseCookiePolicy(new CookiePolicyOptions
 {
     MinimumSameSitePolicy = SameSiteMode.Strict,
-    HttpOnly = HttpOnlyPolicy.Always
+    HttpOnly = HttpOnlyPolicy.Always,
+    Secure = CookieSecurePolicy.Always
 });
 
 app.UseHttpsRedirection();
