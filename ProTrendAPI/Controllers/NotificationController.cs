@@ -19,8 +19,10 @@ namespace ProTrendAPI.Controllers
         [HttpPut("set/viewed/{id}")]
         public async Task<IActionResult> SetNotificationViewed(Guid id)
         {
-            await _notificationService.SetNotificationViewedAsync(id);
-            return Ok(new BasicResponse { Success = true, Message = Constants.Success });
+            var resultOk = await _notificationService.SetNotificationViewedAsync(id);
+            if (resultOk)
+                return Ok(new BasicResponse { Success = true, Message = "Notification sent" });
+            return BadRequest(new BasicResponse { Message = "Notification not sent" });
         }
     }
 }

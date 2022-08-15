@@ -31,15 +31,22 @@ namespace ProTrendAPI.Controllers
         [HttpPost("follow/{id}")]
         public async Task<ActionResult<object>> Follow(Guid id)
         {
-            var follow = await _profileService.Follow(_profile, id);
-            await _notificationService.FollowNotification(_profile, id);
-            return Ok(follow);
+            var followOk = await _profileService.Follow(_profile, id);
+            if (followOk)
+                return BadRequest(new BasicResponse { Message = "Error following" });
+            var resultOk = await _notificationService.FollowNotification(_profile, id);
+            if (resultOk)
+                return Ok(new BasicResponse { Success = true, Message = "Follow notification not sent" });
+            return BadRequest(new BasicResponse { Message = "Follow failed" });
         }
 
         [HttpDelete("unfollow/{id}")]
         public async Task<ActionResult<BasicResponse>> UnFollow(Guid id)
         {
-            return Ok(await _profileService.UnFollow(_profile, id));
+            var resultOk = await _profileService.UnFollow(_profile, id);
+            if (resultOk)
+                return Ok(new BasicResponse { Success = true, Message = "Unfollow" });
+            return BadRequest(new BasicResponse { Message = "Unfollow failed" });
         }
 
         [HttpGet("get/followers/{id}")]
@@ -69,9 +76,9 @@ namespace ProTrendAPI.Controllers
         [HttpGet("get/gifts/total")]
         public async Task<IActionResult> GetGiftTotal()
         {
-            if (_profile == null || _profile.AccountType != Constants.Business)
+            if (_profile == null)
             {
-                return BadRequest(new BasicResponse { Message = "No support on non-business profiles" });
+                return BadRequest(new BasicResponse { Message = "Unauthorized" });
             }
             return Ok(new DataResponse { Data = await _postsService.GetTotalGiftsAsync(_profile.Identifier) });
         }

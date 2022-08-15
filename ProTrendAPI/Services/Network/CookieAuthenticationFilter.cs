@@ -16,7 +16,7 @@ namespace ProTrendAPI.Services.Network
 
             if (!result)
             {
-                context.ModelState.AddModelError("UnnAuthorized", "You are not Authorized");
+                context.ModelState.AddModelError("UnAuthorized", "User is Unauthorized");
                 context.Result = new UnauthorizedObjectResult(context.ModelState);
             }
         }

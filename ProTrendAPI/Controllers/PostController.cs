@@ -24,17 +24,17 @@ namespace ProTrendAPI.Controllers
             return Ok(await _postsService.GetPromotionsAsync(_profile));
         }
 
-        [HttpGet("get/support/profiles"), Authorize(Roles = Constants.Business)]
-        public async Task<ActionResult<List<Profile>>> GetSupporters(Post post)
+        [HttpGet("get/{id}/gift/profiles")]
+        public async Task<ActionResult<List<Profile>>> GetGifters(Guid id)
         {
-            return await _postsService.GetGiftersAsync(post);
+            return await _postsService.GetGiftersAsync(id);
         }
 
         [HttpPost("add/post")]
         public async Task<ActionResult<Post>> AddPost(Post upload)
         {
             if (_profile == null)
-                return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is not Authorized" });
+                return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is Unauthorized" });
             upload.ProfileId = _profile.Id;
             upload.AcceptGift = false;
             upload.Disabled = false;
@@ -66,14 +66,12 @@ namespace ProTrendAPI.Controllers
         public async Task<IActionResult> AddLike(Like like)
         {
             var post = await _postsService.GetSinglePostAsync(like.UploadId);
-            if (_profile == null)
-                return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is not Authorized" });
             if (post != null)
             {
                 like.SenderId = _profile.Id;
                 await _postsService.AddLikeAsync(like);
                 await _notificationService.LikeNotification(_profile, post.ProfileId);
-                return Ok(new BasicResponse { Message = Constants.Success });
+                return Ok(new BasicResponse { Success = true, Message = Constants.Success });
             }
             return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
         }
@@ -102,9 +100,7 @@ namespace ProTrendAPI.Controllers
         [HttpGet("get/{id}/gifts")]
         public async Task<ActionResult> GetAllGiftsOnPost(Guid id)
         {
-            if (_profile == null)
-                return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is not Authorized" });
-            return Ok(await _postsService.GetAllGiftOnPostAsync(_profile.Identifier, id));
+            return Ok(await _postsService.GetAllGiftOnPostAsync(id));
         }
 
         [HttpGet("get/{id}/comments")]
@@ -119,7 +115,7 @@ namespace ProTrendAPI.Controllers
             var delete = await _postsService.DeletePostAsync(id);
             if (!delete)
                 return BadRequest(new BasicResponse { Message = Constants.PDError });
-            return Ok(new BasicResponse { Message = "Post deleted" });
+            return Ok(new BasicResponse { Success = true, Message = "Post deleted" });
         }
     }
 }

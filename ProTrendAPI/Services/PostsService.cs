@@ -25,19 +25,24 @@ namespace ProTrendAPI.Services
             return await _postsCollection.Find(Builders<Post>.Filter.Where(p => !p.Disabled)).ToListAsync();
         }
 
-        public async Task PromoteAsync(Profile profile, Promotion promotion)
+        public async Task<bool> PromoteAsync(Profile profile, Promotion promotion)
         {
             promotion.Identifier = promotion.Id;
             promotion.ProfileId = profile.Identifier;
-            await _promotionCollection.InsertOneAsync(promotion);
-            return;
+            try
+            {
+                await _promotionCollection.InsertOneAsync(promotion);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public async Task<bool> BuyGiftsAsync(Guid profileId, int count)
         {
-            var gift = new Gift { ProfileId = profileId, Disabled = false, PostId = Guid.Empty };
-            gift.Identifier = gift.Id;
-            var gifts = Enumerable.Repeat(gift, count).ToList();
+            var gifts = Enumerable.Repeat(new Gift { Id = null, ProfileId = profileId, Disabled = false }, count);
             try
             {
                 await _giftsCollection.InsertManyAsync(gifts);
@@ -49,54 +54,46 @@ namespace ProTrendAPI.Services
             }
         }
 
-        public async Task<object> SendGiftToPostAsync(Post post, int count, Guid userId)
+        public async Task<long> SendGiftToPostAsync(Post post, int count, Guid userId)
         {
             if (post != null && post.AcceptGift)
             {
-                var userProfile = await _profileService.GetProfileByIdAsync(post.ProfileId);
-                if (userProfile == null || userProfile.AccountType != Constants.Business)
-                {
-                    return new BasicResponse { Message = "Cannot support a non-business account" };
-                }
-
-                var filter = Builders<Gift>.Filter.Eq(g => g.ProfileId, userId);
+                var filter = Builders<Gift>.Filter.Where(g => g.ProfileId == userId && !g.Disabled);
                 var gifts = await _giftsCollection.Find(filter).ToListAsync();
-                if (gifts.Count < 1 || count > gifts.Count)
+                long updateResult = 0;
+                for (int i = 0; i < count; i++)
                 {
-                    return new BasicResponse { Message = "Insufficient gifts" };
+                    var updateBuilder = Builders<Gift>.Update;
+                    var update = updateBuilder.Set(g => g.ProfileId, post.ProfileId).Set(g => g.PostId, post.Identifier);
+                    var updateOne = await _giftsCollection.UpdateOneAsync(filter, update);
+                    updateResult += updateOne.ModifiedCount;
                 }
-
-                var updateBuilder = Builders<Gift>.Update;
-                var update = updateBuilder.Set(g => g.ProfileId, post.ProfileId);
-                update = update.Set(g => g.PostId, post.Identifier);
-                var updateResult = await _giftsCollection.UpdateManyAsync(filter, update);
-                if (updateResult.ModifiedCount < 0)
-                {
-                    return new ErrorDetails { StatusCode = 500, Message = "Internal Server Error" };
-                }
-                return new BasicResponse { Success = true, Message = "Gift sent" };
+                return updateResult;
             }
-            return new BasicResponse { Message = Constants.PostNotExist };
+            return 0;
         }
 
         public async Task<List<Gift>> GetAllGiftAsync(Guid profileId)
         {
-            return await _giftsCollection.Find(Builders<Gift>.Filter.Where(s => s.ProfileId == profileId && !s.Disabled)).ToListAsync();
+            var filter = Builders<Gift>.Filter.Where(s => s.ProfileId == profileId && s.Disabled == false);
+            var gifts = await _giftsCollection.Find(filter).ToListAsync();
+            return gifts;
         }
 
-        public async Task<List<Gift>> GetAllGiftOnPostAsync(Guid profileId, Guid postId)
+        public async Task<List<Gift>> GetAllGiftOnPostAsync(Guid postId)
         {
-            return await _giftsCollection.Find(Builders<Gift>.Filter.Where(s => s.ProfileId == profileId && s.PostId == postId)).ToListAsync();
+            return await _giftsCollection.Find(Builders<Gift>.Filter.Where(s => s.PostId == postId)).ToListAsync();
         }
 
-        public async Task<List<Profile>> GetGiftersAsync(Post post)
+        public async Task<List<Profile>> GetGiftersAsync(Guid id)
         {
             var profiles = new List<Profile>();
-            var giftNotifications = await _notificationService.GetGiftNotificationsByIdAsync(post.Identifier.ToString());
+            var giftNotifications = await _notificationService.GetGiftNotificationsByIdAsync(id.ToString());
             foreach (var notification in giftNotifications)
             {
                 var sender = await _profileService.GetProfileByIdAsync(notification.SenderId);
-                profiles.Add(sender);
+                if (profiles.Find(p => p.Identifier == sender.Identifier) == null)
+                    profiles.Add(sender);
             }
             return profiles;
         }

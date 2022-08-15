@@ -1,9 +1,13 @@
-﻿namespace ProTrendAPI.Models.Payments
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
+namespace ProTrendAPI.Models.Payments
 {
+    [BsonIgnoreExtraElements]
     public class Gift
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public Guid Identifier { get; set; }
+        [BsonIgnore]
+        public ObjectId? Id { get; set; } = null;
         public Guid ProfileId { get; set; }
         public Guid PostId { get; set; } = Guid.Empty;
         public bool Disabled = false;

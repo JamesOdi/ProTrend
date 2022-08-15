@@ -1,21 +1,28 @@
 ﻿using MongoDB.Driver;
 using Microsoft.Extensions.Options;
 using ProTrendAPI.Settings;
-using ProTrendAPI.Models.User;
 
 namespace ProTrendAPI.Services.UserSevice
 {
     public class ProfileService : BaseService
     {
-        public ProfileService(IOptions<DBSettings> settings) : base(settings) {}
+        public ProfileService(IOptions<DBSettings> settings) : base(settings) { }
 
         public async Task<Profile?> GetProfileByIdAsync(Guid id)
         {
             return await _profileCollection.Find(Builders<Profile>.Filter.Where(profile => profile.Identifier == id && !profile.Disabled)).FirstOrDefaultAsync();
         }
 
+        public async Task<Profile?> GetProfileByNameAsync(string name)
+        {
+            return await _profileCollection.Find(Builders<Profile>.Filter.Where(profile => profile.UserName == name && !profile.Disabled)).FirstOrDefaultAsync();
+        }
+
         public async Task<Profile?> UpdateProfile(Profile user, Profile profile)
         {
+            var profileName = await GetProfileByNameAsync(profile.UserName);
+            if (profileName != null)
+                return null;
             user.UserName = profile.UserName;
             user.Country = profile.Country;
             user.BackgroundImageUrl = profile.BackgroundImageUrl;
@@ -27,33 +34,40 @@ namespace ProTrendAPI.Services.UserSevice
             return user;
         }
 
-        public async Task<object> Follow(Profile profile, Guid receiver)
+        public async Task<bool> Follow(Profile profile, Guid receiver)
         {
             if (profile != null)
             {
                 var follow = await _followingsCollection.Find(follow => follow.SenderId == profile.Identifier && follow.ReceiverId == receiver && !profile.Disabled).FirstOrDefaultAsync();
                 if (follow != null)
-                    return Constants.ErrorFollowing;
-                await _followingsCollection.InsertOneAsync(new Followings { SenderId = profile.Identifier, ReceiverId = receiver });
-                return new BasicResponse { Success = true, Message = Constants.Success };
+                    return false;
+                try
+                {
+                    await _followingsCollection.InsertOneAsync(new Followings { SenderId = profile.Identifier, ReceiverId = receiver });
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
             }
-            return new BasicResponse { Message = Constants.ErrorFollowing};
+            return false;
         }
 
-        public async Task<BasicResponse> UnFollow(Profile profile, Guid receiver)
+        public async Task<bool> UnFollow(Profile profile, Guid receiver)
         {
             if (profile != null)
             {
-                await _followingsCollection.DeleteOneAsync(Builders<Followings>.Filter.Where(f => f.SenderId == profile.Identifier && f.ReceiverId == receiver && !profile.Disabled));
-                return new BasicResponse { Success = true, Message = Constants.Success };
+                var result = await _followingsCollection.DeleteOneAsync(Builders<Followings>.Filter.Where(f => f.SenderId == profile.Identifier && f.ReceiverId == receiver && !profile.Disabled));
+                return result.DeletedCount > 0;
             }
-            return new BasicResponse {Message = Constants.ErrorUnFollowing };
+            return false;
         }
 
         public async Task<List<Profile>> GetFollowersAsync(Guid id)
         {
             var followers = await _followingsCollection.Find(f => f.ReceiverId == id).ToListAsync();
-            
+
             var followerProfiles = new List<Profile>();
             foreach (var follower in followers)
             {

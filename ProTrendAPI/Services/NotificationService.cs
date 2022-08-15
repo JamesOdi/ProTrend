@@ -1,14 +1,12 @@
 ﻿using Microsoft.Extensions.Options;
-using ProTrendAPI.Models.User;
 using ProTrendAPI.Settings;
 using MongoDB.Driver;
-using ProTrendAPI.Models.Payments;
 
 namespace ProTrendAPI.Services
 {
-    public class NotificationService: BaseService
+    public class NotificationService : BaseService
     {
-        public NotificationService(IOptions<DBSettings> options):base(options) {}
+        public NotificationService(IOptions<DBSettings> options) : base(options) { }
 
         public async Task ChatNotification(Profile sender, Guid receiverId)
         {
@@ -17,11 +15,18 @@ namespace ProTrendAPI.Services
             return;
         }
 
-        public async Task FollowNotification(Profile sender, Guid receiverId)
+        public async Task<bool> FollowNotification(Profile sender, Guid receiverId)
         {
-            var message = sender.UserName + Constants.StartedFollowing;
-            await _notificationsCollection.InsertOneAsync(Notification(sender.Identifier, receiverId, message));
-            return;
+            try
+            {
+                var message = sender.UserName + Constants.StartedFollowing;
+                await _notificationsCollection.InsertOneAsync(Notification(sender.Identifier, receiverId, message));
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public async Task LikeNotification(Profile sender, Guid receiverId)
@@ -45,11 +50,18 @@ namespace ProTrendAPI.Services
             return;
         }
 
-        public async Task SendGiftNotification(Profile sender, Post post)
+        public async Task<bool> SendGiftNotification(Profile sender, Post post, long count)
         {
-            var message = sender.UserName + " sent a gift to your post: " + post.Identifier;
-            await _notificationsCollection.InsertOneAsync(Notification(sender.Identifier, post.ProfileId, message));
-            return;
+            try
+            {
+                var message = sender.UserName + $" sent {count} gift to your post: " + post.Identifier;
+                await _notificationsCollection.InsertOneAsync(Notification(sender.Identifier, post.ProfileId, message));
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public async Task<List<Notification>> GetNotificationsAsync(Guid id)
@@ -67,13 +79,13 @@ namespace ProTrendAPI.Services
             return await _notificationsCollection.Find(Builders<Notification>.Filter.Where(n => n.Message.Contains(id))).ToListAsync();
         }
 
-        public async Task SetNotificationViewedAsync(Guid id)
+        public async Task<bool> SetNotificationViewedAsync(Guid id)
         {
             var filter = Builders<Notification>.Filter.Eq(n => n.Identifier, id);
             var notification = await GetNotificationByIdAsync(id);
             notification.Viewed = true;
-            await _notificationsCollection.ReplaceOneAsync(filter, notification);
-            return;
+            var result = await _notificationsCollection.ReplaceOneAsync(filter, notification);
+            return result.ModifiedCount > 0;
         }
 
         private static Notification Notification(Guid senderId, Guid receiverId, string message)
