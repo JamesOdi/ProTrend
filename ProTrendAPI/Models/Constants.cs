@@ -34,6 +34,6 @@
         public const string AccountDisabled = "Account disabled!";
         public const string Business = "business";
         public const string CORS = "ProTrendCors";
-        public const string AUTH = "ProTrendAuth";
+        public const string AUTH = "Authorization";
     }
 }

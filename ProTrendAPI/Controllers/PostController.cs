@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ProTrendAPI.Models.Payments;
 using ProTrendAPI.Services.Network;
 
@@ -12,13 +11,13 @@ namespace ProTrendAPI.Controllers
     {
         public PostController(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
-        [HttpGet("get/all")]
+        [HttpGet("get")]
         public async Task<ActionResult<List<Post>>> GetPosts()
         {
             return Ok(await _postsService.GetAllPostsAsync());
         }
 
-        [HttpGet("get/promotions/all")]
+        [HttpGet("get/promotions")]
         public async Task<ActionResult<List<Promotion>>> GetPromotions()
         {
             return Ok(await _postsService.GetPromotionsAsync(_profile));
@@ -30,18 +29,16 @@ namespace ProTrendAPI.Controllers
             return await _postsService.GetGiftersAsync(id);
         }
 
-        [HttpPost("add/post")]
+        [HttpPost("add")]
         public async Task<ActionResult<Post>> AddPost(Post upload)
         {
-            if (_profile == null)
-                return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is Unauthorized" });
             upload.ProfileId = _profile.Id;
             upload.AcceptGift = false;
             upload.Disabled = false;
             return Ok(await _postsService.AddPostAsync(upload));
         }
 
-        [HttpGet("get/{id}/post")]
+        [HttpGet("get/{id}")]
         public async Task<ActionResult<Post>> GetPost(Guid id)
         {
             var post = await _postsService.GetSinglePostAsync(id);
@@ -62,24 +59,38 @@ namespace ProTrendAPI.Controllers
             return Ok(await _postsService.GetPostLikesAsync(id));
         }
 
-        [HttpPost("add/like")]
-        public async Task<IActionResult> AddLike(Like like)
+        [HttpPost("add/like/{id}")]
+        public async Task<IActionResult> AddLike(Guid id)
         {
-            var post = await _postsService.GetSinglePostAsync(like.UploadId);
+            var post = await _postsService.GetSinglePostAsync(id);
             if (post != null)
             {
-                like.SenderId = _profile.Id;
-                await _postsService.AddLikeAsync(like);
-                await _notificationService.LikeNotification(_profile, post.ProfileId);
-                return Ok(new BasicResponse { Success = true, Message = Constants.Success });
+                var like = new Like { SenderId = _profile.Identifier, Time = DateTime.Now, UploadId = id };
+                var liked = await _postsService.AddLikeAsync(like);
+                var notiSent = await _notificationService.LikeNotification(_profile, post.ProfileId);
+                if (liked && notiSent)
+                    return Ok(new BasicResponse { Success = true, Message = "Post liked" });
             }
-            return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
+            return BadRequest(new BasicResponse { Message = "Error liking post" });
+        }
+
+        [HttpDelete("delete/like/{id}")]
+        public async Task<IActionResult> RemoveLike(Guid id)
+        {
+            var post = await _postsService.GetSinglePostAsync(id);
+            if (post != null)
+            {
+                var liked = await _postsService.RemoveLike(id, _profile.Identifier);
+                if (liked)
+                    return Ok(new BasicResponse { Success = true, Message = "Post unliked" });
+            }
+            return BadRequest(new BasicResponse { Message = "Error unliking post" });
         }
 
         [HttpGet("get/{id}/like/count")]
         public async Task<ActionResult<int>> GetLikesCount(Guid id)
         {
-            return Ok(await _postsService.GetLikesCountAsync(id));
+            return Ok(new DataResponse { Status = Constants.OK, Data = await _postsService.GetLikesCountAsync(id) });
         }
 
         [HttpPost("add/comment")]

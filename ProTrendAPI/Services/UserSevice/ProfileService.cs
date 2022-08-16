@@ -21,10 +21,12 @@ namespace ProTrendAPI.Services.UserSevice
         public async Task<Profile?> UpdateProfile(Profile user, Profile profile)
         {
             var profileName = await GetProfileByNameAsync(profile.UserName);
-            if (profileName != null)
+            if (profile.UserName.Contains(' ') || profileName != null)
                 return null;
             user.UserName = profile.UserName;
+            user.FullName = profile.FullName;
             user.Country = profile.Country;
+            user.Phone = profile.Phone;
             user.BackgroundImageUrl = profile.BackgroundImageUrl;
 
             var filter = Builders<Profile>.Filter.Eq(p => p.Identifier, user.Identifier);

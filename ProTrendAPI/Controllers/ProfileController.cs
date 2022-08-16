@@ -19,7 +19,7 @@ namespace ProTrendAPI.Controllers
             return Ok(profile);
         }
 
-        [HttpPut("update/{id}")]
+        [HttpPut("update")]
         public async Task<ActionResult<Profile>> UpdateProfile([FromBody] Profile updateProfile)
         {
             var result = await _profileService.UpdateProfile(_profile, updateProfile);
@@ -31,13 +31,13 @@ namespace ProTrendAPI.Controllers
         [HttpPost("follow/{id}")]
         public async Task<ActionResult<object>> Follow(Guid id)
         {
+            if (id == _profile.Identifier)
+                return BadRequest(new BasicResponse { Message = "Cannot follow one's self" });
             var followOk = await _profileService.Follow(_profile, id);
-            if (followOk)
+            if (!followOk)
                 return BadRequest(new BasicResponse { Message = "Error following" });
-            var resultOk = await _notificationService.FollowNotification(_profile, id);
-            if (resultOk)
-                return Ok(new BasicResponse { Success = true, Message = "Follow notification not sent" });
-            return BadRequest(new BasicResponse { Message = "Follow failed" });
+            await _notificationService.FollowNotification(_profile, id);
+            return Ok(new BasicResponse { Success = true, Message = "Follow successful" });
         }
 
         [HttpDelete("unfollow/{id}")]
@@ -45,7 +45,7 @@ namespace ProTrendAPI.Controllers
         {
             var resultOk = await _profileService.UnFollow(_profile, id);
             if (resultOk)
-                return Ok(new BasicResponse { Success = true, Message = "Unfollow" });
+                return Ok(new BasicResponse { Success = true, Message = "Unfollow successful" });
             return BadRequest(new BasicResponse { Message = "Unfollow failed" });
         }
 
@@ -64,13 +64,13 @@ namespace ProTrendAPI.Controllers
         [HttpGet("get/followers/{id}/count")]
         public async Task<ActionResult<string>> GetFollowerCount(Guid id)
         {
-            return Ok(await _profileService.GetFollowerCount(id));
+            return Ok(new DataResponse { Status = Constants.OK, Data = await _profileService.GetFollowersAsync(id) });
         }
 
         [HttpGet("get/followings/{id}/count")]
         public async Task<ActionResult<List<Profile>>> GetFollowingCount(Guid id)
         {
-            return Ok(await _profileService.GetFollowingCount(id));
+            return Ok(new DataResponse { Status = Constants.OK, Data = await _profileService.GetFollowingCount(id) });
         }
 
         [HttpGet("get/gifts/total")]

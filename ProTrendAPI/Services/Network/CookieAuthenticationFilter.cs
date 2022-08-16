@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Primitives;
 
 namespace ProTrendAPI.Services.Network
 {
@@ -8,8 +9,8 @@ namespace ProTrendAPI.Services.Network
         public void OnAuthorization(AuthorizationFilterContext context)
         {
             var result = true;
-            var userProfile = (IUserService)context.HttpContext.RequestServices.GetService(typeof(IUserService));
-            if (userProfile == null || userProfile.GetProfile() == null)
+            var authorizationExists = context.HttpContext.Request.Cookies.ContainsKey(Constants.AUTH);
+            if (!authorizationExists)
             {
                 result = false;
             }

@@ -22,24 +22,22 @@ namespace ProTrendAPI.Controllers
         [HttpPost("promote")]
         public async Task<ActionResult<object>> Promote(Promotion promotion)
         {
-            if (_profile == null)
-                return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is not Authorized" });
-            if (promotion.Amount == 3000)
+            if (promotion.Amount == 5000)
             {
                 promotion.ExpireAt = DateTime.Now.AddDays(7);
                 promotion.Audience = _profile.Country;
             }
-            else if (promotion.Amount == 5000)
+            else if (promotion.Amount == 8000)
             {
                 promotion.ExpireAt = DateTime.Now.AddDays(7);
                 promotion.Audience = Constants.All;
             }
-            else if (promotion.Amount == 10000)
+            else if (promotion.Amount == 15000)
             {
                 promotion.ExpireAt = DateTime.Now.AddMonths(1);
                 promotion.Audience = _profile.Country;
             }
-            else if (promotion.Amount == 20000)
+            else if (promotion.Amount == 30000)
             {
                 promotion.ExpireAt = DateTime.Now.AddMonths(1);
                 promotion.Audience = Constants.All;
@@ -82,8 +80,6 @@ namespace ProTrendAPI.Controllers
         [HttpPost("buy_gifts/{count}")]
         public async Task<ActionResult<object>> BuyGifts(int count)
         {
-            if (_profile == null)
-                return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is not Authorized" });
             if (count < 1)
                 return BadRequest(new BasicResponse { Message = "Cannot but less than 1 gift" });
             var value = 500 * count;

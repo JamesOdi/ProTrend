@@ -198,10 +198,27 @@ namespace ProTrendAPI.Services
             return await _promotionCollection.Find(Builders<Promotion>.Filter.Where(p => p.Audience == profile.Country || p.Audience == Constants.All)).ToListAsync();
         }
 
-        public async Task AddLikeAsync(Like like)
+        public async Task<bool> AddLikeAsync(Like like)
         {
-            await _likeCollection.InsertOneAsync(like);
-            return;
+            var liked = await _likeCollection.Find(l => l.SenderId == like.SenderId && l.UploadId == like.UploadId).FirstOrDefaultAsync();
+            if (liked == null)
+            {
+                await _likeCollection.InsertOneAsync(like);
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> RemoveLike(Guid postId, Guid profileId)
+        {
+            var filter = Builders<Like>.Filter.Where(l => l.SenderId == profileId && l.UploadId == postId);
+            var liked = await _likeCollection.Find(filter).FirstOrDefaultAsync();
+            if (liked != null)
+            {
+                var result = await _likeCollection.DeleteOneAsync(filter);
+                return result.DeletedCount > 0;
+            }
+            return false;
         }
 
         public async Task<int> GetLikesCountAsync(Guid id)
@@ -241,8 +258,8 @@ namespace ProTrendAPI.Services
             if (post != null)
             {
                 post.Disabled = true;
-                await _postsCollection.ReplaceOneAsync(filter, post);
-                return true;
+                var result = await _postsCollection.ReplaceOneAsync(filter, post);
+                return result.ModifiedCount > 0;
             }
             return false;
         }

@@ -7,6 +7,11 @@ using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using ProTrendAPI.Services.Network;
+using Microsoft.Net.Http.Headers;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
 namespace ProTrendAPI.Controllers
 {
@@ -14,7 +19,11 @@ namespace ProTrendAPI.Controllers
     [ApiController]
     public class AuthenticationController : BaseController
     {
-        public AuthenticationController(IServiceProvider serviceProvider) : base(serviceProvider) { }
+        private readonly IConfiguration _configuration;
+        public AuthenticationController(IConfiguration configuartion, IServiceProvider serviceProvider) : base(serviceProvider)
+        {
+            _configuration = configuartion;
+        }
 
         [HttpGet]
         [CookieAuthenticationFilter]
@@ -121,7 +130,7 @@ namespace ProTrendAPI.Controllers
             var result = await _regService.InsertAsync(register);
             if (result == null)
                 return BadRequest(new { Success = false, Message = "Error when registering user!" });
-            var authenticated = await CreateToken(register);
+            var authenticated = CreateToken(register);
             if (authenticated)
                 return Ok(new { Success = true, Message = "OTP verified" });
             return BadRequest(new { Success = false, Message = "Verification failed" });
@@ -143,7 +152,7 @@ namespace ProTrendAPI.Controllers
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
                 return BadRequest(new { Success = false, Message = Constants.WrongEmailPassword });
 
-            if (await CreateToken(result))
+            if (CreateToken(result))
             {
                 return Ok(new { Success = true, Message = "Login success!" });
             }
@@ -152,11 +161,11 @@ namespace ProTrendAPI.Controllers
 
         [HttpPost("logout")]
         [CookieAuthenticationFilter]
-        public async Task<ActionResult<object>> Logout()
+        public ActionResult<object> Logout()
         {
             try
             {
-                await HttpContext.SignOutAsync(Constants.AUTH);
+                HttpContext.Response.Cookies.Delete(Constants.AUTH);
                 return Ok(new { Success = true, Message = "Logout successful" });
             }
             catch (Exception)
@@ -170,7 +179,7 @@ namespace ProTrendAPI.Controllers
             return await _regService.FindRegisteredUserAsync(request);
         }
 
-        private async Task<bool> CreateToken(Register user)
+        private bool CreateToken(Register user)
         {
             try
             {
@@ -190,18 +199,20 @@ namespace ProTrendAPI.Controllers
                     disabled = true;
 
                 claims.Add(new Claim(Constants.Disabled, disabled.ToString()));
-                var identity = new ClaimsIdentity(claims, Constants.AUTH);
-                var principal = new ClaimsPrincipal(identity);
 
-                var authProperties = new AuthenticationProperties
+                var sk = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration[Constants.TokenLoc]));
+                var credentials = new SigningCredentials(sk, SecurityAlgorithms.HmacSha512Signature);
+                var token = new JwtSecurityToken(claims: claims, expires: DateTime.Now.AddHours(1), signingCredentials: credentials);
+                var tokenResult = new JwtSecurityTokenHandler().WriteToken(token);
+                var cookieOptions = new CookieOptions
                 {
-                    AllowRefresh = true,
-                    IsPersistent = true,
-                    IssuedUtc = DateTimeOffset.Now,
-                    ExpiresUtc = DateTimeOffset.Now.AddDays(1)
+                    IsEssential = true,
+                    Expires = DateTimeOffset.Now.AddMinutes(30),
+                    Secure = true,
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.Lax
                 };
-
-                await HttpContext.SignInAsync(Constants.AUTH, principal, authProperties);
+                Response.Cookies.Append(Constants.AUTH, tokenResult, cookieOptions);
                 return true;
             }
             catch (Exception)

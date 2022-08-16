@@ -29,11 +29,19 @@ namespace ProTrendAPI.Services
             }
         }
 
-        public async Task LikeNotification(Profile sender, Guid receiverId)
+        public async Task<bool> LikeNotification(Profile sender, Guid receiverId)
         {
-            var message = sender.UserName + Constants.Liked;
-            await _notificationsCollection.InsertOneAsync(Notification(sender.Identifier, receiverId, message));
-            return;
+            try
+            {
+                var message = sender.UserName + Constants.Liked;
+                await _notificationsCollection.InsertOneAsync(Notification(sender.Identifier, receiverId, message));
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+
+            }
         }
 
         public async Task CommentNotification(Profile sender, Guid receiverId)
