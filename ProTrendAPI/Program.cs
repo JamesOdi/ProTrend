@@ -33,6 +33,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
+    options.CheckConsentNeeded = context => true;
     options.HttpOnly = HttpOnlyPolicy.Always;
     options.Secure = CookieSecurePolicy.Always;
 });
