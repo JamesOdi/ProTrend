@@ -202,16 +202,27 @@ namespace ProTrendAPI.Controllers
         [HttpGet("verify/promotion/{reference}")]
         public async Task<ActionResult> Verify(string reference, [FromBody] Promotion promotion)
         {
+            var transaction = await _postsService.GetTransactionByRefAsync(reference);
+            if (transaction.ProfileId != _profile.Identifier)
+                return Unauthorized(new DataResponse
+                {
+                    Data = 403,
+                    Status = "Access dienied to the requested resource"
+                });
+
             TransactionVerifyResponse response = PayStack.Transactions.Verify(reference);
             if (response.Data.Status == "success")
             {
-                var transaction = await _postsService.GetTransactionByRefAsync(reference);
                 var verifyStatus = await _postsService.VerifyTransactionAsync(transaction);
                 if (verifyStatus != null && verifyStatus.Status)
                 {
                     var promotionOk = await _postsService.PromoteAsync(_profile, promotion);
                     if (promotionOk)
-                        return Ok(new BasicResponse { Success = true, Message = response.Message });
+                        return Ok(new BasicResponse
+                        {
+                            Success = true,
+                            Message = response.Message
+                        });
                 }
             }
             return BadRequest(new BasicResponse { Message = "Error verifying paid promotion" });
@@ -220,10 +231,16 @@ namespace ProTrendAPI.Controllers
         [HttpGet("verify/accept_gift/{id}/{reference}")]
         public async Task<ActionResult> VerifyAcceptGift(Guid id, string reference)
         {
+            var transaction = await _postsService.GetTransactionByRefAsync(reference);
+            if (transaction.ProfileId != _profile.Identifier)
+                return Unauthorized(new DataResponse
+                {
+                    Data = 403,
+                    Status = "Access dienied to the requested resource"
+                });
             TransactionVerifyResponse response = PayStack.Transactions.Verify(reference);
             if (response.Data.Status == "success")
             {
-                var transaction = await _postsService.GetTransactionByRefAsync(reference);
                 var verifyStatus = await _postsService.VerifyTransactionAsync(transaction);
                 if (verifyStatus != null && verifyStatus.Status)
                 {
@@ -238,11 +255,17 @@ namespace ProTrendAPI.Controllers
         [HttpGet("verify/purchase/gift/{reference}")]
         public async Task<ActionResult> VerifyGiftPurchase(string reference)
         {
+            var transaction = await _postsService.GetTransactionByRefAsync(reference);
+            if (transaction.ProfileId != _profile.Identifier)
+                return Unauthorized(new DataResponse
+                {
+                    Data = 403,
+                    Status = "Access dienied to the requested resource"
+                });
             TransactionVerifyResponse response = PayStack.Transactions.Verify(reference);
             if (response.Data.Status == "success")
             {
                 var count = response.Data.Amount / 50000;
-                var transaction = await _postsService.GetTransactionByRefAsync(reference);
                 var verifyStatus = await _postsService.VerifyTransactionAsync(transaction);
                 if (verifyStatus != null && verifyStatus.Status)
                 {
