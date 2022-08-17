@@ -210,7 +210,7 @@ namespace ProTrendAPI.Controllers
                     Expires = DateTime.UtcNow.AddDays(7),
                     Secure = true,
                     HttpOnly = true,
-                    SameSite = SameSiteMode.None
+                    SameSite = SameSiteMode.Lax
                 };
                 Response.Cookies.Append(Constants.AUTH, tokenResult, cookieOptions);
                 return true;
