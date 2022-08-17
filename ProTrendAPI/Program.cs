@@ -43,7 +43,7 @@ builder.Services.AddAuthentication(Constants.AUTH).AddCookie(Constants.AUTH, opt
     options.Cookie.Name = Constants.AUTH;
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SameSite = SameSiteMode.None;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
     options.SlidingExpiration = true;
@@ -63,7 +63,7 @@ else
 
 app.UseCookiePolicy(new CookiePolicyOptions
 {
-    MinimumSameSitePolicy = SameSiteMode.Lax,
+    MinimumSameSitePolicy = SameSiteMode.None,
     HttpOnly = HttpOnlyPolicy.Always,
     Secure = CookieSecurePolicy.Always
 });
