@@ -14,7 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(p => p.AddPolicy(Constants.CORS, builder =>
 {
-    builder.WithOrigins("http://localhost:3000", "https://protrend.netlify.app").AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+    builder.WithOrigins("*").AllowAnyHeader().AllowAnyMethod().AllowCredentials();
 }));
 
 builder.Services.Configure<DBSettings>(builder.Configuration.GetSection("DBConnection"));
