@@ -207,11 +207,10 @@ namespace ProTrendAPI.Controllers
                 var cookieOptions = new CookieOptions
                 {
                     IsEssential = true,
-                    Expires = DateTimeOffset.Now.AddMinutes(30),
+                    Expires = DateTime.UtcNow.AddDays(7),
                     Secure = true,
                     HttpOnly = true,
-                    SameSite = SameSiteMode.Lax,
-                    Domain = "localhost"
+                    SameSite = SameSiteMode.None
                 };
                 Response.Cookies.Append(Constants.AUTH, tokenResult, cookieOptions);
                 return true;
