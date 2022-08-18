@@ -17,6 +17,7 @@ builder.Services.AddCors(p => p.AddPolicy(Constants.CORS, builder =>
     builder.SetIsOriginAllowed(host => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
 }));
 
+builder.Services.AddDistributedMemoryCache();
 builder.Services.Configure<DBSettings>(builder.Configuration.GetSection("DBConnection"));
 builder.Services.AddSingleton<RegistrationService>();
 builder.Services.AddSingleton<PostsService>();
@@ -51,6 +52,15 @@ builder.Services.AddAuthentication(Constants.AUTH).AddCookie(Constants.AUTH, opt
     options.SlidingExpiration = true;
 });
 
+builder.Services.AddSession(options =>
+{
+    options.Cookie.Name = Constants.AUTH;
+    options.IdleTimeout = TimeSpan.FromHours(1);
+    options.Cookie.IsEssential = true;
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+});
+
 var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -73,6 +83,8 @@ app.UseCookiePolicy(new CookiePolicyOptions
 app.UseHttpsRedirection();
 
 app.UseMiddleware<ErrorHandlerMiddleware>();
+
+app.UseSession();
 
 app.UseRouting();
 
