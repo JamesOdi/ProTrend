@@ -22,7 +22,7 @@ namespace ProTrendAPI.Services.UserSevice
                 try
                 {
                     string token = string.Empty;
-                    token = _contextAccessor.HttpContext.Session.GetString(Constants.AUTH);
+                    token = _contextAccessor.HttpContext.Request.Cookies.First(x => x.Key == Constants.AUTH).Value;
                     result.Email = GetUser(token).Claims.First(x => x.Type == Constants.Email).Value;
                     result.Id = Guid.Parse(GetUser(token).Claims.First(x => x.Type == Constants.ID).Value);
                     result.Identifier = Guid.Parse(GetUser(token).Claims.First(x => x.Type == Constants.Identifier).Value);

@@ -45,20 +45,11 @@ builder.Services.AddAuthentication(Constants.AUTH).AddCookie(Constants.AUTH, opt
     options.Cookie.Name = Constants.AUTH;
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.Domain = "protrend.herokuapp.com";
+    options.Cookie.Domain = "*.herokuapp.com";
     options.Cookie.SameSite = SameSiteMode.None;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.ExpireTimeSpan = TimeSpan.FromHours(1);
     options.SlidingExpiration = true;
-});
-
-builder.Services.AddSession(options =>
-{
-    options.Cookie.Name = Constants.AUTH;
-    options.IdleTimeout = TimeSpan.FromHours(1);
-    options.Cookie.IsEssential = true;
-    options.Cookie.HttpOnly = true;
-    options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
 var app = builder.Build();
@@ -83,8 +74,6 @@ app.UseCookiePolicy(new CookiePolicyOptions
 app.UseHttpsRedirection();
 
 app.UseMiddleware<ErrorHandlerMiddleware>();
-
-app.UseSession();
 
 app.UseRouting();
 

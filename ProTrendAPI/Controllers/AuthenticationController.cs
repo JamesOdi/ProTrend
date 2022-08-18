@@ -138,7 +138,7 @@ namespace ProTrendAPI.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<ActionResult<object>> Login(Login login)
+        public async Task<ActionResult<object>> Login([FromBody]Login login)
         {
             if (!IsValidEmail(login.Email))
             {
@@ -204,17 +204,16 @@ namespace ProTrendAPI.Controllers
                 var credentials = new SigningCredentials(sk, SecurityAlgorithms.HmacSha512Signature);
                 var token = new JwtSecurityToken(claims: claims, expires: DateTime.Now.AddHours(1), signingCredentials: credentials);
                 var tokenResult = new JwtSecurityTokenHandler().WriteToken(token);
-                //var cookieOptions = new CookieOptions
-                //{
-                //    IsEssential = true,
-                //    Expires = DateTime.UtcNow.AddDays(7),
-                //    Secure = true,
-                //    HttpOnly = true,
-                //    Domain= "protrend.herokuapp.com",
-                //    SameSite = SameSiteMode.None
-                //};
-                //Response.Cookies.Append(Constants.AUTH, tokenResult, cookieOptions);
-                HttpContext.Session.SetString(Constants.AUTH, tokenResult);
+                var cookieOptions = new CookieOptions
+                {
+                    IsEssential = true,
+                    Expires = DateTime.UtcNow.AddDays(7),
+                    Secure = true,
+                    HttpOnly = true,
+                    Domain = "*.herokuapp.com",
+                    SameSite = SameSiteMode.None
+                };
+                Response.Cookies.Append(Constants.AUTH, tokenResult, cookieOptions);
                 return true;
             }
             catch (Exception)
