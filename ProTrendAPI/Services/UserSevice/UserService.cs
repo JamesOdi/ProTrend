@@ -21,16 +21,24 @@ namespace ProTrendAPI.Services.UserSevice
             {
                 try
                 {
-                    string token = string.Empty;
-                    token = _contextAccessor.HttpContext.Request.Cookies.First(x => x.Key == Constants.AUTH).Value;
-                    result.Email = GetUser(token).Claims.First(x => x.Type == Constants.Email).Value;
-                    result.Id = Guid.Parse(GetUser(token).Claims.First(x => x.Type == Constants.ID).Value);
-                    result.Identifier = Guid.Parse(GetUser(token).Claims.First(x => x.Type == Constants.Identifier).Value);
-                    result.UserName = GetUser(token).Claims.First(x => x.Type == Constants.Name).Value;
-                    result.FullName = GetUser(token).Claims.First(x => x.Type == Constants.FullName).Value;
-                    result.AccountType = GetUser(token).Claims.First(x => x.Type == Constants.AccType).Value;
-                    result.Country = GetUser(token).Claims.First(x => x.Type == Constants.Country).Value;
-                    result.Disabled = bool.Parse(GetUser(token).Claims.First(x => x.Type == Constants.Disabled).Value);
+                    //string token = string.Empty;
+                    //token = _contextAccessor.HttpContext.Request.Cookies.First(x => x.Key == Constants.AUTH).Value;
+                    //result.Email = GetUser(token).Claims.First(x => x.Type == Constants.Email).Value;
+                    //result.Id = Guid.Parse(GetUser(token).Claims.First(x => x.Type == Constants.ID).Value);
+                    //result.Identifier = Guid.Parse(GetUser(token).Claims.First(x => x.Type == Constants.Identifier).Value);
+                    //result.UserName = GetUser(token).Claims.First(x => x.Type == Constants.Name).Value;
+                    //result.FullName = GetUser(token).Claims.First(x => x.Type == Constants.FullName).Value;
+                    //result.AccountType = GetUser(token).Claims.First(x => x.Type == Constants.AccType).Value;
+                    //result.Country = GetUser(token).Claims.First(x => x.Type == Constants.Country).Value;
+                    //result.Disabled = bool.Parse(GetUser(token).Claims.First(x => x.Type == Constants.Disabled).Value);
+                    result.Email = _contextAccessor.HttpContext.User.Claims.First(x => x.Type == Constants.Email).Value;
+                    result.Id = Guid.Parse(_contextAccessor.HttpContext.User.Claims.First(x => x.Type == Constants.ID).Value);
+                    result.Identifier = Guid.Parse(_contextAccessor.HttpContext.User.Claims.First(x => x.Type == Constants.Identifier).Value);
+                    result.UserName = _contextAccessor.HttpContext.User.Claims.First(x => x.Type == Constants.Name).Value;
+                    result.FullName = _contextAccessor.HttpContext.User.Claims.First(x => x.Type == Constants.FullName).Value;
+                    result.AccountType = _contextAccessor.HttpContext.User.Claims.First(x => x.Type == Constants.AccType).Value;
+                    result.Country = _contextAccessor.HttpContext.User.Claims.First(x => x.Type == Constants.Country).Value;
+                    result.Disabled = bool.Parse(_contextAccessor.HttpContext.User.Claims.First(x => x.Type == Constants.Disabled).Value);
                 }
                 catch (Exception)
                 {

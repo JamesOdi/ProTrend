@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Primitives;
 
 namespace ProTrendAPI.Services.Network
 {
@@ -8,7 +7,13 @@ namespace ProTrendAPI.Services.Network
     {
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            var result = context.HttpContext.Request.Cookies.ContainsKey(Constants.AUTH);
+            var result = true;
+            var authorizationExists = context.HttpContext.Request.Cookies.ContainsKey(Constants.AUTH);
+            if (!authorizationExists)
+            {
+                result = false;
+            }
+
             if (!result)
             {
                 context.ModelState.AddModelError("UnAuthorized", "User is Unauthorized");

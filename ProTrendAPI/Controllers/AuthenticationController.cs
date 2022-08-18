@@ -138,7 +138,7 @@ namespace ProTrendAPI.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<ActionResult<object>> Login([FromBody]Login login)
+        public async Task<ActionResult<object>> Login([FromBody] Login login)
         {
             if (!IsValidEmail(login.Email))
             {
@@ -200,20 +200,29 @@ namespace ProTrendAPI.Controllers
 
                 claims.Add(new Claim(Constants.Disabled, disabled.ToString()));
 
-                var sk = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration[Constants.TokenLoc]));
-                var credentials = new SigningCredentials(sk, SecurityAlgorithms.HmacSha512Signature);
-                var token = new JwtSecurityToken(claims: claims, expires: DateTime.Now.AddHours(1), signingCredentials: credentials);
-                var tokenResult = new JwtSecurityTokenHandler().WriteToken(token);
-                var cookieOptions = new CookieOptions
+                //var sk = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration[Constants.TokenLoc]));
+                //var credentials = new SigningCredentials(sk, SecurityAlgorithms.HmacSha512Signature);
+                //var token = new JwtSecurityToken(claims: claims, expires: DateTime.Now.AddHours(1), signingCredentials: credentials);
+                //var tokenResult = new JwtSecurityTokenHandler().WriteToken(token);
+                //var cookieOptions = new CookieOptions
+                //{
+                //    IsEssential = true,
+                //    Expires = DateTime.UtcNow.AddDays(7),
+                //    Secure = true,
+                //    HttpOnly = true,
+                //    Domain = "",
+                //    SameSite = SameSiteMode.None
+                //};
+                //Response.Cookies.Append(Constants.AUTH, tokenResult, cookieOptions);
+                var principal = new ClaimsPrincipal(new ClaimsIdentity(claims: claims));
+                var prop = new AuthenticationProperties
                 {
-                    IsEssential = true,
-                    Expires = DateTime.UtcNow.AddDays(7),
-                    Secure = true,
-                    HttpOnly = true,
-                    Domain = "*.herokuapp.com",
-                    SameSite = SameSiteMode.None
+                    IsPersistent = true,
+                    AllowRefresh = true,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7),
+                    IssuedUtc = DateTimeOffset.UtcNow
                 };
-                Response.Cookies.Append(Constants.AUTH, tokenResult, cookieOptions);
+                HttpContext.SignInAsync(Constants.AUTH, principal, prop);
                 return true;
             }
             catch (Exception)
