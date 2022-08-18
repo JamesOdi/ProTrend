@@ -210,7 +210,7 @@ namespace ProTrendAPI.Controllers
                     Expires = DateTime.UtcNow.AddDays(7),
                     Secure = true,
                     HttpOnly = true,
-                    Domain= "protrendfixauth.netlify.app",
+                    Domain= "protrend.herokuapp.com",
                     SameSite = SameSiteMode.None
                 };
                 Response.Cookies.Append(Constants.AUTH, tokenResult, cookieOptions);
