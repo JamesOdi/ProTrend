@@ -204,16 +204,17 @@ namespace ProTrendAPI.Controllers
                 var credentials = new SigningCredentials(sk, SecurityAlgorithms.HmacSha512Signature);
                 var token = new JwtSecurityToken(claims: claims, expires: DateTime.Now.AddHours(1), signingCredentials: credentials);
                 var tokenResult = new JwtSecurityTokenHandler().WriteToken(token);
-                var cookieOptions = new CookieOptions
-                {
-                    IsEssential = true,
-                    Expires = DateTime.UtcNow.AddDays(7),
-                    Secure = true,
-                    HttpOnly = true,
-                    Domain= "protrend.herokuapp.com",
-                    SameSite = SameSiteMode.None
-                };
-                Response.Cookies.Append(Constants.AUTH, tokenResult, cookieOptions);
+                //var cookieOptions = new CookieOptions
+                //{
+                //    IsEssential = true,
+                //    Expires = DateTime.UtcNow.AddDays(7),
+                //    Secure = true,
+                //    HttpOnly = true,
+                //    Domain= "protrend.herokuapp.com",
+                //    SameSite = SameSiteMode.None
+                //};
+                //Response.Cookies.Append(Constants.AUTH, tokenResult, cookieOptions);
+                HttpContext.Session.SetString(Constants.AUTH, tokenResult);
                 return true;
             }
             catch (Exception)

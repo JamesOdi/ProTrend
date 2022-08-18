@@ -8,13 +8,8 @@ namespace ProTrendAPI.Services.Network
     {
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            var result = true;
-            var authorizationExists = context.HttpContext.Request.Cookies.ContainsKey(Constants.AUTH);
-            if (!authorizationExists)
-            {
-                result = false;
-            }
-
+            var result =  context.HttpContext.Session.GetString(Constants.AUTH) != null;
+            
             if (!result)
             {
                 context.ModelState.AddModelError("UnAuthorized", "User is Unauthorized");
