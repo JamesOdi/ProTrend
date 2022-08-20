@@ -1,17 +1,18 @@
-﻿using Microsoft.Extensions.Primitives;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ProTrendAPI.Services.UserSevice
 {
     public class UserService : IUserService
     {
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IConfiguration _configuration;
 
-        public UserService(IHttpContextAccessor httpContextAccessor)
+        public UserService(IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
             _contextAccessor = httpContextAccessor;
+            _configuration = configuration;
         }
 
         public Profile? GetProfile()
@@ -21,24 +22,17 @@ namespace ProTrendAPI.Services.UserSevice
             {
                 try
                 {
-                    //string token = string.Empty;
-                    //token = _contextAccessor.HttpContext.Request.Cookies.First(x => x.Key == Constants.AUTH).Value;
-                    //result.Email = GetUser(token).Claims.First(x => x.Type == Constants.Email).Value;
-                    //result.Id = Guid.Parse(GetUser(token).Claims.First(x => x.Type == Constants.ID).Value);
-                    //result.Identifier = Guid.Parse(GetUser(token).Claims.First(x => x.Type == Constants.Identifier).Value);
-                    //result.UserName = GetUser(token).Claims.First(x => x.Type == Constants.Name).Value;
-                    //result.FullName = GetUser(token).Claims.First(x => x.Type == Constants.FullName).Value;
-                    //result.AccountType = GetUser(token).Claims.First(x => x.Type == Constants.AccType).Value;
-                    //result.Country = GetUser(token).Claims.First(x => x.Type == Constants.Country).Value;
-                    //result.Disabled = bool.Parse(GetUser(token).Claims.First(x => x.Type == Constants.Disabled).Value);
-                    result.Email = _contextAccessor.HttpContext.User.Claims.First(x => x.Type == Constants.Email).Value;
-                    result.Id = Guid.Parse(_contextAccessor.HttpContext.User.Claims.First(x => x.Type == Constants.ID).Value);
-                    result.Identifier = Guid.Parse(_contextAccessor.HttpContext.User.Claims.First(x => x.Type == Constants.Identifier).Value);
-                    result.UserName = _contextAccessor.HttpContext.User.Claims.First(x => x.Type == Constants.Name).Value;
-                    result.FullName = _contextAccessor.HttpContext.User.Claims.First(x => x.Type == Constants.FullName).Value;
-                    result.AccountType = _contextAccessor.HttpContext.User.Claims.First(x => x.Type == Constants.AccType).Value;
-                    result.Country = _contextAccessor.HttpContext.User.Claims.First(x => x.Type == Constants.Country).Value;
-                    result.Disabled = bool.Parse(_contextAccessor.HttpContext.User.Claims.First(x => x.Type == Constants.Disabled).Value);
+                    string token = string.Empty;
+                    token = _contextAccessor.HttpContext.Request.Cookies.First(x => x.Key == Constants.AUTH).Value;
+                    var claim = GetUser(DecryptDataWithAes(Convert.FromBase64String(token)));
+                    result.Email = claim.Claims.First(x => x.Type == Constants.Email).Value;
+                    result.Id = Guid.Parse(claim.Claims.First(x => x.Type == Constants.ID).Value);
+                    result.Identifier = Guid.Parse(claim.Claims.First(x => x.Type == Constants.Identifier).Value);
+                    result.UserName = claim.Claims.First(x => x.Type == Constants.Name).Value;
+                    result.FullName = claim.Claims.First(x => x.Type == Constants.FullName).Value;
+                    result.AccountType = claim.Claims.First(x => x.Type == Constants.AccType).Value;
+                    result.Country = claim.Claims.First(x => x.Type == Constants.Country).Value;
+                    result.Disabled = bool.Parse(claim.Claims.First(x => x.Type == Constants.Disabled).Value);
                 }
                 catch (Exception)
                 {
@@ -48,10 +42,24 @@ namespace ProTrendAPI.Services.UserSevice
             return result;
         }
 
-        private JwtSecurityToken? GetUser(string token)
+        private static JwtSecurityToken? GetUser(string token)
         {
             var handler = new JwtSecurityTokenHandler();
             return handler.ReadToken(token) as JwtSecurityToken;
+        }
+
+        private string DecryptDataWithAes(byte[] cipherText)
+        {
+            var tripleDES = new TripleDESCryptoServiceProvider
+            {
+                Key = UTF8Encoding.UTF8.GetBytes(_configuration["Token:SecretKey"]),
+                Mode = CipherMode.ECB,
+                Padding = PaddingMode.PKCS7
+            };
+            ICryptoTransform cTransform = tripleDES.CreateDecryptor();
+            byte[] resultArray = cTransform.TransformFinalBlock(cipherText, 0, cipherText.Length);
+            tripleDES.Clear();
+            return Encoding.UTF8.GetString(resultArray);
         }
     }
 }

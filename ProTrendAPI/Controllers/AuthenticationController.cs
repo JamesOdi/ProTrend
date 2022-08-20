@@ -130,9 +130,11 @@ namespace ProTrendAPI.Controllers
             var result = await _regService.InsertAsync(register);
             if (result == null)
                 return BadRequest(new { Success = false, Message = "Error when registering user!" });
-            var authenticated = CreateToken(register);
-            if (authenticated)
-                return Ok(new { Success = true, Message = "OTP verified" });
+            var cypherText = CreateToken(register);
+            if (cypherText != "")
+            {
+                return Ok(new { Success = true, Data = cypherText });
+            }
             return BadRequest(new { Success = false, Message = "Verification failed" });
         }
 
@@ -151,10 +153,10 @@ namespace ProTrendAPI.Controllers
                 return BadRequest(new { Success = false, Message = Constants.UserNotFound });
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
                 return BadRequest(new { Success = false, Message = Constants.WrongEmailPassword });
-
-            if (CreateToken(result))
+            var cypherText = CreateToken(result);
+            if (cypherText != "")
             {
-                return Ok(new { Success = true, Message = "Login success!" });
+                return Ok(new { Success = true, Data = cypherText });
             }
             return BadRequest(new { Success = false, Message = "Login failed!" });
         }
@@ -179,7 +181,7 @@ namespace ProTrendAPI.Controllers
             return await _regService.FindRegisteredUserAsync(request);
         }
 
-        private bool CreateToken(Register user)
+        private string CreateToken(Register user)
         {
             try
             {
@@ -200,34 +202,15 @@ namespace ProTrendAPI.Controllers
 
                 claims.Add(new Claim(Constants.Disabled, disabled.ToString()));
 
-                //var sk = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration[Constants.TokenLoc]));
-                //var credentials = new SigningCredentials(sk, SecurityAlgorithms.HmacSha512Signature);
-                //var token = new JwtSecurityToken(claims: claims, expires: DateTime.Now.AddHours(1), signingCredentials: credentials);
-                //var tokenResult = new JwtSecurityTokenHandler().WriteToken(token);
-                //var cookieOptions = new CookieOptions
-                //{
-                //    IsEssential = true,
-                //    Expires = DateTime.UtcNow.AddDays(7),
-                //    Secure = true,
-                //    HttpOnly = true,
-                //    Domain = "",
-                //    SameSite = SameSiteMode.None
-                //};
-                //Response.Cookies.Append(Constants.AUTH, tokenResult, cookieOptions);
-                var principal = new ClaimsPrincipal(new ClaimsIdentity(claims: claims));
-                var prop = new AuthenticationProperties
-                {
-                    IsPersistent = true,
-                    AllowRefresh = true,
-                    ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7),
-                    IssuedUtc = DateTimeOffset.UtcNow
-                };
-                HttpContext.SignInAsync(Constants.AUTH, principal, prop);
-                return true;
+                var sk = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration[Constants.TokenLoc]));
+                var credentials = new SigningCredentials(sk, SecurityAlgorithms.HmacSha512Signature);
+                var token = new JwtSecurityToken(claims: claims, expires: DateTime.Now.AddHours(1), signingCredentials: credentials);
+                var tokenResult = new JwtSecurityTokenHandler().WriteToken(token);
+                return EncryptDataWithAes(tokenResult);
             }
             catch (Exception)
             {
-                return false;
+                return "";
             }
         }
 
@@ -261,6 +244,21 @@ namespace ProTrendAPI.Controllers
         {
             var r = new Random();
             return r.Next(1000, 9999);
+        }
+
+        private string EncryptDataWithAes(string plainText)
+        {
+            byte[] inputArray = UTF8Encoding.UTF8.GetBytes(plainText);
+            var tripleDES = new TripleDESCryptoServiceProvider
+            {
+                Key = Encoding.UTF8.GetBytes(_configuration["Token:SecretKey"]),
+                Mode = CipherMode.ECB,
+                Padding = PaddingMode.PKCS7
+            };
+            ICryptoTransform cTransform = tripleDES.CreateEncryptor();
+            byte[] resultArray = cTransform.TransformFinalBlock(inputArray, 0, inputArray.Length);
+            tripleDES.Clear();
+            return Convert.ToBase64String(resultArray, 0, resultArray.Length);
         }
     }
 }
