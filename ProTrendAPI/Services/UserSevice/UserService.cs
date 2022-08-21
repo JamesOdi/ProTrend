@@ -50,12 +50,10 @@ namespace ProTrendAPI.Services.UserSevice
 
         private string DecryptDataWithAes(byte[] cipherText)
         {
-            var tripleDES = new TripleDESCryptoServiceProvider
-            {
-                Key = UTF8Encoding.UTF8.GetBytes(_configuration["Token:SecretKey"]),
-                Mode = CipherMode.ECB,
-                Padding = PaddingMode.PKCS7
-            };
+            var tripleDES = Aes.Create();
+            tripleDES.Key = Encoding.UTF8.GetBytes(_configuration["Token:SecretKey"]);
+            tripleDES.Mode = CipherMode.ECB;
+            tripleDES.Padding = PaddingMode.PKCS7;
             ICryptoTransform cTransform = tripleDES.CreateDecryptor();
             byte[] resultArray = cTransform.TransformFinalBlock(cipherText, 0, cipherText.Length);
             tripleDES.Clear();

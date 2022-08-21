@@ -9,7 +9,9 @@ namespace ProTrendAPI.Services.Network
         {
             var result = true;
             var authorizationExists = context.HttpContext.Request.Cookies.ContainsKey(Constants.AUTH);
-            if (!authorizationExists)
+            var user = (IUserService)context.HttpContext.RequestServices.GetService(typeof(IUserService));
+
+            if (!authorizationExists || user.GetProfile() == null)
             {
                 result = false;
             }

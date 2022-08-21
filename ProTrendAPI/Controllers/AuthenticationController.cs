@@ -248,13 +248,11 @@ namespace ProTrendAPI.Controllers
 
         private string EncryptDataWithAes(string plainText)
         {
-            byte[] inputArray = UTF8Encoding.UTF8.GetBytes(plainText);
-            var tripleDES = new TripleDESCryptoServiceProvider
-            {
-                Key = Encoding.UTF8.GetBytes(_configuration["Token:SecretKey"]),
-                Mode = CipherMode.ECB,
-                Padding = PaddingMode.PKCS7
-            };
+            byte[] inputArray = Encoding.UTF8.GetBytes(plainText);
+            var tripleDES = Aes.Create();
+            tripleDES.Key = Encoding.UTF8.GetBytes(_configuration["Token:SecretKey"]);
+            tripleDES.Mode = CipherMode.ECB;
+            tripleDES.Padding = PaddingMode.PKCS7;
             ICryptoTransform cTransform = tripleDES.CreateEncryptor();
             byte[] resultArray = cTransform.TransformFinalBlock(inputArray, 0, inputArray.Length);
             tripleDES.Clear();
