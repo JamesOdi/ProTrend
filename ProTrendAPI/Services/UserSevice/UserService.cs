@@ -17,28 +17,46 @@ namespace ProTrendAPI.Services.UserSevice
 
         public Profile? GetProfile()
         {
-            var result = new Profile();
             if (_contextAccessor != null && _contextAccessor.HttpContext != null)
             {
                 try
                 {
                     string token = string.Empty;
                     token = _contextAccessor.HttpContext.Request.Cookies.First(x => x.Key == Constants.AUTH).Value;
-                    var claim = GetUser(DecryptDataWithAes(Convert.FromBase64String(token)));
-                    result.Email = claim.Claims.First(x => x.Type == Constants.Email).Value;
-                    result.Id = Guid.Parse(claim.Claims.First(x => x.Type == Constants.ID).Value);
-                    result.Identifier = Guid.Parse(claim.Claims.First(x => x.Type == Constants.Identifier).Value);
-                    result.UserName = claim.Claims.First(x => x.Type == Constants.Name).Value;
-                    result.FullName = claim.Claims.First(x => x.Type == Constants.FullName).Value;
-                    result.AccountType = claim.Claims.First(x => x.Type == Constants.AccType).Value;
-                    result.Country = claim.Claims.First(x => x.Type == Constants.Country).Value;
-                    result.Disabled = bool.Parse(claim.Claims.First(x => x.Type == Constants.Disabled).Value);
+                    return Result(token);
                 }
                 catch (Exception)
                 {
                     return null;
                 }
             }
+            return null;
+        }
+
+        public Profile? GetMobileProfile(string token)
+        {
+            try
+            {
+                return Result(token);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        private Profile Result(string token)
+        {
+            var result = new Profile();
+            var claim = GetUser(DecryptDataWithAes(Convert.FromBase64String(token)));
+            result.Email = claim.Claims.First(x => x.Type == Constants.Email).Value;
+            result.Id = Guid.Parse(claim.Claims.First(x => x.Type == Constants.ID).Value);
+            result.Identifier = Guid.Parse(claim.Claims.First(x => x.Type == Constants.Identifier).Value);
+            result.UserName = claim.Claims.First(x => x.Type == Constants.Name).Value;
+            result.FullName = claim.Claims.First(x => x.Type == Constants.FullName).Value;
+            result.AccountType = claim.Claims.First(x => x.Type == Constants.AccType).Value;
+            result.Country = claim.Claims.First(x => x.Type == Constants.Country).Value;
+            result.Disabled = bool.Parse(claim.Claims.First(x => x.Type == Constants.Disabled).Value);
             return result;
         }
 

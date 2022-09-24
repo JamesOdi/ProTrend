@@ -11,5 +11,6 @@ namespace ProTrendAPI.Models.User
         public Guid SenderId { get; set; }
         [JsonPropertyName("receiverid")]
         public Guid ReceiverId { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

@@ -251,9 +251,9 @@ namespace ProTrendAPI.Services
             return await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.ProfileId == userId && !p.Disabled)).SortBy(p => p.Time).ToListAsync();
         }
 
-        public async Task<bool> DeletePostAsync(Guid postId)
+        public async Task<bool> DeletePostAsync(Guid postId, Guid profileId)
         {
-            var filter = Builders<Post>.Filter.Eq<Guid>(p => p.Id, postId);
+            var filter = Builders<Post>.Filter.Where(p => p.Id == postId && p.ProfileId == profileId);
             var post = await _postsCollection.Find(filter).FirstOrDefaultAsync();
             if (post != null)
             {

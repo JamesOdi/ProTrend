@@ -38,6 +38,16 @@ namespace ProTrendAPI.Controllers
             return Ok(await _postsService.AddPostAsync(upload));
         }
 
+        [HttpPost("mobile/add/{token}")]
+        public async Task<ActionResult<Post>> AddPostFromMobile(string token, Post upload)
+        {
+            var profile = _userService.GetMobileProfile(token);
+            upload.ProfileId = profile.Identifier;
+            upload.AcceptGift = false;
+            upload.Disabled = false;
+            return Ok(await _postsService.AddPostAsync(upload));
+        }
+
         [HttpGet("get/{id}")]
         public async Task<ActionResult<Post>> GetPost(Guid id)
         {
@@ -74,6 +84,22 @@ namespace ProTrendAPI.Controllers
             return BadRequest(new BasicResponse { Message = "Error liking post" });
         }
 
+        [HttpPost("mobile/add/like/{id}/{token}")]
+        public async Task<IActionResult> AddLikeFromMobile(Guid id, string token)
+        {
+            var profile = _userService.GetMobileProfile(token);
+            var post = await _postsService.GetSinglePostAsync(id);
+            if (post != null)
+            {
+                var like = new Like { SenderId = profile.Identifier, Time = DateTime.Now, UploadId = id };
+                var liked = await _postsService.AddLikeAsync(like);
+                var notiSent = await _notificationService.LikeNotification(profile, post.ProfileId);
+                if (liked && notiSent)
+                    return Ok(new BasicResponse { Success = true, Message = "Post liked" });
+            }
+            return BadRequest(new BasicResponse { Message = "Error liking post" });
+        }
+
         [HttpDelete("delete/like/{id}")]
         public async Task<IActionResult> RemoveLike(Guid id)
         {
@@ -81,6 +107,20 @@ namespace ProTrendAPI.Controllers
             if (post != null)
             {
                 var liked = await _postsService.RemoveLike(id, _profile.Identifier);
+                if (liked)
+                    return Ok(new BasicResponse { Success = true, Message = "Post unliked" });
+            }
+            return BadRequest(new BasicResponse { Message = "Error unliking post" });
+        }
+
+        [HttpDelete("mobile/delete/like/{id}/{token}")]
+        public async Task<IActionResult> RemoveLikeFromMobile(Guid id,string token)
+        {
+            var profile = _userService.GetMobileProfile(token);
+            var post = await _postsService.GetSinglePostAsync(id);
+            if (post != null)
+            {
+                var liked = await _postsService.RemoveLike(id, profile.Identifier);
                 if (liked)
                     return Ok(new BasicResponse { Success = true, Message = "Post unliked" });
             }
@@ -108,6 +148,22 @@ namespace ProTrendAPI.Controllers
             return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
         }
 
+        [HttpPost("mobile/add/comment/{token}")]
+        public async Task<ActionResult<Comment>> AddCommentFromMobile(string token, Comment comment)
+        {
+            var profile = _userService.GetMobileProfile(token);
+            var post = await _postsService.GetSinglePostAsync(comment.PostId);
+            if (post != null)
+            {
+                comment.UserId = profile.Id;
+                comment.Identifier = comment.Id;
+                await _notificationService.CommentNotification(profile, post.ProfileId);
+                var commentResult = await _postsService.InsertCommentAsync(comment);
+                return Ok(commentResult);
+            }
+            return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
+        }
+
         [HttpGet("get/{id}/gifts")]
         public async Task<ActionResult> GetAllGiftsOnPost(Guid id)
         {
@@ -123,7 +179,17 @@ namespace ProTrendAPI.Controllers
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeletePost(Guid id)
         {
-            var delete = await _postsService.DeletePostAsync(id);
+            var delete = await _postsService.DeletePostAsync(id, _profile.Identifier);
+            if (!delete)
+                return BadRequest(new BasicResponse { Message = Constants.PDError });
+            return Ok(new BasicResponse { Success = true, Message = "Post deleted" });
+        }
+
+        [HttpDelete("mobile/delete/{id}/{token}")]
+        public async Task<IActionResult> DeletePost(string token, Guid id)
+        {
+            var profile = _userService.GetMobileProfile(token);
+            var delete = await _postsService.DeletePostAsync(id, profile.Identifier);
             if (!delete)
                 return BadRequest(new BasicResponse { Message = Constants.PDError });
             return Ok(new BasicResponse { Success = true, Message = "Post deleted" });

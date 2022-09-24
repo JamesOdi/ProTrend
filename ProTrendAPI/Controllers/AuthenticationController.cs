@@ -34,6 +34,16 @@ namespace ProTrendAPI.Controllers
             return Ok(_profile);
         }
 
+        [HttpGet("mobile/{token}")]
+        [CookieAuthenticationFilter]
+        public ActionResult<Profile> GetMe(string token)
+        {
+            var profile = _userService.GetMobileProfile(token);
+            if (profile == null)
+                return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is UnAuthorized" });
+            return Ok(profile);
+        }
+
         [HttpPost("register")]
         [AllowAnonymous]
         public async Task<ActionResult<object>> Register(ProfileDTO request)
