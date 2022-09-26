@@ -38,7 +38,8 @@ namespace ProTrendAPI.Controllers
         [CookieAuthenticationFilter]
         public ActionResult<Profile> GetMe(string token)
         {
-            var profile = _userService.GetMobileProfile(token);
+            HttpContext.Request.Headers.Add("Authorization", token);
+            var profile = _userService.GetMobileProfile();
             if (profile == null)
                 return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is UnAuthorized" });
             return Ok(profile);
@@ -171,6 +172,31 @@ namespace ProTrendAPI.Controllers
             return BadRequest(new { Success = false, Message = "Login failed!" });
         }
 
+        [HttpPost("mobile/login")]
+        [AllowAnonymous]
+        public async Task<ActionResult<object>> LoginMobile([FromBody] Login login)
+        {
+            if (!IsValidEmail(login.Email))
+            {
+                return BadRequest(new { Success = false, Message = Constants.InvalidEmail });
+            }
+
+            var result = await _regService.FindRegisteredUserByEmailAsync(login);
+
+            if (result == null)
+                return BadRequest(new { Success = false, Message = Constants.UserNotFound });
+            if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
+                return BadRequest(new { Success = false, Message = Constants.WrongEmailPassword });
+            var token = GetJWT(result);
+            if (token != "")
+            {
+                Response.Headers.Add("Authorization", token);
+                return Ok(new { Success = true, Data = token });
+            }
+            return BadRequest(new { Success = false, Message = "Login failed!" });
+        }
+
+
         [HttpPost("logout")]
         [CookieAuthenticationFilter]
         public ActionResult<object> Logout()
@@ -195,7 +221,17 @@ namespace ProTrendAPI.Controllers
         {
             try
             {
-                List<Claim> claims = new()
+                return EncryptDataWithAes(GetJWT(user));
+            }
+            catch (Exception)
+            {
+                return "";
+            }
+        }
+
+        private string GetJWT(Register user)
+        {
+            List<Claim> claims = new()
                 {
                     new Claim(Constants.ID, user.Id.ToString()),
                     new Claim(Constants.Identifier, user.Id.ToString()),
@@ -206,24 +242,17 @@ namespace ProTrendAPI.Controllers
                     new Claim(Constants.Country, user.Country),
                 };
 
-                bool disabled = false;
-                if (user.AccountType == Constants.Disabled)
-                    disabled = true;
+            bool disabled = false;
+            if (user.AccountType == Constants.Disabled)
+                disabled = true;
 
-                claims.Add(new Claim(Constants.Disabled, disabled.ToString()));
+            claims.Add(new Claim(Constants.Disabled, disabled.ToString()));
 
-                var sk = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration[Constants.TokenLoc]));
-                var credentials = new SigningCredentials(sk, SecurityAlgorithms.HmacSha512Signature);
-                var token = new JwtSecurityToken(claims: claims, expires: DateTime.Now.AddHours(1), signingCredentials: credentials);
-                var tokenResult = new JwtSecurityTokenHandler().WriteToken(token);
-                return EncryptDataWithAes(tokenResult);
-            }
-            catch (Exception)
-            {
-                return "";
-            }
+            var sk = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration[Constants.TokenLoc]));
+            var credentials = new SigningCredentials(sk, SecurityAlgorithms.HmacSha512Signature);
+            var token = new JwtSecurityToken(claims: claims, expires: DateTime.Now.AddHours(1), signingCredentials: credentials);
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
         private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
             using var hmac = new HMACSHA512();

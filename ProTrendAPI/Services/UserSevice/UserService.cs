@@ -1,4 +1,5 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using Microsoft.Extensions.Primitives;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -33,11 +34,20 @@ namespace ProTrendAPI.Services.UserSevice
             return null;
         }
 
-        public Profile? GetMobileProfile(string token)
+        public Profile? GetMobileProfile()
         {
             try
             {
-                return Result(token);
+                var token = _contextAccessor.HttpContext.Request.Headers["Authorization"];
+                if (token != "")
+                {
+                    token = token.FirstOrDefault().ToString();
+                    return ResultForMobile(token);
+                }
+                else
+                {
+                    return null;
+                }
             }
             catch (Exception)
             {
@@ -49,6 +59,21 @@ namespace ProTrendAPI.Services.UserSevice
         {
             var result = new Profile();
             var claim = GetUser(DecryptDataWithAes(Convert.FromBase64String(token)));
+            result.Email = claim.Claims.First(x => x.Type == Constants.Email).Value;
+            result.Id = Guid.Parse(claim.Claims.First(x => x.Type == Constants.ID).Value);
+            result.Identifier = Guid.Parse(claim.Claims.First(x => x.Type == Constants.Identifier).Value);
+            result.UserName = claim.Claims.First(x => x.Type == Constants.Name).Value;
+            result.FullName = claim.Claims.First(x => x.Type == Constants.FullName).Value;
+            result.AccountType = claim.Claims.First(x => x.Type == Constants.AccType).Value;
+            result.Country = claim.Claims.First(x => x.Type == Constants.Country).Value;
+            result.Disabled = bool.Parse(claim.Claims.First(x => x.Type == Constants.Disabled).Value);
+            return result;
+        }
+
+        private Profile ResultForMobile(string token)
+        {
+            var result = new Profile();
+            var claim = GetUser(token);
             result.Email = claim.Claims.First(x => x.Type == Constants.Email).Value;
             result.Id = Guid.Parse(claim.Claims.First(x => x.Type == Constants.ID).Value);
             result.Identifier = Guid.Parse(claim.Claims.First(x => x.Type == Constants.Identifier).Value);

@@ -25,6 +25,16 @@ namespace ProTrendAPI.Services
             return await _postsCollection.Find(Builders<Post>.Filter.Where(p => !p.Disabled)).ToListAsync();
         }
 
+        public async Task<List<Post>> GetPagePostsAsync(int page)
+        {
+            var pageResults = 10f;
+            var posts = await _postsCollection.Find(Builders<Post>.Filter.Where(p => !p.Disabled)).ToListAsync();
+            var pageCount = Math.Ceiling(posts.Count() / pageResults);
+            return posts.Skip((page - 1) * (int)pageResults)
+                .Take((int)pageResults)
+                .ToList();
+        }
+
         public async Task<bool> PromoteAsync(Profile profile, Promotion promotion)
         {
             promotion.Identifier = promotion.Id;
