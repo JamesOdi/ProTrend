@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Primitives;
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -34,7 +33,7 @@ namespace ProTrendAPI.Services.UserSevice
             return null;
         }
 
-        public Profile? GetMobileProfile()
+        public async Task<Profile?> GetMobileProfile()
         {
             try
             {
@@ -42,7 +41,7 @@ namespace ProTrendAPI.Services.UserSevice
                 if (token != "")
                 {
                     token = token.FirstOrDefault().ToString();
-                    return ResultForMobile(token);
+                    return await ResultForMobile(token);
                 }
                 else
                 {
@@ -70,7 +69,7 @@ namespace ProTrendAPI.Services.UserSevice
             return result;
         }
 
-        private Profile ResultForMobile(string token)
+        private static async Task<Profile> ResultForMobile(string token)
         {
             var result = new Profile();
             var claim = GetUser(token);

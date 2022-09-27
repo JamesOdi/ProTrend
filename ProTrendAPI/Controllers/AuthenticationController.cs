@@ -36,10 +36,10 @@ namespace ProTrendAPI.Controllers
 
         [HttpGet("mobile/{token}")]
         [CookieAuthenticationFilter]
-        public ActionResult<Profile> GetMe(string token)
+        public async Task<ActionResult<Profile>> GetMe(string token)
         {
             HttpContext.Request.Headers.Add("Authorization", token);
-            var profile = _userService.GetMobileProfile();
+            var profile = await _userService.GetMobileProfile();
             if (profile == null)
                 return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is UnAuthorized" });
             return Ok(profile);
