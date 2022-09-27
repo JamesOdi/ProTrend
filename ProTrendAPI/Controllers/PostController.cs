@@ -47,7 +47,7 @@ namespace ProTrendAPI.Controllers
         [HttpPost("mobile/add")]
         public async Task<ActionResult<Post>> AddPostFromMobile(Post upload)
         {
-            var profile = _userService.GetMobileProfile();
+            var profile = await _userService.GetMobileProfile();
             upload.ProfileId = profile.Identifier;
             upload.AcceptGift = false;
             upload.Disabled = false;
@@ -93,7 +93,7 @@ namespace ProTrendAPI.Controllers
         [HttpPost("mobile/add/like/{id}")]
         public async Task<IActionResult> AddLikeFromMobile(Guid id)
         {
-            var profile = _userService.GetMobileProfile();
+            var profile = await _userService.GetMobileProfile();
             var post = await _postsService.GetSinglePostAsync(id);
             if (post != null)
             {
@@ -122,7 +122,7 @@ namespace ProTrendAPI.Controllers
         [HttpDelete("mobile/delete/like/{id}")]
         public async Task<IActionResult> RemoveLikeFromMobile(Guid id)
         {
-            var profile = _userService.GetMobileProfile();
+            var profile = await _userService.GetMobileProfile();
             var post = await _postsService.GetSinglePostAsync(id);
             if (post != null)
             {
@@ -157,7 +157,7 @@ namespace ProTrendAPI.Controllers
         [HttpPost("mobile/add/comment/{token}")]
         public async Task<ActionResult<Comment>> AddCommentFromMobile(Comment comment)
         {
-            var profile = _userService.GetMobileProfile();
+            var profile = await _userService.GetMobileProfile();
             var post = await _postsService.GetSinglePostAsync(comment.PostId);
             if (post != null)
             {
@@ -194,7 +194,7 @@ namespace ProTrendAPI.Controllers
         [HttpDelete("mobile/delete/{id}")]
         public async Task<IActionResult> DeleteMobilePost(Guid id)
         {
-            var profile = _userService.GetMobileProfile();
+            var profile = await _userService.GetMobileProfile();
             var delete = await _postsService.DeletePostAsync(id, profile.Identifier);
             if (!delete)
                 return BadRequest(new BasicResponse { Message = Constants.PDError });
