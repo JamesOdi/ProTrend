@@ -14,6 +14,7 @@ namespace ProTrendAPI.Controllers
         public readonly IUserService? _userService;
         public readonly TagsService? _tagsService;
         public readonly Profile? _profile;
+        public readonly PaymentService? _paymentService;
 
         public BaseController(IServiceProvider serviceProvider)
         {
@@ -26,6 +27,7 @@ namespace ProTrendAPI.Controllers
             _profile = _userService.GetProfile();
             _searchService = serviceProvider.GetService<SearchService>();
             _tagsService = serviceProvider.GetService<TagsService>();
+            _paymentService = serviceProvider.GetService<PaymentService>();
         }
     }
 }

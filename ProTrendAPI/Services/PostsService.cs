@@ -50,20 +50,6 @@ namespace ProTrendAPI.Services
             }
         }
 
-        public async Task<bool> BuyGiftsAsync(Guid profileId, int count)
-        {
-            var gifts = Enumerable.Repeat(new Gift { Id = null, ProfileId = profileId, Disabled = false }, count);
-            try
-            {
-                await _giftsCollection.InsertManyAsync(gifts);
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
-
         public async Task<long> SendGiftToPostAsync(Post post, int count, Guid userId)
         {
             if (post != null && post.AcceptGift)
@@ -81,13 +67,6 @@ namespace ProTrendAPI.Services
                 return updateResult;
             }
             return 0;
-        }
-
-        public async Task<List<Gift>> GetAllGiftAsync(Guid profileId)
-        {
-            var filter = Builders<Gift>.Filter.Where(s => s.ProfileId == profileId && s.Disabled == false);
-            var gifts = await _giftsCollection.Find(filter).ToListAsync();
-            return gifts;
         }
 
         public async Task<List<Gift>> GetAllGiftOnPostAsync(Guid postId)
@@ -108,28 +87,6 @@ namespace ProTrendAPI.Services
             return profiles;
         }
 
-        public async Task<int> GetTotalGiftsAsync(Guid profileId)
-        {
-            var gifts = await GetAllGiftAsync(profileId);
-            return gifts.Count;
-        }
-
-        public async Task<bool> RequestWithdrawalAsync(Profile profile, int total)
-        {
-            int balance = await GetTotalGiftsAsync(profile.Identifier);
-            if (balance < 1 || total < 1)
-                return false;
-
-            await _giftsCollection.Find(g => !g.Disabled).Limit(total).ForEachAsync(g => g.Disabled = true);
-            var transaction = new Transaction { Amount = total, CreatedAt = DateTime.Now, ProfileId = profile.Identifier, Status = true, TrxRef = Generate().ToString() };
-            await _transactionCollection.InsertOneAsync(transaction);
-            var companyBody = $"Reqest for withdrawal of {total} Gifts from {profile.Email}";
-            SendMail("maryse.abshire24@ethereal.email", companyBody);
-            var senderBody = $"Your reqest for withdrawal of <b>{total} Gifts</b> is being processed. Your withdrawal will be sent to you within <b>24hrs</b>. Thank you. <p>If you face any challenges please send an email to customer support with request ID {transaction.Identifier} and we will get back to you as soon as we can</p>";
-            SendMail(profile.Email, senderBody);
-            return true;
-        }
-
         private static void SendMail(string To, string Body)
         {
             var companyAddress = "maryse.abshire24@ethereal.email";
@@ -145,25 +102,7 @@ namespace ProTrendAPI.Services
             smtp1.Send(_email);
             smtp1.Disconnect(true);
         }
-
-        public async Task<bool> InsertTransactionAsync(Transaction transaction)
-        {
-            try
-            {
-                await _transactionCollection.InsertOneAsync(transaction);
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
-
-        public async Task<Transaction> GetTransactionByRefAsync(string reference)
-        {
-            return await _transactionCollection.Find(Builders<Transaction>.Filter.Eq(t => t.TrxRef, reference)).SingleOrDefaultAsync();
-        }
-
+                
         public async Task<bool> AcceptGift(Guid id)
         {
             var filter = Builders<Post>.Filter.Eq(p => p.Identifier, id);
@@ -172,16 +111,6 @@ namespace ProTrendAPI.Services
             if (result != null)
                 return true;
             return false;
-        }
-
-        public async Task<Transaction?> VerifyTransactionAsync(Transaction transaction)
-        {
-            transaction.Status = true;
-            var filter = Builders<Transaction>.Filter.Eq(t => t.TrxRef, transaction.TrxRef);
-            var update = await _transactionCollection.FindOneAndReplaceAsync(filter, transaction);
-            if (update != null)
-                return transaction;
-            return null;
         }
 
         public async Task<Post> AddPostAsync(Post upload)
@@ -277,12 +206,6 @@ namespace ProTrendAPI.Services
         public async Task<List<Post>> GetPostsInCategoryAsync(string category)
         {
             return await _postsCollection.Find(Builders<Post>.Filter.Where(p => p.Category.Contains(category))).ToListAsync();
-        }
-
-        private static int Generate()
-        {
-            Random r = new((int)DateTime.Now.Ticks);
-            return r.Next(100000000, 999999999);
-        }
+        }    
     }
 }

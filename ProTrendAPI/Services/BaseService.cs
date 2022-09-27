@@ -69,5 +69,11 @@ namespace ProTrendAPI.Services
             else
                 return returnResult + "B";
         }
+
+        public static int Generate()
+        {
+            Random r = new((int)DateTime.Now.Ticks);
+            return r.Next(100000000, 999999999);
+        }
     }
 }

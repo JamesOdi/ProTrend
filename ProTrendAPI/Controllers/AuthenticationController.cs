@@ -34,17 +34,6 @@ namespace ProTrendAPI.Controllers
             return Ok(_profile);
         }
 
-        [HttpGet("mobile/{token}")]
-        [CookieAuthenticationFilter]
-        public async Task<ActionResult<Profile>> GetMe(string token)
-        {
-            HttpContext.Request.Headers.Add("Authorization", token);
-            var profile = await _userService.GetMobileProfile();
-            if (profile == null)
-                return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is UnAuthorized" });
-            return Ok(profile);
-        }
-
         [HttpPost("register")]
         [AllowAnonymous]
         public async Task<ActionResult<object>> Register(ProfileDTO request)
@@ -188,14 +177,14 @@ namespace ProTrendAPI.Controllers
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
                 return BadRequest(new { Success = false, Message = Constants.WrongEmailPassword });
             var token = GetJWT(result);
+            
             if (token != "")
             {
                 Response.Headers.Add("Authorization", token);
-                return Ok(new { Success = true, Data = token });
+                return Ok(new { Success = true, Data = await _profileService.GetProfileByIdAsync(result.Id)});
             }
             return BadRequest(new { Success = false, Message = "Login failed!" });
         }
-
 
         [HttpPost("logout")]
         [CookieAuthenticationFilter]

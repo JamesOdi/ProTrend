@@ -44,11 +44,10 @@ namespace ProTrendAPI.Controllers
             return Ok(await _postsService.AddPostAsync(upload));
         }
 
-        [HttpPost("mobile/add")]
-        public async Task<ActionResult<Post>> AddPostFromMobile(Post upload)
+        [HttpPost("mobile/{id}/add")]
+        public async Task<ActionResult<Post>> AddPostFromMobile(string id, Post upload)
         {
-            var profile = await _userService.GetMobileProfile();
-            upload.ProfileId = profile.Identifier;
+            upload.ProfileId = Guid.Parse(id);
             upload.AcceptGift = false;
             upload.Disabled = false;
             return Ok(await _postsService.AddPostAsync(upload));

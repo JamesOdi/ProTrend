@@ -80,7 +80,7 @@ namespace ProTrendAPI.Controllers
             {
                 return BadRequest(new BasicResponse { Message = "Unauthorized" });
             }
-            return Ok(new DataResponse { Data = await _postsService.GetTotalGiftsAsync(_profile.Identifier) });
+            return Ok(new DataResponse { Data = await _paymentService.GetTotalGiftsAsync(_profile.Identifier) });
         }
     }
 }

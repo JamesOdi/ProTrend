@@ -26,6 +26,7 @@ builder.Services.AddSingleton<CategoriesService>();
 builder.Services.AddSingleton<SearchService>();
 builder.Services.AddSingleton<TagsService>();
 builder.Services.AddSingleton<NotificationService>();
+builder.Services.AddSingleton<PaymentService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
