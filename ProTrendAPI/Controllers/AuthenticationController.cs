@@ -167,15 +167,15 @@ namespace ProTrendAPI.Controllers
         {
             if (!IsValidEmail(login.Email))
             {
-                return BadRequest(new { Success = false, Message = Constants.InvalidEmail });
+                return BadRequest(new { Success = false, Data = new Profile() });
             }
 
             var result = await _regService.FindRegisteredUserByEmailAsync(login);
 
             if (result == null)
-                return BadRequest(new { Success = false, Message = Constants.UserNotFound });
+                return BadRequest(new { Success = false, Data = new Profile() });
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
-                return BadRequest(new { Success = false, Message = Constants.WrongEmailPassword });
+                return BadRequest(new { Success = false, Data = new Profile() });
             var token = GetJWT(result);
             
             if (token != "")
@@ -183,7 +183,7 @@ namespace ProTrendAPI.Controllers
                 Response.Headers.Add("Authorization", token);
                 return Ok(new { Success = true, Data = await _profileService.GetProfileByIdAsync(result.Id)});
             }
-            return BadRequest(new { Success = false, Message = "Login failed!" });
+            return BadRequest(new { Success = false, Data = new Profile() });
         }
 
         [HttpPost("logout")]
