@@ -17,6 +17,12 @@ namespace ProTrendAPI.Models.User
         public string AccountType { get; set; } = string.Empty;
         [JsonPropertyName("bgimg")]
         public string BackgroundImageUrl { get; set; } = string.Empty;
+        [JsonPropertyName("paymentpin")]
+        public string PaymentPin { get; set; } = string.Empty;
+        [JsonPropertyName("accountnumber")]
+        public string AccountNumber { get; set; } = string.Empty;
+        [JsonPropertyName("bank")]
+        public string Bank { get; set; } = string.Empty;
         [JsonPropertyName("country")]
         public string Country { get; set; } = string.Empty;
         [JsonPropertyName("phone")]

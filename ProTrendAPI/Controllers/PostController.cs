@@ -23,14 +23,32 @@ namespace ProTrendAPI.Controllers
             return Ok(await _postsService.GetPagePostsAsync(page));
         }
 
+        [HttpGet("mobile/get/{page}")]
+        public async Task<ActionResult<List<Post>>> MobileGetPostsPaginated(int page)
+        {
+            return Ok(await _postsService.GetPagePostsAsync(page));
+        }
+
         [HttpGet("get/promotions")]
         public async Task<ActionResult<List<Promotion>>> GetPromotions()
         {
             return Ok(await _postsService.GetPromotionsAsync(_profile));
         }
 
+        [HttpGet("mobile/get/promotions")]
+        public async Task<ActionResult<List<Promotion>>> MobileGetPromotions()
+        {
+            return Ok(await _postsService.GetPromotionsAsync(_profile));
+        }
+
         [HttpGet("get/{id}/gift/profiles")]
         public async Task<ActionResult<List<Profile>>> GetGifters(Guid id)
+        {
+            return await _postsService.GetGiftersAsync(id);
+        }
+
+        [HttpGet("mobile/get/{id}/gift/profiles")]
+        public async Task<ActionResult<List<Profile>>> MobileGetGifters(Guid id)
         {
             return await _postsService.GetGiftersAsync(id);
         }
@@ -45,7 +63,7 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpPost("mobile/{id}/add")]
-        public async Task<ActionResult<Post>> AddPostFromMobile(string id, Post upload)
+        public async Task<ActionResult<Post>> AddPostFromMobile(string id, [FromBody] Post upload)
         {
             upload.ProfileId = Guid.Parse(id);
             upload.AcceptGift = false;
@@ -62,14 +80,35 @@ namespace ProTrendAPI.Controllers
             return Ok(post);
         }
 
+        [HttpGet("mobile/get/{id}")]
+        public async Task<ActionResult<Post>> MobileGetPost(Guid id)
+        {
+            var post = await _postsService.GetSinglePostAsync(id);
+            if (post == null)
+                return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
+            return Ok(post);
+        }
+
         [HttpGet("get/{id}/posts")]
         public async Task<ActionResult<List<Post>>> GetUserPosts(Guid id)
         {
             return Ok(await _postsService.GetUserPostsAsync(id));
         }
 
+        [HttpGet("mobile/get/{id}/posts")]
+        public async Task<ActionResult<List<Post>>> MobileGetUserPosts(Guid id)
+        {
+            return Ok(await _postsService.GetUserPostsAsync(id));
+        }
+
         [HttpGet("get/{id}/likes")]
         public async Task<ActionResult<List<Like>>> GetLikes(Guid id)
+        {
+            return Ok(await _postsService.GetPostLikesAsync(id));
+        }
+
+        [HttpGet("mobile/get/{id}/likes")]
+        public async Task<ActionResult<List<Like>>> MobileGetLikes(Guid id)
         {
             return Ok(await _postsService.GetPostLikesAsync(id));
         }
@@ -90,9 +129,8 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpPost("mobile/add/like/{id}")]
-        public async Task<IActionResult> AddLikeFromMobile(Guid id)
+        public async Task<IActionResult> AddLike(Guid id, [FromBody] Profile profile)
         {
-            var profile = await _userService.GetMobileProfile();
             var post = await _postsService.GetSinglePostAsync(id);
             if (post != null)
             {
@@ -119,9 +157,8 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpDelete("mobile/delete/like/{id}")]
-        public async Task<IActionResult> RemoveLikeFromMobile(Guid id)
+        public async Task<IActionResult> RemoveLikeFromMobile(Guid id, [FromBody] Profile profile)
         {
-            var profile = await _userService.GetMobileProfile();
             var post = await _postsService.GetSinglePostAsync(id);
             if (post != null)
             {
@@ -134,6 +171,12 @@ namespace ProTrendAPI.Controllers
 
         [HttpGet("get/{id}/like/count")]
         public async Task<ActionResult<int>> GetLikesCount(Guid id)
+        {
+            return Ok(new DataResponse { Status = Constants.OK, Data = await _postsService.GetLikesCountAsync(id) });
+        }
+
+        [HttpGet("mobile/get/{id}/like/count")]
+        public async Task<ActionResult<int>> MobileGetLikesCount(Guid id)
         {
             return Ok(new DataResponse { Status = Constants.OK, Data = await _postsService.GetLikesCountAsync(id) });
         }
@@ -153,10 +196,9 @@ namespace ProTrendAPI.Controllers
             return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
         }
 
-        [HttpPost("mobile/add/comment/{token}")]
-        public async Task<ActionResult<Comment>> AddCommentFromMobile(Comment comment)
+        [HttpPost("mobile/add/comment")]
+        public async Task<ActionResult<Comment>> AddCommentFromMobile([FromBody] Profile profile, Comment comment)
         {
-            var profile = await _userService.GetMobileProfile();
             var post = await _postsService.GetSinglePostAsync(comment.PostId);
             if (post != null)
             {
@@ -175,8 +217,20 @@ namespace ProTrendAPI.Controllers
             return Ok(await _postsService.GetAllGiftOnPostAsync(id));
         }
 
+        [HttpGet("mobile/get/{id}/gifts")]
+        public async Task<ActionResult> MobileGetAllGiftsOnPost(Guid id)
+        {
+            return Ok(await _postsService.GetAllGiftOnPostAsync(id));
+        }
+
         [HttpGet("get/{id}/comments")]
         public async Task<ActionResult<List<Comment>>> GetComments(Guid id)
+        {
+            return Ok(await _postsService.GetCommentsAsync(id));
+        }
+
+        [HttpGet("mobile/get/{id}/comments")]
+        public async Task<ActionResult<List<Comment>>> MobileGetComments(Guid id)
         {
             return Ok(await _postsService.GetCommentsAsync(id));
         }
@@ -191,9 +245,8 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpDelete("mobile/delete/{id}")]
-        public async Task<IActionResult> DeleteMobilePost(Guid id)
+        public async Task<IActionResult> DeleteMobilePost(Guid id, [FromBody] Profile profile)
         {
-            var profile = await _userService.GetMobileProfile();
             var delete = await _postsService.DeletePostAsync(id, profile.Identifier);
             if (!delete)
                 return BadRequest(new BasicResponse { Message = Constants.PDError });
