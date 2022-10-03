@@ -138,6 +138,28 @@ namespace ProTrendAPI.Controllers
             return BadRequest(new { Success = false, Message = "Verification failed" });
         }
 
+        [HttpPost("mobile/verify/otp")]
+        [AllowAnonymous]
+        public async Task<ActionResult<object>> MobileVerifyOTP(ProfileDTO request)
+        {
+            CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
+            var register = new Register
+            {
+                Email = request.Email.Trim().ToLower(),
+                PasswordSalt = passwordSalt,
+                PasswordHash = passwordHash,
+                UserName = request.UserName.Trim().ToLower(),
+                FullName = request.FullName.Trim().ToLower(),
+                RegistrationDate = DateTime.Now,
+                AccountType = request.AccountType.Trim().ToLower(),
+                Country = request.Country!.Trim().ToLower()
+            };
+            var result = await _regService.InsertAsync(register);
+            if (result == null)
+                return BadRequest(new { Success = false, Message = "Error registering user!" });
+            return BadRequest(new { Success = false, Data = result });
+        }
+
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<ActionResult<object>> Login([FromBody] Login login)

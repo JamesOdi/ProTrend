@@ -196,9 +196,10 @@ namespace ProTrendAPI.Controllers
             return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
         }
 
-        [HttpPost("mobile/add/comment")]
-        public async Task<ActionResult<Comment>> AddCommentFromMobile([FromBody] Profile profile, Comment comment)
+        [HttpPost("mobile/{id}/add/comment")]
+        public async Task<ActionResult<Comment>> AddCommentFromMobile(string id, Comment comment)
         {
+            var profile = await _profileService.GetProfileByIdAsync(Guid.Parse(id));
             var post = await _postsService.GetSinglePostAsync(comment.PostId);
             if (post != null)
             {

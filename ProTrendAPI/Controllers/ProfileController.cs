@@ -37,9 +37,10 @@ namespace ProTrendAPI.Controllers
             return Ok(result);
         }
 
-        [HttpPut("mobile/update")]
-        public async Task<ActionResult<Profile>> MobileUpdateProfile([FromBody] Profile updateProfile, [FromBody]Profile profile)
+        [HttpPut("mobile/{id}/update")]
+        public async Task<ActionResult<Profile>> MobileUpdateProfile(string id, [FromBody] Profile updateProfile)
         {
+            var profile = await _profileService.GetProfileByIdAsync(Guid.Parse(id));
             var result = await _profileService.UpdateProfile(profile, updateProfile);
             if (result == null)
                 return BadRequest(new BasicResponse { Message = "Update failed" });
