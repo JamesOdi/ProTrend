@@ -260,7 +260,7 @@ namespace ProTrendAPI.Controllers
         //}
 
         [HttpPost("verify/accept_gift/{id}/{reference}")]
-        public async Task<ActionResult> VerifyAcceptGift(Guid id, string reference)
+        public async Task<ActionResult<BasicResponse>> VerifyAcceptGift(Guid id, string reference)
         {
             TransactionVerifyResponse response = PayStack.Transactions.Verify(reference);
             if (response.Data.Status == "success")
@@ -287,7 +287,7 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpPost("mobile/verify/accept_gift/{profile_id}/{post_id}/{reference}")]
-        public async Task<ActionResult> VerifyAcceptGift(string profile_id, Guid post_id, string reference)
+        public async Task<ActionResult<BasicResponse>> VerifyAcceptGift(string profile_id, Guid post_id, string reference)
         {
             var profile = await _profileService.GetProfileByIdAsync(Guid.Parse(profile_id));
             TransactionVerifyResponse response = PayStack.Transactions.Verify(reference);
