@@ -64,7 +64,7 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpPost("mobile/add/{id}")]
-        public async Task<ActionResult<Post>> AddPostFromMobile(string id, [FromBody] Post upload)
+        public async Task<ActionResult<object>> AddPostFromMobile(string id, [FromBody] Post upload)
         {
             upload.ProfileId = Guid.Parse(id);
             upload.AcceptGift = false;
