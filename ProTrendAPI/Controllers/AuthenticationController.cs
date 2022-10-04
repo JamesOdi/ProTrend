@@ -157,7 +157,7 @@ namespace ProTrendAPI.Controllers
             var result = await _regService.InsertAsync(register);
             if (result == null)
                 return BadRequest(new { Success = false, Message = "Error registering user!" });
-            return BadRequest(new { Success = false, Data = result });
+            return Ok(new { Success = true, Data = result });
         }
 
         [HttpPost("login")]

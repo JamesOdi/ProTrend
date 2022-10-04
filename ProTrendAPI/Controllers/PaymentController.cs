@@ -177,48 +177,6 @@ namespace ProTrendAPI.Controllers
             return BadRequest(new { Success = false, Ref = request.Reference, Data = "Error making transaction" });
         }
 
-        [HttpPost("accept_gifts/{id}")]
-        public async Task<ActionResult<object>> AcceptGift(string id)
-        {
-            if (_profile == null)
-                return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is not Authorized" });
-            var post = await _postsService.GetSinglePostAsync(Guid.Parse(id));
-
-            TransactionInitializeRequest request = new()
-            {
-                AmountInKobo = 1500 * 100,
-                Email = _profile.Email,
-                Reference = Generate().ToString(),
-                Currency = "NGN"
-                //CallbackUrl = ""
-            };
-
-            TransactionInitializeResponse response = PayStack.Transactions.Initialize(request);
-            if (response.Status)
-            {
-                var transaction = new Transaction
-                {
-                    Amount = 1500,
-                    ProfileId = _profile.Identifier,
-                    CreatedAt = DateTime.Now,
-                    TrxRef = request.Reference,
-                    ItemId = post.Identifier,
-                    Status = false
-                };
-
-                var resultOk = await _paymentService.InsertTransactionAsync(transaction);
-                if (resultOk)
-                    return Ok(new
-                    {
-                        Success = true,
-                        Ref = request.Reference,
-                        Data = response.Data.AuthorizationUrl
-                    });
-            }
-            // CallbackUrl = response after payment url to go to in request
-            return BadRequest(new BasicResponse { Message = response.Message });
-        }
-
         [HttpPost("send_gifts/{id}/{count}")]
         public async Task<ActionResult<object>> SendGift(Guid id, int count)
         {
@@ -304,21 +262,56 @@ namespace ProTrendAPI.Controllers
         [HttpPost("verify/accept_gift/{id}/{reference}")]
         public async Task<ActionResult> VerifyAcceptGift(Guid id, string reference)
         {
-            var transaction = await _paymentService.GetTransactionByRefAsync(reference);
-            if (transaction.ProfileId != _profile.Identifier)
-                return Unauthorized(new DataResponse
-                {
-                    Data = 403,
-                    Status = "Access dienied to the requested resource"
-                });
             TransactionVerifyResponse response = PayStack.Transactions.Verify(reference);
             if (response.Data.Status == "success")
             {
-                var verifyStatus = await _paymentService.VerifyTransactionAsync(transaction);
-                if (verifyStatus != null && verifyStatus.Status)
+                var transaction = new Transaction
                 {
-                    var resultOk = await _postsService.AcceptGift(id);
-                    if (resultOk)
+                    Amount = 1500,
+                    ProfileId = _profile.Identifier,
+                    CreatedAt = DateTime.Now,
+                    TrxRef = response.Data.Reference,
+                    ItemId = id,
+                    Status = false
+                };
+
+                var resultOk = await _paymentService.InsertTransactionAsync(transaction);
+
+                var verifyStatus = await _paymentService.VerifyTransactionAsync(transaction);
+                if (resultOk && verifyStatus != null && verifyStatus.Status)
+                {
+                    var acceptResultOk = await _postsService.AcceptGift(id);
+                    if (acceptResultOk)
+                        return Ok(new BasicResponse { Success = true, Message = response.Message });
+                }
+            }
+            return BadRequest(new BasicResponse { Message = "Error verifying payment" });
+        }
+
+        [HttpPost("mobile/verify/accept_gift/{profile_id}/{post_id}/{reference}")]
+        public async Task<ActionResult> VerifyAcceptGift(string profile_id, Guid post_id, string reference)
+        {
+            var profile = await _profileService.GetProfileByIdAsync(Guid.Parse(profile_id));
+            TransactionVerifyResponse response = PayStack.Transactions.Verify(reference);
+            if (response.Data.Status == "success")
+            {
+                var transaction = new Transaction
+                {
+                    Amount = 1500,
+                    ProfileId = profile.Identifier,
+                    CreatedAt = DateTime.Now,
+                    TrxRef = response.Data.Reference,
+                    ItemId = post_id,
+                    Status = false
+                };
+
+                var resultOk = await _paymentService.InsertTransactionAsync(transaction);
+
+                var verifyStatus = await _paymentService.VerifyTransactionAsync(transaction);
+                if (resultOk && verifyStatus != null && verifyStatus.Status)
+                {
+                    var acceptResultOk = await _postsService.AcceptGift(post_id);
+                    if (acceptResultOk)
                         return Ok(new BasicResponse { Success = true, Message = response.Message });
                 }
             }
@@ -349,10 +342,11 @@ namespace ProTrendAPI.Controllers
             return BadRequest(new BasicResponse { Message = "Error verifying payment" });
         }
 
-        [HttpPost("mobile/verify/top_up/{reference}")]
-        public async Task<ActionResult> VerifyTopUpBalance(Profile profile, string reference)
+        [HttpPost("mobile/verify/top_up/{profile_id}/{reference}")]
+        public async Task<ActionResult> VerifyTopUpBalance(string profile_id, string reference)
         {
             var transaction = await _paymentService.GetTransactionByRefAsync(reference);
+            var profile = await _profileService.GetProfileByIdAsync(Guid.Parse(profile_id));
             if (transaction.ProfileId != profile.Identifier)
                 return Unauthorized(new DataResponse
                 {
