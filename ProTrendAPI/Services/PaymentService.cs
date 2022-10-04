@@ -18,16 +18,6 @@ namespace ProTrendAPI.Services
             return await _transactionCollection.Find(Builders<Transaction>.Filter.Eq(t => t.TrxRef, reference)).SingleOrDefaultAsync();
         }
 
-        public async Task<Transaction?> VerifyTransactionAsync(Transaction transaction)
-        {
-            transaction.Status = true;
-            var filter = Builders<Transaction>.Filter.Eq(t => t.TrxRef, transaction.TrxRef);
-            var update = await _transactionCollection.FindOneAndReplaceAsync(filter, transaction);
-            if (update != null)
-                return transaction;
-            return null;
-        }
-
         public async Task<bool> InsertTransactionAsync(Transaction transaction)
         {
             try
