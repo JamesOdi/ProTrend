@@ -38,16 +38,6 @@ namespace ProTrendAPI.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<object>> Register(ProfileDTO request)
         {
-            if (!IsValidEmail(request.Email))
-            {
-                return BadRequest(new { Success = false, Message = Constants.InvalidEmail });
-            }
-
-            if (request.UserName.Contains(' '))
-            {
-                return BadRequest(new { Success = false, Message = "Username cannot contain whitespace" });
-            }
-
             var userExists = await GetUserResult(request);
 
             if (userExists != null)
