@@ -115,16 +115,24 @@ namespace ProTrendAPI.Services
 
         public async Task<Post> AddPostAsync(Post upload)
         {
-            upload.Identifier = upload.Id;
-            await _postsCollection.InsertOneAsync(upload);
-            if (upload.Category != null && upload.Category.Count > 0)
+            try
             {
-                foreach (var cat in upload.Category)
+                upload.Identifier = upload.Id;
+                await _postsCollection.InsertOneAsync(upload);
+                if (upload.Category != null && upload.Category.Count > 0)
                 {
-                    await _categoryService.AddCategoryAsync(cat);
+                    foreach (var cat in upload.Category)
+                    {
+                        await _categoryService.AddCategoryAsync(cat);
+                    }
+
                 }
+                return upload;
             }
-            return upload;
+            catch(Exception)
+            {
+                return new Post();
+            }
         }
 
         public async Task<List<Like>> GetPostLikesAsync(Guid id)
