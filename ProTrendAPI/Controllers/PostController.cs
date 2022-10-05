@@ -63,7 +63,7 @@ namespace ProTrendAPI.Controllers
             return Ok(new { Success = true, Data = uploadResult });
         }
 
-        [HttpPost("mobile/add/{id}")]
+        [HttpPost("mobile/add")]
         public async Task<ActionResult<object>> AddPostFromMobile([FromBody] Post upload)
         {
             upload.AcceptGift = false;
