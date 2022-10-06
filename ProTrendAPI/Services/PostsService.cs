@@ -119,6 +119,14 @@ namespace ProTrendAPI.Services
             {
                 upload.Identifier = upload.Id;
                 await _postsCollection.InsertOneAsync(upload);
+                if (upload.Category != null && upload.Category.Count > 0)
+                {
+                    foreach (var cat in upload.Category)
+                    {
+                        await _categoryService.AddCategoryAsync(cat);
+                    }
+
+                }
                 return upload;
             }
             catch(Exception)
