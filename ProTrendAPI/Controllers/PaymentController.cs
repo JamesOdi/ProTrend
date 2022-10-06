@@ -286,11 +286,11 @@ namespace ProTrendAPI.Controllers
             return BadRequest(new BasicResponse { Message = "Error verifying payment" });
         }
 
-        [HttpPost("mobile/verify/accept_gift/{profile_id}/{post_id}/{reference}")]
-        public async Task<ActionResult<BasicResponse>> VerifyAcceptGift(string profile_id, Guid post_id, string reference)
+        [HttpPost("mobile/verify/accept_gift")]
+        public async Task<ActionResult<BasicResponse>> VerifyAcceptGift(VerifyAcceptGiftTransaction verify)
         {
-            var profile = await _profileService.GetProfileByIdAsync(Guid.Parse(profile_id));
-            TransactionVerifyResponse response = PayStack.Transactions.Verify(reference);
+            var profile = await _profileService.GetProfileByIdAsync(Guid.Parse(verify.Profile_id));
+            TransactionVerifyResponse response = PayStack.Transactions.Verify(verify.Reference);
             if (response.Data.Status == "success")
             {
                 var transaction = new Transaction
@@ -299,14 +299,14 @@ namespace ProTrendAPI.Controllers
                     ProfileId = profile.Identifier,
                     CreatedAt = DateTime.Now,
                     TrxRef = response.Data.Reference,
-                    ItemId = post_id,
+                    ItemId = Guid.Parse(verify.Post_id),
                     Status = true
                 };
 
                 var resultOk = await _paymentService.InsertTransactionAsync(transaction);
                 if (resultOk)
                 {
-                    var acceptResultOk = await _postsService.AcceptGift(post_id);
+                    var acceptResultOk = await _postsService.AcceptGift(Guid.Parse(verify.Post_id));
                     if (acceptResultOk)
                         return Ok(new BasicResponse { Success = true, Message = response.Message });
                 }
