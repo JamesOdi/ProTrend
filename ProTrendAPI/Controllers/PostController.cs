@@ -69,7 +69,6 @@ namespace ProTrendAPI.Controllers
             var post = new Post { AcceptGift = false, Category = upload.Category, Location = upload.Location, UploadUrls = upload.UploadUrls, Caption = upload.Caption, ProfileId = upload.ProfileId };
             var uploadResult = await _postsService.AddPostAsync(post);
             return Ok(new { Success = true, Data = uploadResult });
-
         }
 
         [HttpGet("get/{id}")]
