@@ -63,13 +63,11 @@ namespace ProTrendAPI.Controllers
             return Ok(new { Success = true, Data = uploadResult });
         }
 
-        [HttpPost("mobile/add/{id}")]
-        public async Task<ActionResult<object>> AddPostFromMobile(string id, [FromBody] Post upload)
+        [HttpPost("mobile/add")]
+        public async Task<ActionResult<object>> AddPostFromMobile([FromBody] PostDTO upload)
         {
-            upload.ProfileId = Guid.Parse(id);
-            upload.AcceptGift = false;
-            upload.Disabled = false;
-            var uploadResult = await _postsService.AddPostAsync(upload);
+            var post = new Post { AcceptGift = false, Category = upload.Category, Location = upload.Location, UploadUrls = upload.UploadUrls, Caption = upload.Caption, ProfileId = upload.ProfileId };
+            var uploadResult = await _postsService.AddPostAsync(post);
             return Ok(new { Success = true, Data = uploadResult });
         }
 
