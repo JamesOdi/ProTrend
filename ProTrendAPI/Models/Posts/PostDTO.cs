@@ -9,7 +9,7 @@ namespace ProTrendAPI.Models.Posts
         [JsonPropertyName("caption")]
         public string Caption { get; set; } = string.Empty;
         [JsonPropertyName("uploadurls")]
-        public List<string>? UploadUrls { get; set; } = null;
+        public List<string> UploadUrls { get; set; } = new List<string>();
         [JsonPropertyName("location")]
         public string Location { get; set; } = string.Empty;
         [JsonPropertyName("category")]
