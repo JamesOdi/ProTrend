@@ -36,16 +36,16 @@ namespace ProTrendAPI.Services.UserSevice
             return user;
         }
 
-        public async Task<bool> Follow(Profile profile, Guid receiver)
+        public async Task<bool> Follow(Profile from, Guid to)
         {
-            if (profile != null)
+            if (from != null)
             {
-                var follow = await _followingsCollection.Find(follow => follow.SenderId == profile.Identifier && follow.ReceiverId == receiver && !profile.Disabled).FirstOrDefaultAsync();
+                var follow = await _followingsCollection.Find(follow => follow.SenderId == from.Identifier && follow.ReceiverId == to && !from.Disabled).FirstOrDefaultAsync();
                 if (follow != null)
                     return false;
                 try
                 {
-                    await _followingsCollection.InsertOneAsync(new Followings { SenderId = profile.Identifier, ReceiverId = receiver });
+                    await _followingsCollection.InsertOneAsync(new Followings { SenderId = from.Identifier, ReceiverId = to });
                     return true;
                 }
                 catch (Exception)

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ProTrendAPI.Models.User;
 using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
@@ -29,19 +30,21 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpPut("update")]
-        public async Task<ActionResult<Profile>> UpdateProfile([FromBody] Profile updateProfile)
+        public async Task<ActionResult<Profile>> UpdateProfile([FromBody] ProfileDTO updateProfile)
         {
-            var result = await _profileService.UpdateProfile(_profile, updateProfile);
+            var profile = new Profile { AccountNumber = updateProfile.AccountNumber, BackgroundImageUrl = updateProfile.BackgroundImageUrl, Disabled = updateProfile.Disabled, FullName = updateProfile.FullName, UserName = updateProfile.UserName, PaymentPin = updateProfile.PaymentPin, Phone = updateProfile.Phone, ProfileImage = updateProfile.ProfileImage };
+            var result = await _profileService.UpdateProfile(_profile, profile);
             if (result == null)
                 return BadRequest(new BasicResponse { Message = "Update failed" });
             return Ok(result);
         }
 
         [HttpPut("mobile/{id}/update")]
-        public async Task<ActionResult<Profile>> MobileUpdateProfile(string id, [FromBody] Profile updateProfile)
+        public async Task<ActionResult<Profile>> MobileUpdateProfile(string id, [FromBody] ProfileDTO updateProfile)
         {
             var profile = await _profileService.GetProfileByIdAsync(Guid.Parse(id));
-            var result = await _profileService.UpdateProfile(profile, updateProfile);
+            var update_profile = new Profile { AccountNumber = updateProfile.AccountNumber, BackgroundImageUrl = updateProfile.BackgroundImageUrl, Disabled = updateProfile.Disabled, FullName = updateProfile.FullName, UserName = updateProfile.UserName, PaymentPin = updateProfile.PaymentPin, Phone = updateProfile.Phone, ProfileImage = updateProfile.ProfileImage };
+            var result = await _profileService.UpdateProfile(profile, update_profile);
             if (result == null)
                 return BadRequest(new BasicResponse { Message = "Update failed" });
             return Ok(result);
@@ -59,15 +62,16 @@ namespace ProTrendAPI.Controllers
             return Ok(new BasicResponse { Success = true, Message = "Follow successful" });
         }
 
-        [HttpPost("mobile/follow/{id}")]
-        public async Task<ActionResult<object>> Follow(Guid id, [FromBody] Profile profile)
+        [HttpPost("mobile/follow/{from}/{to}")]
+        public async Task<ActionResult<object>> Follow(Guid from, Guid to)
         {
-            if (id == profile.Identifier)
+            if (from == to)
                 return BadRequest(new BasicResponse { Message = "Cannot follow one's self" });
-            var followOk = await _profileService.Follow(profile, id);
+            var profile = await _profileService.GetProfileByIdAsync(from);
+            var followOk = await _profileService.Follow(profile, to);
             if (!followOk)
                 return BadRequest(new BasicResponse { Message = "Error following" });
-            await _notificationService.FollowNotification(profile, id);
+            await _notificationService.FollowNotification(profile, to);
             return Ok(new BasicResponse { Success = true, Message = "Follow successful" });
         }
 

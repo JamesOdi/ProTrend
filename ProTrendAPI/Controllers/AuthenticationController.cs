@@ -45,7 +45,7 @@ namespace ProTrendAPI.Controllers
                 return BadRequest(new { Success = false, Message = Constants.UserExists });
             }
 
-            //Please modify before launching
+            // Please modify before launching
             // var otp = SendEmail(request.Email, request.Password);
             return Ok(new { Success = true, OTP = GenerateOTP() });
         }
@@ -254,6 +254,7 @@ namespace ProTrendAPI.Controllers
             var token = new JwtSecurityToken(claims: claims, expires: DateTime.Now.AddHours(1), signingCredentials: credentials);
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
         private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
             using var hmac = new HMACSHA512();
