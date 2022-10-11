@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProTrendAPI.Models.Payments;
+using ProTrendAPI.Models.Posts;
 using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
@@ -54,12 +55,13 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpPost("add")]
-        public async Task<ActionResult<DataResponse>> AddPost(Post upload)
+        public async Task<ActionResult<DataResponse>> AddPost([FromBody] PostDTO upload)
         {
-            upload.ProfileId = _profile.Id;
-            upload.AcceptGift = false;
-            upload.Disabled = false;
-            var uploadResult = await _postsService.AddPostAsync(upload);
+            //upload.ProfileId = _profile.Id;
+            //upload.AcceptGift = false;
+            //upload.Disabled = false;
+            var post = new Post { AcceptGift = false, Category = upload.Category, Location = upload.Location, UploadUrls = upload.UploadUrls, Caption = upload.Caption, ProfileId = upload.ProfileId };
+            var uploadResult = await _postsService.AddPostAsync(post);
             return Ok(new { Success = true, Data = uploadResult });
         }
 
@@ -182,13 +184,13 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpPost("add/comment")]
-        public async Task<ActionResult<Comment>> AddComment(Comment comment)
+        public async Task<ActionResult<Comment>> AddComment(CommentDTO commentDTO)
         {
-            var post = await _postsService.GetSinglePostAsync(comment.PostId);
+            var post = await _postsService.GetSinglePostAsync(commentDTO.PostId);
             if (post != null)
             {
-                comment.UserId = _profile.Id;
-                comment.Identifier = comment.Id;
+                var comment = new Comment { UserId = _profile.Id, PostId = commentDTO.PostId, CommentContent = commentDTO.CommentContent, Time = commentDTO.Time };
+                
                 await _notificationService.CommentNotification(_profile, post.ProfileId);
                 var commentResult = await _postsService.InsertCommentAsync(comment);
                 return Ok(commentResult);
@@ -196,16 +198,14 @@ namespace ProTrendAPI.Controllers
             return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
         }
 
-        [HttpPost("mobile/{id}/add/comment")]
-        public async Task<ActionResult<Comment>> AddCommentFromMobile(string id, Comment comment)
-        {
-            var profile = await _profileService.GetProfileByIdAsync(Guid.Parse(id));
-            var post = await _postsService.GetSinglePostAsync(comment.PostId);
+        [HttpPost("mobile/add/comment")]
+        public async Task<ActionResult<Comment>> AddCommentFromMobile(CommentDTO commentDTO)
+        {            
+            var post = await _postsService.GetSinglePostAsync(commentDTO.PostId);
             if (post != null)
-            {
-                comment.UserId = profile.Id;
-                comment.Identifier = comment.Id;
-                await _notificationService.CommentNotification(profile, post.ProfileId);
+            {                
+                var comment = new Comment { UserId = _mobileProfile.Result.Id, PostId = commentDTO.PostId, CommentContent = commentDTO.CommentContent, Time = commentDTO.Time };
+                await _notificationService.CommentNotification(_mobileProfile.Result, post.ProfileId);
                 var commentResult = await _postsService.InsertCommentAsync(comment);
                 return Ok(commentResult);
             }
