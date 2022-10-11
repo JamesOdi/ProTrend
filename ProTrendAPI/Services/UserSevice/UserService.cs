@@ -37,8 +37,10 @@ namespace ProTrendAPI.Services.UserSevice
         {
             try
             {
+                //get token from local repo
                 var token = _contextAccessor.HttpContext.Request.Headers["Authorization"];
-                if (token != "")
+                
+                if(string.IsNullOrEmpty(token))
                 {
                     token = token.FirstOrDefault().ToString();
                     return await ResultForMobile(token);
