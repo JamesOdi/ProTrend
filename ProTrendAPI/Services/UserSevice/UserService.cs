@@ -37,8 +37,8 @@ namespace ProTrendAPI.Services.UserSevice
         {
             try
             {
-                //get token from local repo
-                var token = _contextAccessor.HttpContext.Request.Headers["Authorization"];
+                //RV get token from local repo not cookies
+                var token = _contextAccessor.HttpContext.Request.Cookies["Authentication"];
                 
                 if(string.IsNullOrEmpty(token))
                 {
