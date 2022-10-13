@@ -37,8 +37,10 @@ namespace ProTrendAPI.Services.UserSevice
         {
             try
             {
-                var token = _contextAccessor.HttpContext.Request.Headers["Authorization"];
-                if (token != "")
+                //RV get token from local repo not cookies
+                var token = _contextAccessor.HttpContext.Request.Cookies["Authentication"];
+                
+                if(string.IsNullOrEmpty(token))
                 {
                     token = token.FirstOrDefault().ToString();
                     return await ResultForMobile(token);
