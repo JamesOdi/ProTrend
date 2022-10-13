@@ -73,7 +73,7 @@ namespace ProTrendAPI.Controllers
             return Ok(new { Success = true, Data = uploadResult });
         }
 
-        [HttpGet("get/{id}")]
+        [HttpGet("fetch/{id}")]
         public async Task<ActionResult<Post>> GetPost(Guid id)
         {
             var post = await _postsService.GetSinglePostAsync(id);
@@ -82,14 +82,14 @@ namespace ProTrendAPI.Controllers
             return Ok(post);
         }
 
-        [HttpGet("mobile/get/{id}")]
+        [HttpGet("mobile/fetch/{id}")]
         public async Task<ActionResult<Post>> MobileGetPost(Guid id)
         {
             var post = await _postsService.GetSinglePostAsync(id);
             if (post == null)
                 return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
             return Ok(post);
-        }
+        }        
 
         [HttpGet("get/{id}/posts")]
         public async Task<ActionResult<List<Post>>> GetUserPosts(Guid id)
