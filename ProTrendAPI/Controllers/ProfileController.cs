@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ProTrendAPI.Models.User;
 using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
@@ -141,15 +140,15 @@ namespace ProTrendAPI.Controllers
             return Ok(new DataResponse { Status = Constants.OK, Data = await _profileService.GetFollowingCount(id) });
         }
 
-        [HttpGet("get/gifts/total")]
-        public async Task<IActionResult> GetGiftTotal()
-        {
-            if (_profile == null)
-            {
-                return BadRequest(new BasicResponse { Message = "Unauthorized" });
-            }
-            return Ok(new DataResponse { Data = await _paymentService.GetTotalGiftsAsync(_profile.Identifier) });
-        }
+        //[HttpGet("get/gifts/total")]
+        //public async Task<IActionResult> GetGiftTotal()
+        //{
+        //    if (_profile == null)
+        //    {
+        //        return BadRequest(new BasicResponse { Message = "Unauthorized" });
+        //    }
+        //    return Ok(new DataResponse { Data = await _paymentService.GetTotalGiftsAsync(_profile.Identifier) });
+        //}
 
         [HttpGet("mobile/get/{id}/gifts/total")]
         public async Task<IActionResult> GetGiftTotal(string id)
@@ -161,8 +160,5 @@ namespace ProTrendAPI.Controllers
             }
             return Ok(new DataResponse { Data = await _paymentService.GetTotalGiftsAsync(profile.Value.Identifier) });
         }
-
-        //[HttpPut("mobile/update/pin")]
-        //public async 
     }
 }

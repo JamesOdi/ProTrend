@@ -82,7 +82,7 @@ namespace ProTrendAPI.Services.UserSevice
 
         public async Task<List<Profile>> GetFollowings(Guid id)
         {
-            var followings = await _followingsCollection.Find(Builders<Followings>.Filter.Where(f => f.SenderId == id)).ToListAsync();
+            var followings = await _followingsCollection.Find(f => f.SenderId == id).ToListAsync();
             var followingProfiles = new List<Profile>();
             foreach (var following in followings)
             {
@@ -97,17 +97,17 @@ namespace ProTrendAPI.Services.UserSevice
 
         public async Task<string> GetFollowerCount(Guid id)
         {
-            var followers = await GetFollowersAsync(id);
-            if (followers != null)
-                return FormatNumber(followers.Count);
+            var followers = await _followingsCollection.Find(f => f.ReceiverId == id).CountDocumentsAsync();
+            if (followers > 0)
+                return followers.ToString();
             return "0";
         }
 
         public async Task<string> GetFollowingCount(Guid id)
         {
-            var followings = await GetFollowings(id);
-            if (followings != null)
-                return FormatNumber(followings.Count);
+            var followings = await _followingsCollection.Find(Builders<Followings>.Filter.Where(f => f.SenderId == id)).CountDocumentsAsync();
+            if (followings > 0)
+                return followings.ToString();
             return "0";
         }
     }

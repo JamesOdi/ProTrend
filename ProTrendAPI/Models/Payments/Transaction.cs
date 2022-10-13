@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+
 namespace ProTrendAPI.Models.Payments
 {
     public class Transaction
