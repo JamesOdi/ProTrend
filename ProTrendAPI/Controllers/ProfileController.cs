@@ -31,7 +31,7 @@ namespace ProTrendAPI.Controllers
         [HttpPut("update")]
         public async Task<ActionResult<Profile>> UpdateProfile([FromBody] ProfileDTO updateProfile)
         {
-            var profile = new Profile { AccountNumber = updateProfile.AccountNumber, BackgroundImageUrl = updateProfile.BackgroundImageUrl, Disabled = updateProfile.Disabled, FullName = updateProfile.FullName, UserName = updateProfile.UserName, PaymentPin = updateProfile.PaymentPin, Phone = updateProfile.Phone, ProfileImage = updateProfile.ProfileImage };
+            var profile = new Profile { AccountNumber = updateProfile.AccountNumber, BackgroundImageUrl = updateProfile.BackgroundImageUrl, FullName = updateProfile.FullName, UserName = updateProfile.UserName, PaymentPin = updateProfile.PaymentPin, Phone = updateProfile.Phone, ProfileImage = updateProfile.ProfileImage };
             var result = await _profileService.UpdateProfile(_profile, profile);
             if (result == null)
                 return BadRequest(new BasicResponse { Message = "Update failed" });
@@ -42,7 +42,7 @@ namespace ProTrendAPI.Controllers
         public async Task<ActionResult<Profile>> MobileUpdateProfile(string id, [FromBody] ProfileDTO updateProfile)
         {
             var profile = await _profileService.GetProfileByIdAsync(Guid.Parse(id));
-            var update_profile = new Profile { AccountNumber = updateProfile.AccountNumber, BackgroundImageUrl = updateProfile.BackgroundImageUrl, Disabled = updateProfile.Disabled, FullName = updateProfile.FullName, UserName = updateProfile.UserName, PaymentPin = updateProfile.PaymentPin, Phone = updateProfile.Phone, ProfileImage = updateProfile.ProfileImage };
+            var update_profile = new Profile { AccountNumber = updateProfile.AccountNumber, BackgroundImageUrl = updateProfile.BackgroundImageUrl, FullName = updateProfile.FullName, UserName = updateProfile.UserName, PaymentPin = updateProfile.PaymentPin, Phone = updateProfile.Phone, ProfileImage = updateProfile.ProfileImage };
             var result = await _profileService.UpdateProfile(profile, update_profile);
             if (result == null)
                 return BadRequest(new BasicResponse { Message = "Update failed" });

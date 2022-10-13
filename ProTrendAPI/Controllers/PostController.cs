@@ -60,7 +60,7 @@ namespace ProTrendAPI.Controllers
             //upload.ProfileId = _profile.Id;
             //upload.AcceptGift = false;
             //upload.Disabled = false;
-            var post = new Post { AcceptGift = false, Category = upload.Category, Location = upload.Location, UploadUrls = upload.UploadUrls, Caption = upload.Caption, ProfileId = upload.ProfileId };
+            var post = new Post { AcceptGift = false, Category = upload.Category, Location = upload.Location, UploadUrls = upload.UploadUrls, Caption = upload.Caption, ProfileId = _profile.Identifier };
             var uploadResult = await _postsService.AddPostAsync(post);
             return Ok(new { Success = true, Data = uploadResult });
         }
@@ -73,7 +73,7 @@ namespace ProTrendAPI.Controllers
             return Ok(new { Success = true, Data = uploadResult });
         }
 
-        [HttpGet("get/{id}")]
+        [HttpGet("fetch/{id}")]
         public async Task<ActionResult<Post>> GetPost(Guid id)
         {
             var post = await _postsService.GetSinglePostAsync(id);
@@ -82,14 +82,14 @@ namespace ProTrendAPI.Controllers
             return Ok(post);
         }
 
-        [HttpGet("mobile/get/{id}")]
+        [HttpGet("mobile/fetch/{id}")]
         public async Task<ActionResult<Post>> MobileGetPost(Guid id)
         {
             var post = await _postsService.GetSinglePostAsync(id);
             if (post == null)
                 return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
             return Ok(post);
-        }
+        }        
 
         [HttpGet("get/{id}/posts")]
         public async Task<ActionResult<List<Post>>> GetUserPosts(Guid id)
@@ -189,7 +189,7 @@ namespace ProTrendAPI.Controllers
             var post = await _postsService.GetSinglePostAsync(commentDTO.PostId);
             if (post != null)
             {
-                var comment = new Comment { UserId = _profile.Id, PostId = commentDTO.PostId, CommentContent = commentDTO.CommentContent, Time = commentDTO.Time };
+                var comment = new Comment { UserId = _profile.Id, PostId = commentDTO.PostId, CommentContent = commentDTO.CommentContent};
                 
                 await _notificationService.CommentNotification(_profile, post.ProfileId);
                 var commentResult = await _postsService.InsertCommentAsync(comment);
@@ -204,7 +204,7 @@ namespace ProTrendAPI.Controllers
             var post = await _postsService.GetSinglePostAsync(commentDTO.PostId);
             if (post != null)
             {                
-                var comment = new Comment { UserId = _mobileProfile.Result.Id, PostId = commentDTO.PostId, CommentContent = commentDTO.CommentContent, Time = commentDTO.Time };
+                var comment = new Comment { UserId = _mobileProfile.Result.Id, PostId = commentDTO.PostId, CommentContent = commentDTO.CommentContent};
                 await _notificationService.CommentNotification(_mobileProfile.Result, post.ProfileId);
                 var commentResult = await _postsService.InsertCommentAsync(comment);
                 return Ok(commentResult);

@@ -74,7 +74,7 @@ namespace ProTrendAPI.Services.UserSevice
         private static async Task<Profile> ResultForMobile(string token)
         {
             var result = new Profile();
-            var claim = GetUser(token);
+            var claim =  GetUser(token);
             result.Email = claim.Claims.First(x => x.Type == Constants.Email).Value;
             result.Id = Guid.Parse(claim.Claims.First(x => x.Type == Constants.ID).Value);
             result.Identifier = Guid.Parse(claim.Claims.First(x => x.Type == Constants.Identifier).Value);
