@@ -4,14 +4,11 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using MimeKit;
 using MailKit.Net.Smtp;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using ProTrendAPI.Services.Network;
-using Microsoft.Net.Http.Headers;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
-using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
 namespace ProTrendAPI.Controllers
 {

@@ -9,14 +9,14 @@ namespace ProTrendAPI.Controllers
     public class CategoriesController : BaseController
     {
         public CategoriesController(IServiceProvider serviceProvider) : base(serviceProvider) { }
-
+        
         [HttpGet("get/{name}/1")]
         public async Task<ActionResult<Category>> GetCategory(string name)
         {
             var category = await _categoriesService.GetSingleCategory(name);
             if (category == null)
-                return BadRequest(new BasicResponse { Message = Constants.CatNotExist });
-            return Ok(category);
+                return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = , Data = category });
         }
 
         [HttpPost("add/{name}")]
