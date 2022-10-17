@@ -5,10 +5,6 @@ namespace ProTrendAPI.Models.Posts
 {
     public class PostDTO
     {
-        [JsonPropertyName("profileid")]
-        [Required]
-        public Guid ProfileId { get; set; }
-
         [JsonPropertyName("caption")]
         [Required(ErrorMessage = "Field can't be empty")]
         public string Caption { get; set; } = string.Empty;

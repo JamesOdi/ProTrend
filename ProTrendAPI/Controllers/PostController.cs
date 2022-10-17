@@ -39,7 +39,7 @@ namespace ProTrendAPI.Controllers
         [HttpGet("mobile/get/promotions")]
         public async Task<ActionResult<List<Promotion>>> MobileGetPromotions()
         {
-            return Ok(await _postsService.GetPromotionsAsync(_profile));
+            return Ok(await _postsService.GetPromotionsAsync(_mobileProfile.Result));
         }
 
         [HttpGet("get/{id}/gift/profiles")]
@@ -68,7 +68,7 @@ namespace ProTrendAPI.Controllers
         [HttpPost("mobile/add")]
         public async Task<ActionResult<object>> AddPostFromMobile([FromBody] PostDTO upload)
         {
-            var post = new Post { AcceptGift = false, Category = upload.Category, Location = upload.Location, UploadUrls = upload.UploadUrls, Caption = upload.Caption, ProfileId = upload.ProfileId };
+            var post = new Post { AcceptGift = false, Category = upload.Category, Location = upload.Location, UploadUrls = upload.UploadUrls, Caption = upload.Caption, ProfileId = _mobileProfile.Result.Identifier };
             var uploadResult = await _postsService.AddPostAsync(post);
             return Ok(new { Success = true, Data = uploadResult });
         }
@@ -136,9 +136,9 @@ namespace ProTrendAPI.Controllers
             var post = await _postsService.GetSinglePostAsync(id);
             if (post != null)
             {
-                var like = new Like { SenderId = profile.Identifier, Time = DateTime.Now, UploadId = id };
+                var like = new Like { SenderId = _mobileProfile.Result.Identifier, Time = DateTime.Now, UploadId = id };
                 var liked = await _postsService.AddLikeAsync(like);
-                var notiSent = await _notificationService.LikeNotification(profile, post.ProfileId);
+                var notiSent = await _notificationService.LikeNotification(_mobileProfile.Result, post.ProfileId);
                 if (liked && notiSent)
                     return Ok(new BasicResponse { Success = true, Message = "Post liked" });
             }
@@ -190,7 +190,7 @@ namespace ProTrendAPI.Controllers
             if (post != null)
             {
                 var comment = new Comment { UserId = _profile.Id, PostId = commentDTO.PostId, CommentContent = commentDTO.CommentContent};
-                
+                comment.Identifier = comment.Id;
                 await _notificationService.CommentNotification(_profile, post.ProfileId);
                 var commentResult = await _postsService.InsertCommentAsync(comment);
                 return Ok(commentResult);
@@ -205,6 +205,7 @@ namespace ProTrendAPI.Controllers
             if (post != null)
             {                
                 var comment = new Comment { UserId = _mobileProfile.Result.Id, PostId = commentDTO.PostId, CommentContent = commentDTO.CommentContent};
+                comment.Identifier = comment.Id;
                 await _notificationService.CommentNotification(_mobileProfile.Result, post.ProfileId);
                 var commentResult = await _postsService.InsertCommentAsync(comment);
                 return Ok(commentResult);
@@ -246,9 +247,9 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpDelete("mobile/delete/{id}")]
-        public async Task<IActionResult> DeleteMobilePost(Guid id, [FromBody] Profile profile)
+        public async Task<IActionResult> DeleteMobilePost(Guid id)
         {
-            var delete = await _postsService.DeletePostAsync(id, profile.Identifier);
+            var delete = await _postsService.DeletePostAsync(id, _mobileProfile.Result.Identifier);
             if (!delete)
                 return BadRequest(new BasicResponse { Message = Constants.PDError });
             return Ok(new BasicResponse { Success = true, Message = "Post deleted" });

@@ -1,4 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -36,14 +37,14 @@ namespace ProTrendAPI.Services.UserSevice
         public async Task<Profile?> GetMobileProfile()
         {
             try
-            {
+            {                
                 //RV get token from local repo not cookies
-                var token = _contextAccessor.HttpContext.Request.Cookies["Authentication"];
-                
-                if(string.IsNullOrEmpty(token))
+                var token = _contextAccessor.HttpContext.Request.Headers;
+                string auth = token["Authorization"];
+                if(!string.IsNullOrEmpty(auth))
                 {
-                    token = token.FirstOrDefault().ToString();
-                    return await ResultForMobile(token);
+                    //auth = auth.FirstOrDefault().ToString();
+                    return await ResultForMobile(auth);
                 }
                 else
                 {
@@ -71,10 +72,11 @@ namespace ProTrendAPI.Services.UserSevice
             return result;
         }
 
-        private static async Task<Profile> ResultForMobile(string token)
+        private async Task<Profile> ResultForMobile(string token)
         {
             var result = new Profile();
-            var claim =  GetUser(token);
+            //var claim =  GetUser(token);
+            var claim = GetUser(DecryptDataWithAes(Convert.FromBase64String(token)));
             result.Email = claim.Claims.First(x => x.Type == Constants.Email).Value;
             result.Id = Guid.Parse(claim.Claims.First(x => x.Type == Constants.ID).Value);
             result.Identifier = Guid.Parse(claim.Claims.First(x => x.Type == Constants.Identifier).Value);
