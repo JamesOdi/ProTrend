@@ -6,7 +6,7 @@ namespace ProTrendAPI.Models.Posts
     public class PostDTO
     {
         [JsonPropertyName("caption")]
-        [Required(ErrorMessage = "Field can't be empty")]
+        [Required(ErrorMessage = "Field cannot be empty")]
         public string Caption { get; set; } = string.Empty;
 
         [JsonPropertyName("uploadurls")]
@@ -17,8 +17,5 @@ namespace ProTrendAPI.Models.Posts
 
         [JsonPropertyName("category")]
         public List<string> Category { get; set; } = new List<string>();
-
-        //[JsonPropertyName("acceptgift")]
-        //public bool AcceptGift { get; set; } = false;
     }
 }
