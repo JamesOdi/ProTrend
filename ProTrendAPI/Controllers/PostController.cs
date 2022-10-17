@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProTrendAPI.Models.Payments;
-using ProTrendAPI.Models.Posts;
 using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
@@ -12,16 +11,10 @@ namespace ProTrendAPI.Controllers
     {
         public PostController(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
-        [HttpGet("get")]
-        public async Task<ActionResult<List<Post>>> GetPosts()
-        {
-            return Ok(await _postsService.GetAllPostsAsync());
-        }
-
         [HttpGet("get/{page}")]
         public async Task<ActionResult<List<Post>>> GetPostsPaginated(int page)
         {
-            return Ok(await _postsService.GetPagePostsAsync(page));
+            return Ok(new ActionResponse { Successful = true, Message = $"Posts results for page {page}", StatusCode = 200, Data = await _postsService.GetPagePostsAsync(page) });
         }
 
         [HttpGet("mobile/get/{page}")]
@@ -57,9 +50,6 @@ namespace ProTrendAPI.Controllers
         [HttpPost("add")]
         public async Task<ActionResult<DataResponse>> AddPost([FromBody] PostDTO upload)
         {
-            //upload.ProfileId = _profile.Id;
-            //upload.AcceptGift = false;
-            //upload.Disabled = false;
             var post = new Post { AcceptGift = false, Category = upload.Category, Location = upload.Location, UploadUrls = upload.UploadUrls, Caption = upload.Caption, ProfileId = _profile.Identifier };
             var uploadResult = await _postsService.AddPostAsync(post);
             return Ok(new { Success = true, Data = uploadResult });
