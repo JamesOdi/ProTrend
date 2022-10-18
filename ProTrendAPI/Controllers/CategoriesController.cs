@@ -17,19 +17,19 @@ namespace ProTrendAPI.Controllers
             var category = await _categoriesService.GetSingleCategory(name);
             if (category == null)
                 return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
-            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.OK, Data = category });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = category });
         }
 
         [HttpPost("add/{name}")]
         public async Task<ActionResult<ActionResponse>> AddCategory(string name)
         {
-            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.OK, Data = await _categoriesService.AddCategoryAsync(name) });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _categoriesService.AddCategoryAsync(name) });
         }
 
         [HttpGet("get/{name}")]
         public async Task<ActionResult<ActionResponse>> GetCategories(string name)
         {
-            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.OK, Data = await _categoriesService.GetCategoriesAsync(name) });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _categoriesService.GetCategoriesAsync(name) });
         }
 
         [HttpGet("mobile/get/{name}/1")]
@@ -38,19 +38,19 @@ namespace ProTrendAPI.Controllers
             var category = await _categoriesService.GetSingleCategory(name);
             if (category == null)
                 return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
-            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.OK, Data = category });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = category });
         }
 
         [HttpPost("mobile/add/{name}")]
         public async Task<ActionResult<ActionResponse>> AddMobileCategory(string name)
         {
-            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.OK, Data = await _categoriesService.AddCategoryAsync(name) });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _categoriesService.AddCategoryAsync(name) });
         }
 
         [HttpGet("mobile/get/{name}")]
         public async Task<ActionResult<ActionResponse>> GetMobileCategories(string name)
         {
-            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.OK, Data = await _categoriesService.GetCategoriesAsync(name) });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _categoriesService.GetCategoriesAsync(name) });
         }
     }
 }

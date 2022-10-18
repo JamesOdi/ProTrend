@@ -13,7 +13,7 @@ namespace ProTrendAPI.Controllers
         [HttpGet("get/{id}")]
         public async Task<ActionResult<ActionResponse>> GetNotifications(Guid id)
         {
-            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.OK, Data = await _notificationService.GetNotificationsAsync(id) });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _notificationService.GetNotificationsAsync(id) });
         }
 
         [HttpPut("set/viewed/{id}")]

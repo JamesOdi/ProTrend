@@ -31,7 +31,7 @@ namespace ProTrendAPI.Controllers
 
             var totalBalance = await _paymentService.GetTotalBalance(_profile.Identifier);
             if (totalBalance < 0 && totalBalance <= value)
-                return BadRequest(new { Success = false, Ref = trxRef, Data = "Error buying gifts" });
+                return BadRequest(new ActionResponse {Message = "Error buying gifts" });
 
             var transaction = new Transaction
             {
@@ -45,19 +45,19 @@ namespace ProTrendAPI.Controllers
 
             await _paymentService.InsertTransactionAsync(transaction);
             await _paymentService.BuyGiftsAsync(_profile.Identifier, count);
-            return Ok(new ActionResponse { Successful = true, Data = trxRef, Message = ActionResponseMessage.OK, StatusCode = 200 });
+            return Ok(new ActionResponse { Successful = true, Data = trxRef, Message = ActionResponseMessage.Ok, StatusCode = 200 });
         }
 
         [HttpPost("balance")]
         public async Task<ActionResult<ActionResponse>> GetTotalBalance()
         {
-            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.OK, Data = await _paymentService.GetTotalBalance(_profile.Identifier) });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _paymentService.GetTotalBalance(_profile.Identifier) });
         }
 
         [HttpGet("mobile/balance")]
         public async Task<ActionResult<ActionResponse>> GetTotalBalance(Profile profile)
         {
-            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.OK, Data = await _paymentService.GetTotalBalance(profile.Identifier) });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _paymentService.GetTotalBalance(profile.Identifier) });
         }
 
         [HttpPost("send_gifts/{id}/{count}")]
@@ -65,18 +65,18 @@ namespace ProTrendAPI.Controllers
         {
             if (count < 1 || count > 100)
             {
-                return BadRequest(new BasicResponse { Message = Constants.InvalidAmount });
+                return BadRequest(new ActionResponse { Message = Constants.InvalidAmount });
             }
             var totalGifts = await _paymentService.GetTotalGiftsAsync(_profile.Identifier);
             if (totalGifts < count)
-                return BadRequest(new BasicResponse { Message = "Insufficient Gifts" });
+                return BadRequest(new ActionResponse { Message = "Insufficient Gifts" });
             var post = await _postsService.GetSinglePostAsync(id);
             if (post == null || !post.AcceptGift || post.ProfileId == _profile.Identifier)
-                return BadRequest(new BasicResponse { Message = "Error accessing post" });
+                return BadRequest(new ActionResponse { Message = "Error accessing post" });
 
             var sent = await _postsService.SendGiftToPostAsync(post, count, _profile.Identifier);
             if (sent < 1)
-                return BadRequest(new BasicResponse { Success = false, Message = "Error sending gift" });
+                return BadRequest(new ActionResponse { Message = "Error sending gift" });
 
             var transaction = new Transaction
             {
@@ -85,14 +85,14 @@ namespace ProTrendAPI.Controllers
                 CreatedAt = DateTime.Now,
                 TrxRef = Generate().ToString(),
                 ItemId = id,
-                Status = true
+                Purpose = $"Sending {count} gifts"
             };
 
             var responseOk = await _paymentService.InsertTransactionAsync(transaction);
             var notificationSent = await _notificationService.SendGiftNotification(_profile, post, count);
             if (responseOk && notificationSent)
-                return Ok(new { Success = true, Message = sent + " gift sent" });
-            return BadRequest(new { Success = false, Message = "Error sending gift" });
+                return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = $"{count} {count switch { > 1 => "gifts", <2 => "gift" }} sent" });
+            return BadRequest(new ActionResponse { Message = "Error sending gift" });
         }
 
         [HttpPost("withdraw/balance/{total}")]
@@ -100,8 +100,8 @@ namespace ProTrendAPI.Controllers
         {
             var success = await _paymentService.RequestWithdrawalAsync(_profile, total);
             if (success)
-                return BadRequest(new { Success = false, Message = "Error requesting withdrawal" });
-            return Ok(new { Success = true, Message = "Request sent" });
+                return BadRequest(new ActionResponse { Successful = false, Message = "Error requesting withdrawal" });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
         }
 
         [HttpPost("mobile/withdraw/balance/{total}")]
@@ -109,8 +109,8 @@ namespace ProTrendAPI.Controllers
         {
             var success = await _paymentService.RequestWithdrawalAsync(profile, total);
             if (success)
-                return BadRequest(new { Success = false, Message = "Error requesting withdrawal" });
-            return Ok(new { Success = true, Message = "Request sent" });
+                return BadRequest(new ActionResponse { Message = ActionResponseMessage.BadRequest });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
         }
 
         [HttpPost("verify/promotion/{reference}")]
@@ -126,7 +126,7 @@ namespace ProTrendAPI.Controllers
                     CreatedAt = DateTime.Now,
                     TrxRef = response.Data.Reference,
                     ItemId = promotion.PostId,
-                    Status = true
+                    //Status = true
                 };
 
                 var verifyStatus = await _paymentService.InsertTransactionAsync(transaction);
@@ -134,18 +134,14 @@ namespace ProTrendAPI.Controllers
                 {
                     var promotionOk = await _postsService.PromoteAsync(_profile, promotion);
                     if (promotionOk)
-                        return Ok(new BasicResponse
-                        {
-                            Success = true,
-                            Message = response.Message
-                        });
+                        return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok});
                 }
             }
-            return BadRequest(new BasicResponse { Message = "Error verifying paid promotion" });
+            return BadRequest(new ActionResponse { Message = "Error verifying paid promotion" });
         }
 
         [HttpPost("verify/accept_gift/{id}/{reference}")]
-        public async Task<ActionResult<BasicResponse>> VerifyAcceptGift(Guid id, string reference)
+        public async Task<ActionResult<ActionResponse>> VerifyAcceptGift(Guid id, string reference)
         {
             TransactionVerifyResponse response = PayStack.Transactions.Verify(reference);
             if (response.Data.Status == "success")
@@ -157,7 +153,7 @@ namespace ProTrendAPI.Controllers
                     CreatedAt = DateTime.Now,
                     TrxRef = response.Data.Reference,
                     ItemId = id,
-                    Status = true
+                    //Status = true
                 };
 
                 var resultOk = await _paymentService.InsertTransactionAsync(transaction);
@@ -165,10 +161,10 @@ namespace ProTrendAPI.Controllers
                 {
                     var acceptResultOk = await _postsService.AcceptGift(id);
                     if (acceptResultOk)
-                        return Ok(new BasicResponse { Success = true, Message = response.Message });
+                        return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
                 }
             }
-            return BadRequest(new BasicResponse { Message = "Error verifying payment" });
+            return BadRequest(new ActionResponse { Message = "Error verifying payment" });
         }
 
         [HttpPost("mobile/verify/accept_gift")]
@@ -193,10 +189,10 @@ namespace ProTrendAPI.Controllers
                 {
                     var acceptResultOk = await _postsService.AcceptGift(Guid.Parse(verify.Post_id));
                     if (acceptResultOk)
-                        return Ok(new ActionResponse { Success = true, Message = response.Message });
+                        return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
                 }
             }
-            return BadRequest(new BasicResponse { Message = "Error verifying payment" });
+            return BadRequest(new ActionResponse { Message = "Error verifying payment" });
         }
 
         [HttpPost("verify/top_up/{reference}")]
@@ -218,10 +214,10 @@ namespace ProTrendAPI.Controllers
                 var verifyStatus = await _paymentService.InsertTransactionAsync(transaction);
                 if (verifyStatus)
                 {
-                        return Ok(new BasicResponse { Success = true, Message = response.Message });
+                        return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
                 }
             }
-            return BadRequest(new BasicResponse { Message = "Error verifying payment" });
+            return BadRequest(new ActionResponse { Message = "Error verifying payment" });
         }
 
         //[HttpPost("mobile/verify/top_up/{profile_id}/{reference}")]

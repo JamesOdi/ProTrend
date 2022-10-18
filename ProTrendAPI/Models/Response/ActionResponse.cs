@@ -5,6 +5,6 @@
         public bool Successful { get; set; } = false;
         public object? Data { get; set; } = null;
         public int StatusCode { get; set; } = 400;
-        public string Message { get; set; } = string.Empty;
+        public string Message { get; set; } = ActionResponseMessage.BadRequest;
     }
 }
