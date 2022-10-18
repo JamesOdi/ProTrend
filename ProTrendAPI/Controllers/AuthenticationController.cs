@@ -27,8 +27,8 @@ namespace ProTrendAPI.Controllers
         public ActionResult<Profile> GetMe()
         {
             if (_profile == null)
-                return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is UnAuthorized" });
-            return Ok(_profile);
+                return Unauthorized(new ActionResponse { StatusCode = 401, Message = ActionResponseMessage.Unauthorized });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = _profile });
         }
 
         [HttpPost("register")]
@@ -39,12 +39,12 @@ namespace ProTrendAPI.Controllers
 
             if (userExists != null)
             {
-                return BadRequest(new { Success = false, Message = Constants.UserExists });
+                return Conflict(new ActionResponse { Successful = false, StatusCode = 409, Message = ActionResponseMessage.Conflict });
             }
 
             // Please modify before launching
             // var otp = SendEmail(request.Email, request.Password);
-            return Ok(new { Success = true, OTP = GenerateOTP() });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = GenerateOTP() });
         }
 
         [HttpPost("forgot-password")]
@@ -52,15 +52,15 @@ namespace ProTrendAPI.Controllers
         public async Task<IActionResult> ForgotPassword(string email)
         {
             if (!IsValidEmail(email))
-                return BadRequest(new { Success = false, Message = Constants.InvalidEmail });
+                return BadRequest(new ActionResponse { Message = $"{ActionResponseMessage.BadRequest}, invalid email address" });
 
             var userExists = await GetUserResult(new ProfileDTO { Email = email });
             if (userExists == null)
             {
-                return BadRequest(new { Success = false, Message = Constants.UserNotFound });
+                return BadRequest(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
             }
             //SendEmail(email)
-            return Ok();
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = email });
         }
 
         [HttpPut("reset-password")]
@@ -68,18 +68,18 @@ namespace ProTrendAPI.Controllers
         public async Task<IActionResult> ResetPassword(ProfileDTO profile)
         {
             if (!IsValidEmail(profile.Email))
-                return BadRequest(new { Success = false, Message = Constants.InvalidEmail });
+                return BadRequest(new ActionResponse { Message = $"{ActionResponseMessage.BadRequest}, invalid email address" });
             var register = await GetUserResult(new ProfileDTO { Email = profile.Email });
             if (register == null)
-                return BadRequest(new { Success = false, Message = Constants.UserNotFound });
+                return BadRequest(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
 
             CreatePasswordHash(profile.Password, out byte[] passwordHash, out byte[] passwordSalt);
             register.PasswordHash = passwordHash;
             register.PasswordSalt = passwordSalt;
             var result = await _regService.ResetPassword(register);
             if (result == null)
-                return BadRequest(new { Success = false, Message = "Error occurred when resetting password, please try again!" });
-            return Ok(new { Success = true, Message = "Password reset" });
+                return BadRequest(new ActionResponse { Message = ActionResponseMessage.BadRequest });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
         }
 
         private static int SendEmail(string to, string password)
@@ -116,13 +116,13 @@ namespace ProTrendAPI.Controllers
             };
             var result = await _regService.InsertAsync(register);
             if (result == null)
-                return BadRequest(new { Success = false, Message = "Error when registering user!" });
+                return BadRequest(new ActionResponse { Message = ActionResponseMessage.BadRequest });
             var cypherText = CreateToken(register);
             if (cypherText != "")
             {
-                return Ok(new { Success = true, Data = cypherText });
+                return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = cypherText });
             }
-            return BadRequest(new { Success = false, Message = "Verification failed" });
+            return BadRequest(new ActionResponse { Message = ActionResponseMessage.BadRequest });
         }
 
         [HttpPost("mobile/verify/otp")]
@@ -143,8 +143,8 @@ namespace ProTrendAPI.Controllers
             };
             var result = await _regService.InsertAsync(register);
             if (result == null)
-                return BadRequest(new { Success = false, Message = "Error registering user!" });
-            return Ok(new { Success = true, Data = result });
+                return BadRequest(new ActionResponse { Message = ActionResponseMessage.BadRequest });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = result });
         }
 
         [HttpPost("login")]
@@ -153,21 +153,21 @@ namespace ProTrendAPI.Controllers
         {
             if (!IsValidEmail(login.Email))
             {
-                return BadRequest(new { Success = false, Message = Constants.InvalidEmail });
+                return BadRequest(new ActionResponse { Message = Constants.InvalidEmail });
             }
 
             var result = await _regService.FindRegisteredUserByEmailAsync(login);
 
             if (result == null)
-                return BadRequest(new { Success = false, Message = Constants.UserNotFound });
+                return BadRequest(new ActionResponse { StatusCode = 404, Message = Constants.UserNotFound });
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
-                return BadRequest(new { Success = false, Message = Constants.WrongEmailPassword });
+                return BadRequest(new ActionResponse { Message = Constants.WrongEmailPassword });
             var cypherText = CreateToken(result);
             if (cypherText != "")
             {
                 return Ok(new { Success = true, Data = cypherText });
             }
-            return BadRequest(new { Success = false, Message = "Login failed!" });
+            return BadRequest(new ActionResponse { Message = ActionResponseMessage.BadRequest });
         }
 
         [HttpPost("mobile/login")]
@@ -176,23 +176,23 @@ namespace ProTrendAPI.Controllers
         {
             if (!IsValidEmail(login.Email))
             {
-                return BadRequest(new { Success = false, Data = new Profile() });
+                return BadRequest(new ActionResponse { Message = Constants.InvalidEmail, Data = new Profile() });
             }
 
             var result = await _regService.FindRegisteredUserByEmailAsync(login);
 
             if (result == null)
-                return BadRequest(new { Success = false, Data = new Profile() });
+                return BadRequest(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound, Data = new Profile() });
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
-                return BadRequest(new { Success = false, Data = new Profile() });
+                return BadRequest(new ActionResponse { Data = new Profile() });
             var token = GetJWT(result);
             
             if (token != "")
             {
                 Response.Headers.Add("Authorization", token);
-                return Ok(new { Success = true, Data = await _profileService.GetProfileByIdAsync(result.Id)});
+                return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _profileService.GetProfileByIdAsync(result.Id)});
             }
-            return BadRequest(new { Success = false, Data = new Profile() });
+            return BadRequest(new ActionResponse { Data = new Profile() });
         }
 
         [HttpPost("logout")]
@@ -202,11 +202,11 @@ namespace ProTrendAPI.Controllers
             try
             {
                 HttpContext.Response.Cookies.Delete(Constants.AUTH);
-                return Ok(new { Success = true, Message = "Logout successful" });
+                return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
             }
             catch (Exception)
             {
-                return BadRequest(new { Success = false, Message = "Logout failed" });
+                return BadRequest(new ActionResponse { Message = "Logout failed" });
             }
         }
 

@@ -13,10 +13,11 @@ namespace ProTrendAPI.Models.User
         public string BackgroundImageUrl { get; set; } = string.Empty;
         public string ProfileImage { get; set; } = string.Empty;
         public string PaymentPin { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
         public string AccountNumber { get; set; } = string.Empty;
         public string Bank { get; set; } = string.Empty;
         public string Country { get; set; } = string.Empty;
         public string? Phone { get; set; } = null;
+        [Required(ErrorMessage = "Password field can't be empty")]
+        public string Password { get; set; } = string.Empty;
     }
 }

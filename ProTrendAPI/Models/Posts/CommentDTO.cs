@@ -5,8 +5,7 @@ namespace ProTrendAPI.Models.Posts
 {
     public class CommentDTO
     {
-       
-        
+
         [JsonPropertyName("uploadid")]
         [Required]
         public Guid PostId { get; set; }
