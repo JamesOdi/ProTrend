@@ -23,7 +23,7 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpGet]
-        [CookieAuthenticationFilter]
+        [AllowAnonymous]
         public ActionResult<Profile> GetMe()
         {
             if (_profile == null)

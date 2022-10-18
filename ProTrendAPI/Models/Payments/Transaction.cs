@@ -13,10 +13,10 @@ namespace ProTrendAPI.Models.Payments
         public Guid ItemId { get; set; }
         [JsonPropertyName("amount")]
         public int Amount { get; set; }
-        [JsonPropertyName("status")]
-        public bool Status { get; set; }
         [JsonPropertyName("trxref")]
         public string TrxRef { get; set; } = string.Empty;
+        [JsonPropertyName("for")]
+        public string Purpose { get; set; } = string.Empty;
         [JsonPropertyName("createdat")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }

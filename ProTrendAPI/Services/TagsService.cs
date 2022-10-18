@@ -18,17 +18,17 @@ namespace ProTrendAPI.Services
             return await _tagsCollection.Find(Builders<Tag>.Filter.Where(t => t.Name.Contains(name.ToLower()))).ToListAsync();
         }
 
-        public async Task AddTagAsync(string name)
+        public async Task<bool> AddTagAsync(string name)
         {
             if (!name.StartsWith("#") || name.Contains(' '))
             {
-                return;
+                return false;
             }
             var tag = await TagExists(name);
             if (tag != null)
-                return;
+                return false;
             await _tagsCollection.InsertOneAsync(new Tag { Name = name.ToLower() });
-            return;
+            return true;
         }
 
         private async Task<Tag?> TagExists(string name)
