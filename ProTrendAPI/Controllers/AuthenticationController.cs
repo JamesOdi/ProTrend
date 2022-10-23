@@ -26,11 +26,9 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpGet]
-        [CookieAuthenticationFilter]
+        [ProTrndAuthorizationFilter]
         public ActionResult<Profile> GetMe()
         {
-            if (_profile == null)
-                return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is UnAuthorized" });
             return Ok(_profile);
         }
 
@@ -120,34 +118,12 @@ namespace ProTrendAPI.Controllers
             var result = await _regService.InsertAsync(register);
             if (result == null)
                 return BadRequest(new { Success = false, Message = "Error when registering user!" });
-            var cypherText = CreateToken(register);
-            if (cypherText != "")
+            var token = GetJWT(register);
+            if (token != "")
             {
-                return Ok(new { Success = true, Data = cypherText });
+                return Ok(new { Success = true, Data = token });
             }
             return BadRequest(new { Success = false, Message = "Verification failed" });
-        }
-
-        [HttpPost("mobile/verify/otp")]
-        [AllowAnonymous]
-        public async Task<ActionResult<object>> MobileVerifyOTP(ProfileDTO request)
-        {
-            CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
-            var register = new Register
-            {
-                Email = request.Email.Trim().ToLower(),
-                PasswordSalt = passwordSalt,
-                PasswordHash = passwordHash,
-                UserName = request.UserName.Trim().ToLower(),
-                FullName = request.FullName.Trim().ToLower(),
-                RegistrationDate = DateTime.Now,
-                AccountType = request.AccountType.Trim().ToLower(),
-                Country = request.Country!.Trim().ToLower()
-            };
-            var result = await _regService.InsertAsync(register);
-            if (result == null)
-                return BadRequest(new { Success = false, Message = "Error registering user!" });
-            return Ok(new { Success = true, Data = result });
         }
 
         [HttpPost("login")]
@@ -165,41 +141,16 @@ namespace ProTrendAPI.Controllers
                 return BadRequest(new { Success = false, Message = Constants.UserNotFound });
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
                 return BadRequest(new { Success = false, Message = Constants.WrongEmailPassword });
-            var cypherText = CreateToken(result);
-            if (cypherText != "")
+            var token = GetJWT(result);
+            if (token != "")
             {
-                return Ok(new { Success = true, Data = cypherText });
+                return Ok(new { Success = true, Data = token });
             }
             return BadRequest(new { Success = false, Message = "Login failed!" });
         }
 
-        [HttpPost("mobile/login")]
-        [AllowAnonymous]
-        public async Task<ActionResult<object>> LoginMobile([FromBody] Login login)
-        {
-            if (!IsValidEmail(login.Email))
-            {
-                return BadRequest(new { Success = false, Data = new Profile() });
-            }
-
-            var result = await _regService.FindRegisteredUserByEmailAsync(login);
-
-            if (result == null)
-                return BadRequest(new { Success = false, Data = new Profile() });
-            if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
-                return BadRequest(new { Success = false, Data = new Profile() });
-            var token = GetJWT(result);
-            
-            if (token != "")
-            {
-                Response.Headers.Add("Authorization", token);
-                return Ok(new { Success = true, Data = await _profileService.GetProfileByIdAsync(result.Id)});
-            }
-            return BadRequest(new { Success = false, Data = new Profile() });
-        }
-
         [HttpPost("logout")]
-        [CookieAuthenticationFilter]
+        [ProTrndAuthorizationFilter]
         public ActionResult<object> Logout()
         {
             try
@@ -216,18 +167,6 @@ namespace ProTrendAPI.Controllers
         private async Task<Register?> GetUserResult(ProfileDTO request)
         {
             return await _regService.FindRegisteredUserAsync(request);
-        }
-
-        private string CreateToken(Register user)
-        {
-            try
-            {
-                return EncryptDataWithAes(GetJWT(user));
-            }
-            catch (Exception)
-            {
-                return "";
-            }
         }
 
         private string GetJWT(Register user)
@@ -251,9 +190,10 @@ namespace ProTrendAPI.Controllers
 
             var sk = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration[Constants.TokenLoc]));
             var credentials = new SigningCredentials(sk, SecurityAlgorithms.HmacSha512Signature);
-            var token = new JwtSecurityToken(claims: claims, expires: DateTime.Now.AddHours(1), signingCredentials: credentials);
+            var token = new JwtSecurityToken(claims: claims, expires: DateTime.Now.AddHours(6), signingCredentials: credentials);
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
         private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
             using var hmac = new HMACSHA512();

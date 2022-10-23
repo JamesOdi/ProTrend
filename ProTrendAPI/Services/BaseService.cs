@@ -22,6 +22,7 @@ namespace ProTrendAPI.Services
         public readonly IMongoCollection<Transaction> _transactionCollection;
         public readonly IMongoCollection<Favorite> _favoriteCollection;
         public readonly IMongoCollection<Gift> _giftsCollection;
+        public readonly IMongoCollection<AccountDetails> _accountDetailsCollection;
 
         public BaseService(IOptions<DBSettings> settings)
         {
@@ -41,6 +42,7 @@ namespace ProTrendAPI.Services
             _transactionCollection = Database.GetCollection<Transaction>(settings.Value.TransactionsCollection);
             _favoriteCollection = Database.GetCollection<Favorite>(settings.Value.FavoritesCollection);
             _giftsCollection = Database.GetCollection<Gift>(settings.Value.GiftsCollection);
+            _accountDetailsCollection = Database.GetCollection<AccountDetails>(settings.Value.AccountDetailsCollection); 
         }
 
         public static string FormatNumber(int number)

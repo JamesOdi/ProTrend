@@ -5,7 +5,7 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/category")]
     [ApiController]
-    [CookieAuthenticationFilter]
+    [ProTrndAuthorizationFilter]
     public class CategoriesController : BaseController
     {
         public CategoriesController(IServiceProvider serviceProvider) : base(serviceProvider) { }
