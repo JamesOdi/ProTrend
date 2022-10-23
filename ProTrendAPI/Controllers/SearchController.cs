@@ -5,7 +5,7 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/search")]
     [ApiController]
-    [CookieAuthenticationFilter]
+    [ProTrndAuthorizationFilter]
     public class SearchController : BaseController
     {
         public SearchController(IServiceProvider serviceProvider) : base(serviceProvider) { }

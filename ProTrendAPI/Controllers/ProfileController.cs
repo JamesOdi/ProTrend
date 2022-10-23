@@ -5,7 +5,7 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/profile")]
     [ApiController]
-    [CookieAuthenticationFilter]
+    [ProTrndAuthorizationFilter]
     public class ProfileController : BaseController
     {
         public ProfileController(IServiceProvider serviceProvider) : base(serviceProvider) { }

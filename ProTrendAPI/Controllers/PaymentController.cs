@@ -7,74 +7,25 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/payment")]
     [ApiController]
-    [CookieAuthenticationFilter]
+    [ProTrndAuthorizationFilter]
     public class PaymentController : BaseController
     {
         private PayStackApi PayStack { get; set; }
         private readonly string token;
+        private readonly string accencrypttoken;
 
         public PaymentController(IServiceProvider serviceProvider, IConfiguration configuration) : base(serviceProvider)
         {
             token = configuration["Payment:PaystackSK"];
+            accencrypttoken = configuration["Payment:AccEncrypt"];
             PayStack = new(token);
         }
 
-        [HttpPost("promote")]
-        public async Task<ActionResult<object>> Promote(Promotion promotion)
+        [HttpPost("add/account")]
+        public async Task<ActionResult<ActionResponse>> AddAccount(AccountDetailsDTO account)
         {
-            if (promotion.Amount == 5000)
-            {
-                promotion.ExpireAt = DateTime.Now.AddDays(7);
-                promotion.Audience = _profile.Country;
-            }
-            else if (promotion.Amount == 8000)
-            {
-                promotion.ExpireAt = DateTime.Now.AddDays(7);
-                promotion.Audience = Constants.All;
-            }
-            else if (promotion.Amount == 15000)
-            {
-                promotion.ExpireAt = DateTime.Now.AddMonths(1);
-                promotion.Audience = _profile.Country;
-            }
-            else if (promotion.Amount == 30000)
-            {
-                promotion.ExpireAt = DateTime.Now.AddMonths(1);
-                promotion.Audience = Constants.All;
-            }
-            else
-                return BadRequest(new BasicResponse { Message = Constants.InvalidAmount });
-
-            var post = await _postsService.GetSinglePostAsync(promotion.PostId);
-            if (post == null)
-                return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
-
-            TransactionInitializeRequest request = new()
-            {
-                AmountInKobo = promotion.Amount * 100,
-                Email = _profile.Email,
-                Reference = Generate().ToString(),
-                Currency = promotion.Currency.ToUpper().Trim()
-                //CallbackUrl = ""
-            };
-
-            TransactionInitializeResponse response = PayStack.Transactions.Initialize(request);
-            if (response.Status)
-            {
-                var transaction = new Transaction
-                {
-                    Amount = promotion.Amount,
-                    ProfileId = _profile.Identifier,
-                    CreatedAt = DateTime.Now,
-                    TrxRef = request.Reference,
-                    ItemId = promotion.Identifier,
-                    Status = false
-                };
-                await _paymentService.InsertTransactionAsync(transaction);
-                return Ok(new { Success = true, Ref = request.Reference, Data = response.Data.AuthorizationUrl });
-            }
-            // CallbackUrl = response after payment url to go to in request
-            return BadRequest(new BasicResponse { Message = response.Message });
+            account.ProfileId = _profile.Identifier;
+            return Ok(new ActionResponse { StatusCode = 200, Successful = true, Message = "Account Added", Data = await _paymentService.AddAccountDetailsAsync(account, accencrypttoken) });
         }
 
         [HttpPost("buy_gifts/balance/{count}")]
@@ -87,7 +38,7 @@ namespace ProTrendAPI.Controllers
 
             var totalBalance = await _paymentService.GetTotalBalance(_profile.Identifier);
             if (totalBalance < 0 && totalBalance <= value)
-                return Ok(new { Success = false, Ref = trxRef, Data = "Error buying gifts" });
+                return BadRequest(new ActionResponse { Message = "Error buying gifts" });
 
                 var transaction = new Transaction
                 {
@@ -95,8 +46,7 @@ namespace ProTrendAPI.Controllers
                     ProfileId = _profile.Identifier,
                     CreatedAt = DateTime.Now,
                     TrxRef = trxRef,
-                    ItemId = Guid.NewGuid(),
-                    Status = true
+                    ItemId = Guid.NewGuid()
                 };
 
                 await _paymentService.InsertTransactionAsync(transaction);
@@ -136,45 +86,13 @@ namespace ProTrendAPI.Controllers
                     ProfileId = _profile.Identifier,
                     CreatedAt = DateTime.Now,
                     TrxRef = request.Reference,
-                    ItemId = Guid.NewGuid(),
-                    Status = false
+                    ItemId = Guid.NewGuid()
                 };
 
                 await _paymentService.InsertTransactionAsync(transaction);
                 return Ok(new { Success = true, Ref = request.Reference, Data = response.Data.AuthorizationUrl });
             }
             return BadRequest(new {Success = false, Ref = request.Reference, Data = "Error making transaction" });
-        }
-
-        [HttpPost("mobile/top_up/balance/{total}")]
-        public async Task<ActionResult<object>> TopUpBalanceMobile(Profile profile, int total)
-        {
-            TransactionInitializeRequest request = new()
-            {
-                AmountInKobo = total * 100,
-                Email = profile.Email,
-                Reference = Generate().ToString(),
-                Currency = "NGN"
-                //CallbackUrl = ""
-            };
-
-            TransactionInitializeResponse response = PayStack.Transactions.Initialize(request);
-            if (response.Status)
-            {
-                var transaction = new Transaction
-                {
-                    Amount = total,
-                    ProfileId = profile.Identifier,
-                    CreatedAt = DateTime.Now,
-                    TrxRef = request.Reference,
-                    ItemId = Guid.NewGuid(),
-                    Status = false
-                };
-
-                await _paymentService.InsertTransactionAsync(transaction);
-                return Ok(new { Success = true, Ref = request.Reference, Data = response.Data.AuthorizationUrl });
-            }
-            return BadRequest(new { Success = false, Ref = request.Reference, Data = "Error making transaction" });
         }
 
         [HttpPost("send_gifts/{id}/{count}")]
@@ -201,8 +119,7 @@ namespace ProTrendAPI.Controllers
                 ProfileId = _profile.Identifier,
                 CreatedAt = DateTime.Now,
                 TrxRef = Generate().ToString(),
-                ItemId = id,
-                Status = true
+                ItemId = id
             };
 
             var responseOk = await _paymentService.InsertTransactionAsync(transaction);
@@ -216,15 +133,6 @@ namespace ProTrendAPI.Controllers
         public async Task<IActionResult> RequestWithdrawal(int total)
         {
             var success = await _paymentService.RequestWithdrawalAsync(_profile, total);
-            if (success)
-                return BadRequest(new { Success = false, Message = "Error requesting withdrawal" });
-            return Ok(new { Success = true, Message = "Request sent" });
-        }
-
-        [HttpPost("mobile/withdraw/balance/{total}")]
-        public async Task<IActionResult> RequestWithdrawal(Profile profile, int total)
-        {
-            var success = await _paymentService.RequestWithdrawalAsync(profile, total);
             if (success)
                 return BadRequest(new { Success = false, Message = "Error requesting withdrawal" });
             return Ok(new { Success = true, Message = "Request sent" });
@@ -271,42 +179,13 @@ namespace ProTrendAPI.Controllers
                     ProfileId = _profile.Identifier,
                     CreatedAt = DateTime.Now,
                     TrxRef = response.Data.Reference,
-                    ItemId = id,
-                    Status = true
+                    ItemId = id
                 };
 
                 var resultOk = await _paymentService.InsertTransactionAsync(transaction);
                 if (resultOk)
                 {
                     var acceptResultOk = await _postsService.AcceptGift(id);
-                    if (acceptResultOk)
-                        return Ok(new BasicResponse { Success = true, Message = response.Message });
-                }
-            }
-            return BadRequest(new BasicResponse { Message = "Error verifying payment" });
-        }
-
-        [HttpPost("mobile/verify/accept_gift")]
-        public async Task<ActionResult<BasicResponse>> VerifyAcceptGift(VerifyAcceptGiftTransaction verify)
-        {
-            var profile = await _profileService.GetProfileByIdAsync(Guid.Parse(verify.Profile_id));
-            TransactionVerifyResponse response = PayStack.Transactions.Verify(verify.Reference);
-            if (response.Data.Status == "success")
-            {
-                var transaction = new Transaction
-                {
-                    Amount = 1500,
-                    ProfileId = profile.Identifier,
-                    CreatedAt = DateTime.Now,
-                    TrxRef = response.Data.Reference,
-                    ItemId = Guid.Parse(verify.Post_id),
-                    Status = true
-                };
-
-                var resultOk = await _paymentService.InsertTransactionAsync(transaction);
-                if (resultOk)
-                {
-                    var acceptResultOk = await _postsService.AcceptGift(Guid.Parse(verify.Post_id));
                     if (acceptResultOk)
                         return Ok(new BasicResponse { Success = true, Message = response.Message });
                 }
@@ -333,29 +212,6 @@ namespace ProTrendAPI.Controllers
         //            var resultOk = await _paymentService.InsertTransactionAsync(verifyStatus);
         //            if (resultOk)
         //                return Ok(new BasicResponse { Success = true, Message = response.Message });
-        //        }
-        //    }
-        //    return BadRequest(new BasicResponse { Message = "Error verifying payment" });
-        //}
-
-        //[HttpPost("mobile/verify/top_up/{profile_id}/{reference}")]
-        //public async Task<ActionResult> VerifyTopUpBalance(string profile_id, string reference)
-        //{
-        //    var transaction = await _paymentService.GetTransactionByRefAsync(reference);
-        //    var profile = await _profileService.GetProfileByIdAsync(Guid.Parse(profile_id));
-        //    if (transaction.ProfileId != profile.Identifier)
-        //        return Unauthorized(new DataResponse
-        //        {
-        //            Data = 403,
-        //            Status = "Access dienied to the requested resource"
-        //        });
-        //    TransactionVerifyResponse response = PayStack.Transactions.Verify(reference);
-        //    if (response.Data.Status == "success")
-        //    {
-        //        var verifyStatus = await _paymentService.VerifyTransactionAsync(transaction);
-        //        if (verifyStatus != null && verifyStatus.Status)
-        //        {
-        //            return Ok(new BasicResponse { Success = true, Message = response.Message });
         //        }
         //    }
         //    return BadRequest(new BasicResponse { Message = "Error verifying payment" });

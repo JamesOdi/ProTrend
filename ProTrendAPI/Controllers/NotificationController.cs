@@ -5,7 +5,7 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/n")]
     [ApiController]
-    [CookieAuthenticationFilter]
+    [ProTrndAuthorizationFilter]
     public class NotificationController : BaseController
     {
         public NotificationController(IServiceProvider serviceProvider) : base(serviceProvider) { }
