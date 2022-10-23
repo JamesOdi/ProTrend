@@ -3,6 +3,5 @@
     public interface IUserService
     {
         Profile? GetProfile();
-        Task<Profile?> GetMobileProfile();
     }
 }

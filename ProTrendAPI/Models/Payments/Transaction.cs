@@ -12,8 +12,8 @@ namespace ProTrendAPI.Models.Payments
         public Guid ItemId { get; set; }
         [JsonPropertyName("amount")]
         public int Amount { get; set; }
-        [JsonPropertyName("status")]
-        public bool Status { get; set; }
+        [JsonPropertyName("purpose")]
+        public string Purpose { get; set; }
         [JsonPropertyName("trxref")]
         public string TrxRef { get; set; } = string.Empty;
         [JsonPropertyName("createdat")]
