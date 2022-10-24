@@ -5,7 +5,7 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/n")]
     [ApiController]
-    [CookieAuthenticationFilter]
+    [ProTrndAuthorizationFilter]
     public class NotificationController : BaseController
     {
         public NotificationController(IServiceProvider serviceProvider) : base(serviceProvider) { }
@@ -21,7 +21,7 @@ namespace ProTrendAPI.Controllers
         {
             var resultOk = await _notificationService.SetNotificationViewedAsync(id);
             if (!resultOk)
-                return BadRequest(new ActionResponse { StatusCode = 400, Message = "Notification set viewed failed" });
+                return BadRequest(new ActionResponse { Message = "Notification set viewed failed" });
             return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = "Notification set viewed ok" });
         }
     }
