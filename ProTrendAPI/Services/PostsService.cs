@@ -29,7 +29,7 @@ namespace ProTrendAPI.Services
         {
             var pageResults = 10f;
             var posts = await _postsCollection.Find(Builders<Post>.Filter.Where(p => !p.Disabled)).ToListAsync();
-            var pageCount = Math.Ceiling(posts.Count() / pageResults);
+            var pageCount = Math.Ceiling(posts.Count / pageResults);
             return posts.Skip((page - 1) * (int)pageResults)
                 .Take((int)pageResults)
                 .ToList();
@@ -113,7 +113,7 @@ namespace ProTrendAPI.Services
             return false;
         }
 
-        public async Task<Post> AddPostAsync(Post upload)
+        public async Task<Post?> AddPostAsync(Post upload)
         {
             try
             {
@@ -123,7 +123,7 @@ namespace ProTrendAPI.Services
             }
             catch(Exception)
             {
-                return new Post();
+                return null;
             }
         }
 

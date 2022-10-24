@@ -30,7 +30,7 @@ namespace ProTrendAPI.Models.User
         [JsonPropertyName("phone")]
         public string? Phone { get; set; } = null;
         [JsonPropertyName("regdate")]
-        public DateTime RegistrationDate { get; set; }
+        public DateTime RegistrationDate { get; set; } = DateTime.Now;
         [JsonPropertyName("disabled")]
         public bool Disabled { get; set; } = false;
     }

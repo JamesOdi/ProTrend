@@ -14,6 +14,7 @@ namespace ProTrendAPI.Controllers
         public readonly IUserService? _userService;
         public readonly TagsService? _tagsService;
         public readonly Profile? _profile;
+        public readonly Task<Profile?> _mobileProfile;
         public readonly PaymentService? _paymentService;
 
         public BaseController(IServiceProvider serviceProvider)
@@ -25,6 +26,7 @@ namespace ProTrendAPI.Controllers
             _postsService = serviceProvider.GetService<PostsService>();
             _profileService = serviceProvider.GetService<ProfileService>();
             _profile = _userService.GetProfile();
+            _mobileProfile = _userService.GetMobileProfile();
             _searchService = serviceProvider.GetService<SearchService>();
             _tagsService = serviceProvider.GetService<TagsService>();
             _paymentService = serviceProvider.GetService<PaymentService>();
