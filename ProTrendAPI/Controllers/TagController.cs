@@ -12,19 +12,21 @@ namespace ProTrendAPI.Controllers
         public TagController(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
         [HttpGet("get/{name}")]
-        public async Task<ActionResult<List<Tag>>> GetTags(string name)
+        public async Task<ActionResult<ActionResponse>> GetTags(string name)
         {
             var tags = await _tagsService.GetTagsWithNameAsync(name);
             if (tags == null)
-                return BadRequest(new BasicResponse { Message = Constants.InvalidTag });
-            return Ok(tags);
+                return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data=tags});
         }
 
         [HttpPost("add/{name}")]
-        public async Task<IActionResult> AddTag(string name)
+        public async Task<ActionResult<ActionResponse>> AddTag(string name)
         {
-            await _tagsService.AddTagAsync(name);
-            return Ok(new BasicResponse { Message = "Tag added" });
+            var added = await _tagsService.AddTagAsync(name);
+            if (!added)
+                return BadRequest(new ActionResponse { StatusCode = 400, Message = "Error Adding Tag!" });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = "Tag added!", Data = name });
         }
     }
 }

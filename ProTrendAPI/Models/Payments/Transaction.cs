@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+
 namespace ProTrendAPI.Models.Payments
 {
     public class Transaction
@@ -16,6 +17,8 @@ namespace ProTrendAPI.Models.Payments
         public string Purpose { get; set; }
         [JsonPropertyName("trxref")]
         public string TrxRef { get; set; } = string.Empty;
+        [JsonPropertyName("for")]
+        public string Purpose { get; set; } = string.Empty;
         [JsonPropertyName("createdat")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }

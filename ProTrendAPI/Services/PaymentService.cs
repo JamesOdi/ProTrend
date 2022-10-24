@@ -67,6 +67,8 @@ namespace ProTrendAPI.Services
 
         public async Task<bool> RequestWithdrawalAsync(Profile profile, int total)
         {
+            // Modify withdrawal
+
             int balance = await GetTotalBalance(profile.Identifier);
             if (balance <= 100 || total < balance)
                 return false;

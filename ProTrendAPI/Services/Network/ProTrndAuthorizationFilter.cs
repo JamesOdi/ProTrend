@@ -23,7 +23,7 @@ namespace ProTrendAPI.Services.Network
             }
 
             var hasAllRequiredClaims = _requiredClaims.All(claim => context.HttpContext.User.HasClaim(x => x.Type == claim));
-            if(!hasAllRequiredClaims)
+            if (!hasAllRequiredClaims)
             {
                 context.Result = new ForbidResult();
                 return;

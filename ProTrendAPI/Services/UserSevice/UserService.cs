@@ -1,4 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -39,6 +40,76 @@ namespace ProTrendAPI.Services.UserSevice
                 }
             }
             return null;
+                    string token = string.Empty;
+                    token = _contextAccessor.HttpContext.Request.Cookies.First(x => x.Key == Constants.AUTH).Value;
+                    return Result(token);
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        public async Task<Profile?> GetMobileProfile()
+        {
+            try
+            {                
+                //RV get token from local repo not cookies
+                var token = _contextAccessor.HttpContext.Request.Headers;
+                string auth = token["Authorization"];
+                if(!string.IsNullOrEmpty(auth))
+                {
+                    //auth = auth.FirstOrDefault().ToString();
+                    return await ResultForMobile(auth);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        private Profile Result(string token)
+        {
+            var result = new Profile();
+            var claim = GetUser(DecryptDataWithAes(Convert.FromBase64String(token)));
+            result.Email = claim.Claims.First(x => x.Type == Constants.Email).Value;
+            result.Id = Guid.Parse(claim.Claims.First(x => x.Type == Constants.ID).Value);
+            result.Identifier = Guid.Parse(claim.Claims.First(x => x.Type == Constants.Identifier).Value);
+            result.UserName = claim.Claims.First(x => x.Type == Constants.Name).Value;
+            result.FullName = claim.Claims.First(x => x.Type == Constants.FullName).Value;
+            result.AccountType = claim.Claims.First(x => x.Type == Constants.AccType).Value;
+            result.Country = claim.Claims.First(x => x.Type == Constants.Country).Value;
+            result.Disabled = bool.Parse(claim.Claims.First(x => x.Type == Constants.Disabled).Value);
+            return result;
+        }
+
+        private async Task<Profile> ResultForMobile(string token)
+        {
+            var result = new Profile();
+            //var claim =  GetUser(token);
+            var claim = GetUser(DecryptDataWithAes(Convert.FromBase64String(token)));
+            result.Email = claim.Claims.First(x => x.Type == Constants.Email).Value;
+            result.Id = Guid.Parse(claim.Claims.First(x => x.Type == Constants.ID).Value);
+            result.Identifier = Guid.Parse(claim.Claims.First(x => x.Type == Constants.Identifier).Value);
+            result.UserName = claim.Claims.First(x => x.Type == Constants.Name).Value;
+            result.FullName = claim.Claims.First(x => x.Type == Constants.FullName).Value;
+            result.AccountType = claim.Claims.First(x => x.Type == Constants.AccType).Value;
+            result.Country = claim.Claims.First(x => x.Type == Constants.Country).Value;
+            result.Disabled = bool.Parse(claim.Claims.First(x => x.Type == Constants.Disabled).Value);
+            return result;
+        }
+
+        private static JwtSecurityToken? GetUser(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            return handler.ReadToken(token) as JwtSecurityToken;
         }
 
         private string DecryptDataWithAes(byte[] cipherText)
