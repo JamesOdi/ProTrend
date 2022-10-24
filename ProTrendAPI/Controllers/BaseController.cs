@@ -26,7 +26,6 @@ namespace ProTrendAPI.Controllers
             _postsService = serviceProvider.GetService<PostsService>();
             _profileService = serviceProvider.GetService<ProfileService>();
             _profile = _userService.GetProfile();
-            _mobileProfile = _userService.GetMobileProfile();
             _searchService = serviceProvider.GetService<SearchService>();
             _tagsService = serviceProvider.GetService<TagsService>();
             _paymentService = serviceProvider.GetService<PaymentService>();
