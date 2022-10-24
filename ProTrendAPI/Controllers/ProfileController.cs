@@ -19,29 +19,10 @@ namespace ProTrendAPI.Controllers
             return Ok(profile);
         }
 
-        [HttpGet("mobile/get/id/{id}")]
-        public async Task<ActionResult<Profile>> MobileGetProfileById(Guid id)
-        {
-            var profile = await _profileService.GetProfileByIdAsync(id);
-            if (profile == null)
-                return BadRequest(new BasicResponse { Message = Constants.UserNotFound });
-            return Ok(profile);
-        }
-
         [HttpPut("update")]
         public async Task<ActionResult<Profile>> UpdateProfile([FromBody] Profile updateProfile)
         {
             var result = await _profileService.UpdateProfile(_profile, updateProfile);
-            if (result == null)
-                return BadRequest(new BasicResponse { Message = "Update failed" });
-            return Ok(result);
-        }
-
-        [HttpPut("mobile/{id}/update")]
-        public async Task<ActionResult<Profile>> MobileUpdateProfile(string id, [FromBody] Profile updateProfile)
-        {
-            var profile = await _profileService.GetProfileByIdAsync(Guid.Parse(id));
-            var result = await _profileService.UpdateProfile(profile, updateProfile);
             if (result == null)
                 return BadRequest(new BasicResponse { Message = "Update failed" });
             return Ok(result);
@@ -56,18 +37,6 @@ namespace ProTrendAPI.Controllers
             if (!followOk)
                 return BadRequest(new BasicResponse { Message = "Error following" });
             await _notificationService.FollowNotification(_profile, id);
-            return Ok(new BasicResponse { Success = true, Message = "Follow successful" });
-        }
-
-        [HttpPost("mobile/follow/{id}")]
-        public async Task<ActionResult<object>> Follow(Guid id, [FromBody] Profile profile)
-        {
-            if (id == profile.Identifier)
-                return BadRequest(new BasicResponse { Message = "Cannot follow one's self" });
-            var followOk = await _profileService.Follow(profile, id);
-            if (!followOk)
-                return BadRequest(new BasicResponse { Message = "Error following" });
-            await _notificationService.FollowNotification(profile, id);
             return Ok(new BasicResponse { Success = true, Message = "Follow successful" });
         }
 
@@ -93,49 +62,25 @@ namespace ProTrendAPI.Controllers
         public async Task<ActionResult<List<Followings>>> GetFollowers(Guid id)
         {
             return Ok(await _profileService.GetFollowersAsync(id));
-        }
-
-        [HttpGet("mobile/get/followers/{id}")]
-        public async Task<ActionResult<List<Followings>>> MobileGetFollowers(Guid id)
-        {
-            return Ok(await _profileService.GetFollowersAsync(id));
-        }
+        }        
 
         [HttpGet("get/followings/{id}")]
         public async Task<ActionResult<List<Profile>>> GetFollowings(Guid id)
         {
             return Ok(await _profileService.GetFollowings(id));
-        }
-
-        [HttpGet("mobile/get/followings/{id}")]
-        public async Task<ActionResult<List<Profile>>> MobileGetFollowings(Guid id)
-        {
-            return Ok(await _profileService.GetFollowings(id));
-        }
+        }        
 
         [HttpGet("get/followers/{id}/count")]
         public async Task<ActionResult<string>> GetFollowerCount(Guid id)
         {
             return Ok(new DataResponse { Status = Constants.OK, Data = await _profileService.GetFollowersAsync(id) });
-        }
-
-        [HttpGet("mobile/get/followers/{id}/count")]
-        public async Task<ActionResult<string>> MobileGetFollowerCount(Guid id)
-        {
-            return Ok(new DataResponse { Status = Constants.OK, Data = await _profileService.GetFollowersAsync(id) });
-        }
+        }        
 
         [HttpGet("get/followings/{id}/count")]
         public async Task<ActionResult<List<Profile>>> GetFollowingCount(Guid id)
         {
             return Ok(new DataResponse { Status = Constants.OK, Data = await _profileService.GetFollowingCount(id) });
-        }
-
-        [HttpGet("mobile/get/followings/{id}/count")]
-        public async Task<ActionResult<List<Profile>>> MobileGetFollowingCount(Guid id)
-        {
-            return Ok(new DataResponse { Status = Constants.OK, Data = await _profileService.GetFollowingCount(id) });
-        }
+        }        
 
         [HttpGet("get/gifts/total")]
         public async Task<IActionResult> GetGiftTotal()
@@ -146,19 +91,6 @@ namespace ProTrendAPI.Controllers
             }
             return Ok(new DataResponse { Data = await _paymentService.GetTotalGiftsAsync(_profile.Identifier) });
         }
-
-        [HttpGet("mobile/get/{id}/gifts/total")]
-        public async Task<IActionResult> GetGiftTotal(string id)
-        {
-            var profile = await MobileGetProfileById(Guid.Parse(id));
-            if (profile == null)
-            {
-                return BadRequest(new BasicResponse { Message = "Unauthorized" });
-            }
-            return Ok(new DataResponse { Data = await _paymentService.GetTotalGiftsAsync(profile.Value.Identifier) });
-        }
-
-        //[HttpPut("mobile/update/pin")]
-        //public async 
+      
     }
 }
