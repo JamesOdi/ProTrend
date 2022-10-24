@@ -5,7 +5,7 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/profile")]
     [ApiController]
-    [CookieAuthenticationFilter]
+    [ProTrndAuthorizationFilter]
     public class ProfileController : BaseController
     {
         public ProfileController(IServiceProvider serviceProvider) : base(serviceProvider) { }
@@ -48,39 +48,30 @@ namespace ProTrendAPI.Controllers
             if (!resultOk)
                 return BadRequest(new ActionResponse { StatusCode = 400, Message = "Unfollow failed" });
             return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = "Unfollow successful" });
-        }
-
-        [HttpDelete("mobile/unfollow/{id}")]
-        public async Task<ActionResult<ActionResponse>> UnFollow(Guid id, [FromBody] Profile profile)
-        {
-            var resultOk = await _profileService.UnFollow(profile, id);
-            if (!resultOk)
-                return BadRequest(new ActionResponse { StatusCode = 400, Message = "Unfollow failed" });
-            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = "Unfollow successful" });
-        }
+        }       
 
         [HttpGet("get/followers/{id}")]
         public async Task<ActionResult<ActionResponse>> GetFollowers(Guid id)
         {
-            return Ok(await _profileService.GetFollowersAsync(id));
-        }        
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _profileService.GetFollowersAsync(id) });
+        }
 
         [HttpGet("get/followings/{id}")]
         public async Task<ActionResult<ActionResponse>> GetFollowings(Guid id)
         {
-            return Ok(await _profileService.GetFollowings(id));
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _profileService.GetFollowings(id) });
         }        
 
         [HttpGet("get/followers/{id}/count")]
         public async Task<ActionResult<ActionResponse>> GetFollowerCount(Guid id)
         {
-            return Ok(new DataResponse { Status = Constants.OK, Data = await _profileService.GetFollowersAsync(id) });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _profileService.GetFollowersAsync(id) });
         }        
 
         [HttpGet("get/followings/{id}/count")]
         public async Task<ActionResult<List<ActionResponse>>> GetFollowingCount(Guid id)
         {
-            return Ok(new DataResponse { Status = Constants.OK, Data = await _profileService.GetFollowingCount(id) });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _profileService.GetFollowersAsync(id) });
         }        
 
         [HttpGet("get/gifts/total")]
@@ -88,9 +79,9 @@ namespace ProTrendAPI.Controllers
         {
             if (_profile == null)
             {
-                return BadRequest(new BasicResponse { Message = "Unauthorized" });
+                return BadRequest(new ActionResponse { StatusCode = 401, Message = "Unauthorized" });
             }
-            return Ok(new DataResponse { Data = await _paymentService.GetTotalGiftsAsync(_profile.Identifier) });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _profileService.GetFollowersAsync(_profile.Id) });
         }
       
     }
