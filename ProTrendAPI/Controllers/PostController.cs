@@ -14,7 +14,7 @@ namespace ProTrendAPI.Controllers
         [HttpGet("get")]
         public async Task<ActionResult<List<Post>>> GetPosts()
         {
-            return Ok(await _postsService.GetAllPostsAsync());
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetAllPostsAsync() });
         }
 
         [HttpGet("get/{page}")]
@@ -61,7 +61,7 @@ namespace ProTrendAPI.Controllers
         [HttpGet("get/{id}/likes")]
         public async Task<ActionResult<List<Like>>> GetLikes(Guid id)
         {
-            return Ok(await _postsService.GetPostLikesAsync(id));
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetPostLikesAsync(id) });
         }
 
         [HttpPost("add/like/{id}")]
@@ -104,7 +104,7 @@ namespace ProTrendAPI.Controllers
             var post = await _postsService.GetSinglePostAsync(commentDTO.PostId);
             if (post != null)
             {
-                var comment = new Comment { UserId = _profile.Id, PostId = commentDTO.PostId, CommentContent = commentDTO.CommentContent};
+                var comment = new Comment { UserId = _profile.Id, PostId = commentDTO.PostId, CommentContent = commentDTO.CommentContent };
                 comment.Identifier = comment.Id;
                 await _notificationService.CommentNotification(_profile, post.ProfileId);
                 var commentResult = await _postsService.InsertCommentAsync(comment);
