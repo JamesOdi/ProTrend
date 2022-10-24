@@ -20,55 +20,33 @@ namespace ProTrendAPI.Controllers
         [HttpGet("get/{page}")]
         public async Task<ActionResult<List<Post>>> GetPostsPaginated(int page)
         {
-            return Ok(await _postsService.GetPagePostsAsync(page));
+            return Ok( new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetAllPostsAsync() });
         }
 
         [HttpGet("mobile/get/{page}")]
         public async Task<ActionResult<List<Post>>> MobileGetPostsPaginated(int page)
         {
-            return Ok(await _postsService.GetPagePostsAsync(page));
+            return Ok(new ActionResponse { Successful = true, Message = $"Posts results for page {page}", StatusCode = 200, Data = await _postsService.GetPagePostsAsync(page) });
         }
 
         [HttpGet("get/promotions")]
         public async Task<ActionResult<List<Promotion>>> GetPromotions()
         {
-            return Ok(await _postsService.GetPromotionsAsync(_profile));
-        }
-
-        [HttpGet("mobile/get/promotions")]
-        public async Task<ActionResult<List<Promotion>>> MobileGetPromotions()
-        {
-            return Ok(await _postsService.GetPromotionsAsync(_profile));
+            return Ok(new ActionResponse { Successful = true, Message = ActionResponseMessage.Ok, StatusCode = 200, Data = await _postsService.GetPromotionsAsync(_profile) });
         }
 
         [HttpGet("get/{id}/gift/profiles")]
         public async Task<ActionResult<List<Profile>>> GetGifters(Guid id)
         {
-            return await _postsService.GetGiftersAsync(id);
-        }
-
-        [HttpGet("mobile/get/{id}/gift/profiles")]
-        public async Task<ActionResult<List<Profile>>> MobileGetGifters(Guid id)
-        {
-            return await _postsService.GetGiftersAsync(id);
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetGiftersAsync(id) });
         }
 
         [HttpPost("add")]
         public async Task<ActionResult<DataResponse>> AddPost(Post upload)
         {
-            upload.ProfileId = _profile.Id;
-            upload.AcceptGift = false;
-            upload.Disabled = false;
-            var uploadResult = await _postsService.AddPostAsync(upload);
-            return Ok(new { Success = true, Data = uploadResult });
-        }
-
-        [HttpPost("mobile/add")]
-        public async Task<ActionResult<object>> AddPostFromMobile([FromBody] PostDTO upload)
-        {
-            var post = new Post { AcceptGift = false, Category = upload.Category, Location = upload.Location, UploadUrls = upload.UploadUrls, Caption = upload.Caption, ProfileId = upload.ProfileId };
+            var post = new Post { AcceptGift = false, Category = upload.Category, Location = upload.Location, UploadUrls = upload.UploadUrls, Caption = upload.Caption, ProfileId = _profile.Identifier };
             var uploadResult = await _postsService.AddPostAsync(post);
-            return Ok(new { Success = true, Data = uploadResult });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = uploadResult });
         }
 
         [HttpGet("get/{id}")]
@@ -76,41 +54,20 @@ namespace ProTrendAPI.Controllers
         {
             var post = await _postsService.GetSinglePostAsync(id);
             if (post == null)
-                return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
-            return Ok(post);
-        }
-
-        [HttpGet("mobile/get/{id}")]
-        public async Task<ActionResult<Post>> MobileGetPost(Guid id)
-        {
-            var post = await _postsService.GetSinglePostAsync(id);
-            if (post == null)
-                return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
-            return Ok(post);
+                return NotFound(new ActionResponse { Successful = true, StatusCode = 404, Message = ActionResponseMessage.NotFound });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = post });
         }
 
         [HttpGet("get/{id}/posts")]
         public async Task<ActionResult<List<Post>>> GetUserPosts(Guid id)
         {
-            return Ok(await _postsService.GetUserPostsAsync(id));
-        }
-
-        [HttpGet("mobile/get/{id}/posts")]
-        public async Task<ActionResult<List<Post>>> MobileGetUserPosts(Guid id)
-        {
-            return Ok(await _postsService.GetUserPostsAsync(id));
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetUserPostsAsync(id) });
         }
 
         [HttpGet("get/{id}/likes")]
         public async Task<ActionResult<List<Like>>> GetLikes(Guid id)
         {
-            return Ok(await _postsService.GetPostLikesAsync(id));
-        }
-
-        [HttpGet("mobile/get/{id}/likes")]
-        public async Task<ActionResult<List<Like>>> MobileGetLikes(Guid id)
-        {
-            return Ok(await _postsService.GetPostLikesAsync(id));
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetPostLikesAsync(id) });
         }
 
         [HttpPost("add/like/{id}")]
@@ -123,24 +80,9 @@ namespace ProTrendAPI.Controllers
                 var liked = await _postsService.AddLikeAsync(like);
                 var notiSent = await _notificationService.LikeNotification(_profile, post.ProfileId);
                 if (liked && notiSent)
-                    return Ok(new BasicResponse { Success = true, Message = "Post liked" });
+                    return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
             }
-            return BadRequest(new BasicResponse { Message = "Error liking post" });
-        }
-
-        [HttpPost("mobile/add/like/{id}")]
-        public async Task<IActionResult> AddLike(Guid id, [FromBody] Profile profile)
-        {
-            var post = await _postsService.GetSinglePostAsync(id);
-            if (post != null)
-            {
-                var like = new Like { SenderId = profile.Identifier, Time = DateTime.Now, UploadId = id };
-                var liked = await _postsService.AddLikeAsync(like);
-                var notiSent = await _notificationService.LikeNotification(profile, post.ProfileId);
-                if (liked && notiSent)
-                    return Ok(new BasicResponse { Success = true, Message = "Post liked" });
-            }
-            return BadRequest(new BasicResponse { Message = "Error liking post" });
+            return BadRequest(new ActionResponse { Message = ActionResponseMessage.BadRequest });
         }
 
         [HttpDelete("delete/like/{id}")]
@@ -151,89 +93,42 @@ namespace ProTrendAPI.Controllers
             {
                 var liked = await _postsService.RemoveLike(id, _profile.Identifier);
                 if (liked)
-                    return Ok(new BasicResponse { Success = true, Message = "Post unliked" });
+                    return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
             }
-            return BadRequest(new BasicResponse { Message = "Error unliking post" });
-        }
-
-        [HttpDelete("mobile/delete/like/{id}")]
-        public async Task<IActionResult> RemoveLikeFromMobile(Guid id, [FromBody] Profile profile)
-        {
-            var post = await _postsService.GetSinglePostAsync(id);
-            if (post != null)
-            {
-                var liked = await _postsService.RemoveLike(id, profile.Identifier);
-                if (liked)
-                    return Ok(new BasicResponse { Success = true, Message = "Post unliked" });
-            }
-            return BadRequest(new BasicResponse { Message = "Error unliking post" });
+            return BadRequest(new ActionResponse { Message = ActionResponseMessage.BadRequest });
         }
 
         [HttpGet("get/{id}/like/count")]
         public async Task<ActionResult<int>> GetLikesCount(Guid id)
         {
-            return Ok(new DataResponse { Status = Constants.OK, Data = await _postsService.GetLikesCountAsync(id) });
-        }
-
-        [HttpGet("mobile/get/{id}/like/count")]
-        public async Task<ActionResult<int>> MobileGetLikesCount(Guid id)
-        {
-            return Ok(new DataResponse { Status = Constants.OK, Data = await _postsService.GetLikesCountAsync(id) });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetLikesCountAsync(id) });
         }
 
         [HttpPost("add/comment")]
-        public async Task<ActionResult<Comment>> AddComment(Comment comment)
+        public async Task<ActionResult<Comment>> AddComment(CommentDTO commentDTO)
         {
-            var post = await _postsService.GetSinglePostAsync(comment.PostId);
+            var post = await _postsService.GetSinglePostAsync(commentDTO.PostId);
             if (post != null)
             {
-                comment.UserId = _profile.Id;
+                var comment = new Comment { UserId = _profile.Id, PostId = commentDTO.PostId, CommentContent = commentDTO.CommentContent};
                 comment.Identifier = comment.Id;
                 await _notificationService.CommentNotification(_profile, post.ProfileId);
                 var commentResult = await _postsService.InsertCommentAsync(comment);
-                return Ok(commentResult);
+                return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = commentResult });
             }
-            return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
-        }
-
-        [HttpPost("mobile/{id}/add/comment")]
-        public async Task<ActionResult<Comment>> AddCommentFromMobile(string id, Comment comment)
-        {
-            var profile = await _profileService.GetProfileByIdAsync(Guid.Parse(id));
-            var post = await _postsService.GetSinglePostAsync(comment.PostId);
-            if (post != null)
-            {
-                comment.UserId = profile.Id;
-                comment.Identifier = comment.Id;
-                await _notificationService.CommentNotification(profile, post.ProfileId);
-                var commentResult = await _postsService.InsertCommentAsync(comment);
-                return Ok(commentResult);
-            }
-            return BadRequest(new BasicResponse { Message = Constants.PostNotExist });
+            return BadRequest(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
         }
 
         [HttpGet("get/{id}/gifts")]
         public async Task<ActionResult> GetAllGiftsOnPost(Guid id)
         {
-            return Ok(await _postsService.GetAllGiftOnPostAsync(id));
-        }
-
-        [HttpGet("mobile/get/{id}/gifts")]
-        public async Task<ActionResult> MobileGetAllGiftsOnPost(Guid id)
-        {
-            return Ok(await _postsService.GetAllGiftOnPostAsync(id));
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetAllGiftOnPostAsync(id) });
         }
 
         [HttpGet("get/{id}/comments")]
         public async Task<ActionResult<List<Comment>>> GetComments(Guid id)
         {
-            return Ok(await _postsService.GetCommentsAsync(id));
-        }
-
-        [HttpGet("mobile/get/{id}/comments")]
-        public async Task<ActionResult<List<Comment>>> MobileGetComments(Guid id)
-        {
-            return Ok(await _postsService.GetCommentsAsync(id));
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetCommentsAsync(id) });
         }
 
         [HttpDelete("delete/{id}")]
@@ -241,17 +136,8 @@ namespace ProTrendAPI.Controllers
         {
             var delete = await _postsService.DeletePostAsync(id, _profile.Identifier);
             if (!delete)
-                return BadRequest(new BasicResponse { Message = Constants.PDError });
-            return Ok(new BasicResponse { Success = true, Message = "Post deleted" });
-        }
-
-        [HttpDelete("mobile/delete/{id}")]
-        public async Task<IActionResult> DeleteMobilePost(Guid id, [FromBody] Profile profile)
-        {
-            var delete = await _postsService.DeletePostAsync(id, profile.Identifier);
-            if (!delete)
-                return BadRequest(new BasicResponse { Message = Constants.PDError });
-            return Ok(new BasicResponse { Success = true, Message = "Post deleted" });
+                return BadRequest(new ActionResponse { Message = ActionResponseMessage.BadRequest });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
         }
     }
 }
