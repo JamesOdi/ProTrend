@@ -135,16 +135,11 @@ namespace ProTrendAPI.Controllers
             var result = await _regService.FindRegisteredUserByEmailAsync(login);
 
             if (result == null)
-                return BadRequest(new ActionResponse {StatusCode = 404, Message = ActionResponseMessage.NotFound });
+                return BadRequest(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
-                return BadRequest(new ActionResponse { Message = Constants.WrongEmailPassword });
-            var token = GetJWT(result);
-            if (token != "")
-            {
-                return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = token });
-                return Ok(new { Success = true, Data = await _profileService.GetProfileByIdAsync(result.Id)});
-            return BadRequest(new { Success = false, Data = new Profile() });
-            return BadRequest(new ActionResponse { Message = "Login failed!" });
+                return BadRequest(new ActionResponse { Message = Constants.WrongEmailPassword });           
+                
+            return Ok(new { Success = true, Data = await _profileService.GetProfileByIdAsync(result.Id) });            
         }
 
         [HttpPost("logout")]

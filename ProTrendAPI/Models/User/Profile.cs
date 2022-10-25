@@ -22,6 +22,7 @@ namespace ProTrendAPI.Models.User
         [JsonPropertyName("paymentpin")]
         public string PaymentPin { get; set; } = string.Empty;
         [JsonPropertyName("accountlinked")]
+        public string AccountNumber { get; set; } = string.Empty;
         public bool AccountLinked { get; set; } = false;
         [JsonPropertyName("country")]
         public string Country { get; set; } = string.Empty;

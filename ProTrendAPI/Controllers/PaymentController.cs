@@ -123,7 +123,7 @@ namespace ProTrendAPI.Controllers
                     CreatedAt = DateTime.Now,
                     TrxRef = request.Reference,
                     ItemId = Guid.NewGuid(),
-                    Status = false
+                    //Status = false
                 };
 
                 await _paymentService.InsertTransactionAsync(transaction);
