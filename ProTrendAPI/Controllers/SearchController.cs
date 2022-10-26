@@ -13,31 +13,31 @@ namespace ProTrendAPI.Controllers
         [HttpGet("get/{search}")]
         public async Task<ActionResult<object>> GetSearchResults(string search)
         {
-            return Ok(await _searchService.GetSearchResultAsync(search));
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _searchService.GetSearchResultAsync(search) });
         }
 
         [HttpGet("get/posts/{name}")]
         public async Task<ActionResult<List<string>>> GetPosts(string name)
         {
-            return Ok(await _searchService.SearchPostsByNameAsync(name));
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _searchService.SearchPostsByNameAsync(name) });
         }
 
         [HttpGet("get/people/{name}")]
         public async Task<ActionResult<List<string>>> GetPeople(string name)
         {
-            return Ok(await _searchService.SearchProfilesByNameAsync(name));
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _searchService.SearchProfilesByNameAsync(name) });
         }
 
         [HttpGet("get/email/{email}")]
         public async Task<ActionResult<List<Profile>>> GetProfileByEmail(string email)
         {
-            return Ok(await _searchService.SearchProfilesByEmailAsync(email.ToLower()));
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _searchService.SearchProfilesByEmailAsync(email.ToLower()) });
         }
 
         [HttpGet("category/{name}")]
         public async Task<ActionResult<List<string>>> GetPostsInCategory(string name)
         {
-            return Ok(await _searchService.SearchPostsByCategoryAsync(name));
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _searchService.SearchPostsByCategoryAsync(name) });
         }
     }
 }

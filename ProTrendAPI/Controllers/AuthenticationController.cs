@@ -4,14 +4,11 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using MimeKit;
 using MailKit.Net.Smtp;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using ProTrendAPI.Services.Network;
-using Microsoft.Net.Http.Headers;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
-using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
 namespace ProTrendAPI.Controllers
 {
@@ -26,11 +23,9 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpGet]
-        [CookieAuthenticationFilter]
+        [ProTrndAuthorizationFilter]
         public ActionResult<Profile> GetMe()
         {
-            if (_profile == null)
-                return Unauthorized(new ErrorDetails { StatusCode = 401, Message = "User is UnAuthorized" });
             return Ok(_profile);
         }
 
@@ -157,18 +152,6 @@ namespace ProTrendAPI.Controllers
             return await _regService.FindRegisteredUserAsync(request);
         }
 
-        private string CreateToken(Register user)
-        {
-            try
-            {
-                return EncryptDataWithAes(GetJWT(user));
-            }
-            catch (Exception)
-            {
-                return "";
-            }
-        }
-
         private string GetJWT(Register user)
         {
             List<Claim> claims = new()
@@ -190,9 +173,10 @@ namespace ProTrendAPI.Controllers
 
             var sk = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration[Constants.TokenLoc]));
             var credentials = new SigningCredentials(sk, SecurityAlgorithms.HmacSha512Signature);
-            var token = new JwtSecurityToken(claims: claims, expires: DateTime.Now.AddHours(1), signingCredentials: credentials);
+            var token = new JwtSecurityToken(claims: claims, expires: DateTime.Now.AddHours(6), signingCredentials: credentials);
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
         private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
             using var hmac = new HMACSHA512();

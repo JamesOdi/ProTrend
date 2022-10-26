@@ -16,7 +16,6 @@ namespace ProTrendAPI.Services
                 return category;
             }
             category = new Category { Name = name.ToLower() };
-            
             await _categoriesCollection.InsertOneAsync(category);
             return category;
         }
