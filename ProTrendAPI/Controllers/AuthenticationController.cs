@@ -47,7 +47,7 @@ namespace ProTrendAPI.Controllers
 
         [HttpPost("forgot-password")]
         [AllowAnonymous]
-        public async Task<IActionResult> ForgotPassword(string email)
+        public async Task<ActionResult<ActionResponse>> ForgotPassword(string email)
         {
             if (!IsValidEmail(email))
                 return BadRequest(new { Success = false, Message = Constants.InvalidEmail });
@@ -58,12 +58,12 @@ namespace ProTrendAPI.Controllers
                 return BadRequest(new { Success = false, Message = Constants.UserNotFound });
             }
             //SendEmail(email)
-            return Ok();
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = "Email sent" });
         }
 
         [HttpPut("reset-password")]
         [AllowAnonymous]
-        public async Task<IActionResult> ResetPassword(ProfileDTO profile)
+        public async Task<ActionResult<ActionResponse>> ResetPassword(ProfileDTO profile)
         {
             if (!IsValidEmail(profile.Email))
                 return BadRequest(new { Success = false, Message = Constants.InvalidEmail });
@@ -114,46 +114,32 @@ namespace ProTrendAPI.Controllers
             };
             var result = await _regService.InsertAsync(register);
             if (result == null)
-                return BadRequest(new { Success = false, Message = "Error when registering user!" });
-            var token = GetJWT(register);
-            if (token != "")
-            {
-                return Ok(new { Success = true, Data = token });
-            }
-            return BadRequest(new { Success = false, Message = "Verification failed" });
+                return BadRequest(new ActionResponse { StatusCode = 400, Message = "Error registering user!" });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = GetJWT(register) }); ;
         }
 
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<ActionResult<object>> Login([FromBody] Login login)
         {
-            if (!IsValidEmail(login.Email))
-            {
-                return BadRequest(new { Success = false, Message = Constants.InvalidEmail });
-            }
-
             var result = await _regService.FindRegisteredUserByEmailAsync(login);
 
             if (result == null)
-                return BadRequest(new { Success = false, Message = Constants.UserNotFound });
+                return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
-                return BadRequest(new { Success = false, Message = Constants.WrongEmailPassword });
-            var token = GetJWT(result);
-            if (token != "")
-            {
-                return Ok(new { Success = true, Data = token });
-            }
-            return BadRequest(new { Success = false, Message = "Login failed!" });
+                return BadRequest(new ActionResponse { StatusCode = 400, Message = Constants.WrongEmailPassword });
+
+            return Ok(new ActionResponse { Successful = true, Message = "Login Successful", Data = GetJWT(result) });      
         }
 
         [HttpPost("logout")]
         [ProTrndAuthorizationFilter]
-        public ActionResult<object> Logout()
+        public ActionResult<ActionResponse> Logout()
         {
             try
             {
-                HttpContext.Response.Cookies.Delete(Constants.AUTH);
-                return Ok(new { Success = true, Message = "Logout successful" });
+                // Modify logout function
+                return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
             }
             catch (Exception)
             {

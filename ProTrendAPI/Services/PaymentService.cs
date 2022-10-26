@@ -13,6 +13,38 @@ namespace ProTrendAPI.Services
                 
         }
 
+        private static string EncryptDataWithAes(string plainText, string token)
+        {
+            byte[] inputArray = Encoding.UTF8.GetBytes(plainText);
+            var tripleDES = Aes.Create();
+            tripleDES.Key = Encoding.UTF8.GetBytes(token);
+            tripleDES.Mode = CipherMode.ECB;
+            tripleDES.Padding = PaddingMode.PKCS7;
+            ICryptoTransform cTransform = tripleDES.CreateEncryptor();
+            byte[] resultArray = cTransform.TransformFinalBlock(inputArray, 0, inputArray.Length);
+            tripleDES.Clear();
+            return Convert.ToBase64String(resultArray, 0, resultArray.Length);
+        }
+
+        private string DecryptDataWithAes(byte[] cipherText, string token)
+        {
+            var tripleDES = Aes.Create();
+            tripleDES.Key = Encoding.UTF8.GetBytes(token);
+            tripleDES.Mode = CipherMode.ECB;
+            tripleDES.Padding = PaddingMode.PKCS7;
+            ICryptoTransform cTransform = tripleDES.CreateDecryptor();
+            byte[] resultArray = cTransform.TransformFinalBlock(cipherText, 0, cipherText.Length);
+            tripleDES.Clear();
+            return Encoding.UTF8.GetString(resultArray);
+        }
+
+        public async Task<AccountDetails> AddAccountDetailsAsync(AccountDetailsDTO account, string token)
+        {
+            var accountDetails = new AccountDetails { AccountNumber = EncryptDataWithAes(account.AccountNumber, token), CardNumber = EncryptDataWithAes(account.CardNumber, token), CVV = EncryptDataWithAes(account.CVV, token), ExpirtyDate = EncryptDataWithAes(account.ExpirtyDate, token), ProfileId = account.ProfileId };
+            await _accountDetailsCollection.InsertOneAsync(accountDetails);
+            return accountDetails;
+        }
+
         public async Task<Transaction> GetTransactionByRefAsync(string reference)
         {
             return await _transactionCollection.Find(Builders<Transaction>.Filter.Eq(t => t.TrxRef, reference)).SingleOrDefaultAsync();
