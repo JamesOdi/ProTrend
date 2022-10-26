@@ -106,18 +106,21 @@ namespace ProTrendAPI.Controllers
         [HttpPost("balance")]
         public async Task<ActionResult<int>> GetTotalBalance()
         {
+            return NotFound();
             return Ok(await _paymentService.GetTotalBalance(_profile.Identifier));
         }
 
         [HttpPost("mobile/balance")]
         public async Task<ActionResult<int>> GetTotalBalance(Profile profile)
         {
+            return NotFound();
             return Ok(await _paymentService.GetTotalBalance(profile.Identifier));
         }
 
         [HttpPost("top_up/balance/{total}")]
         public async Task<ActionResult<object>> TopUpBalance(int  total)
         {
+            return NotFound();
             TransactionInitializeRequest request = new()
             {
                 AmountInKobo = total * 100,
@@ -149,6 +152,7 @@ namespace ProTrendAPI.Controllers
         [HttpPost("mobile/top_up/balance/{total}")]
         public async Task<ActionResult<object>> TopUpBalanceMobile(Profile profile, int total)
         {
+            return NotFound();
             TransactionInitializeRequest request = new()
             {
                 AmountInKobo = total * 100,
@@ -230,34 +234,45 @@ namespace ProTrendAPI.Controllers
             return Ok(new { Success = true, Message = "Request sent" });
         }
 
-        //[HttpPost("verify/promotion/{reference}")]
-        //public async Task<ActionResult> Verify(string reference, [FromBody] Promotion promotion)
-        //{
-        //    var transaction = await _paymentService.GetTransactionByRefAsync(reference);
-        //    if (transaction.ProfileId != _profile.Identifier)
-        //        return Unauthorized(new DataResponse
-        //        {
-        //            Data = 403,
-        //            Status = "Access dienied to the requested resource"
-        //        });
+        [HttpPost("verify/promotion")]
+        public async Task<ActionResult> Verify(VerifyTransaction promotion)
+        {
+            TransactionVerifyResponse response = PayStack.Transactions.Verify(promotion.Reference);
+            if (response.Data.Status == "success")
+            {
+                var promotionDto = promotion.Type as PromotionDTO;
+                var transaction = new Transaction
+                {
+                    Amount = 1500,
+                    ProfileId = _profile.Identifier,
+                    CreatedAt = DateTime.Now,
+                    TrxRef = response.Data.Reference,
+                    ItemId = promotionDto.PostId,
+                    Purpose = $"Pay for promotion id = {promotionDto.PostId}"
+                };
 
-        //    TransactionVerifyResponse response = PayStack.Transactions.Verify(reference);
-        //    if (response.Data.Status == "success")
-        //    {
-        //        var verifyStatus = await _paymentService.VerifyTransactionAsync(transaction);
-        //        if (verifyStatus != null && verifyStatus.Status)
-        //        {
-        //            var promotionOk = await _postsService.PromoteAsync(_profile, promotion);
-        //            if (promotionOk)
-        //                return Ok(new BasicResponse
-        //                {
-        //                    Success = true,
-        //                    Message = response.Message
-        //                });
-        //        }
-        //    }
-        //    return BadRequest(new BasicResponse { Message = "Error verifying paid promotion" });
-        //}
+                var verifyStatus = await _paymentService.InsertTransactionAsync(transaction);
+                if (verifyStatus)
+                {
+                    var promotionOk = await _postsService.PromoteAsync(promotionDto);
+                    if (promotionOk)
+                        return Ok(new ActionResponse
+                        {
+                            Successful = true,
+                            Message = response.Message,
+                            Data = promotionOk,
+                            StatusCode = 200
+                        });
+                }
+            }
+            return BadRequest(new ActionResponse
+            {
+                Successful = false,
+                Message = response.Message,
+                Data = null,
+                StatusCode = 422
+            });
+        }
 
         [HttpPost("verify/accept_gift/{id}/{reference}")]
         public async Task<ActionResult<BasicResponse>> VerifyAcceptGift(Guid id, string reference)
@@ -313,53 +328,6 @@ namespace ProTrendAPI.Controllers
             }
             return BadRequest(new BasicResponse { Message = "Error verifying payment" });
         }
-
-        //[HttpPost("verify/top_up/{reference}")]
-        //public async Task<ActionResult> VerifyTopUpBalance(string reference)
-        //{
-        //    var transaction = await _paymentService.GetTransactionByRefAsync(reference);
-        //    if (transaction.ProfileId != _profile.Identifier)
-        //        return Unauthorized(new DataResponse
-        //        {
-        //            Data = 403,
-        //            Status = "Access dienied to the requested resource"
-        //        });
-        //    TransactionVerifyResponse response = PayStack.Transactions.Verify(reference);
-        //    if (response.Data.Status == "success")
-        //    {
-        //        var verifyStatus = await _paymentService.VerifyTransactionAsync(transaction);
-        //        if (verifyStatus != null && verifyStatus.Status)
-        //        {
-        //            var resultOk = await _paymentService.InsertTransactionAsync(verifyStatus);
-        //            if (resultOk)
-        //                return Ok(new BasicResponse { Success = true, Message = response.Message });
-        //        }
-        //    }
-        //    return BadRequest(new BasicResponse { Message = "Error verifying payment" });
-        //}
-
-        //[HttpPost("mobile/verify/top_up/{profile_id}/{reference}")]
-        //public async Task<ActionResult> VerifyTopUpBalance(string profile_id, string reference)
-        //{
-        //    var transaction = await _paymentService.GetTransactionByRefAsync(reference);
-        //    var profile = await _profileService.GetProfileByIdAsync(Guid.Parse(profile_id));
-        //    if (transaction.ProfileId != profile.Identifier)
-        //        return Unauthorized(new DataResponse
-        //        {
-        //            Data = 403,
-        //            Status = "Access dienied to the requested resource"
-        //        });
-        //    TransactionVerifyResponse response = PayStack.Transactions.Verify(reference);
-        //    if (response.Data.Status == "success")
-        //    {
-        //        var verifyStatus = await _paymentService.VerifyTransactionAsync(transaction);
-        //        if (verifyStatus != null && verifyStatus.Status)
-        //        {
-        //            return Ok(new BasicResponse { Success = true, Message = response.Message });
-        //        }
-        //    }
-        //    return BadRequest(new BasicResponse { Message = "Error verifying payment" });
-        //}
 
         //[HttpPost("verify/purchase/gift/{reference}")]
         //public async Task<ActionResult> VerifyGiftPurchase(string reference)
