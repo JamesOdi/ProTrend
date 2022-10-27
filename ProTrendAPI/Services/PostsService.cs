@@ -129,12 +129,13 @@ namespace ProTrendAPI.Services
 
         public async Task<List<Like>> GetPostLikesAsync(Guid id)
         {
-            return await _likeCollection.Find(Builders<Like>.Filter.Eq<Guid>(l => l.UploadId, id)).ToListAsync();
+            return await _likeCollection.Find(Builders<Like>.Filter.Eq(l => l.UploadId, id)).ToListAsync();
         }
 
         public async Task<List<Promotion>> GetPromotionsAsync(Profile profile)
         {
-            return await _promotionCollection.Find(Builders<Promotion>.Filter.Where(p => p.Audience == profile.Country || p.Audience == Constants.All)).ToListAsync();
+            var location = profile.Location.Split(',');
+            return await _promotionCollection.Find(Builders<Promotion>.Filter.Where(p => p.Amount == 30000 || p.Audience.Where(a => a.Name == location[0]).FirstOrDefault() != null || p.Audience.Where(a => a.Cities.Contains(location[1])).FirstOrDefault() != null)).ToListAsync();
         }
 
         public async Task<bool> AddLikeAsync(Like like)
