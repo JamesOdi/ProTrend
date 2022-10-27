@@ -22,7 +22,7 @@ namespace ProTrendAPI.Controllers
         [HttpPut("update")]
         public async Task<ActionResult<ActionResponse>> UpdateProfile([FromBody] ProfileDTO updateProfile)
         {
-            var profile = new Profile { AccountNumber = updateProfile.AccountNumber, BackgroundImageUrl = updateProfile.BackgroundImageUrl, FullName = updateProfile.FullName, UserName = updateProfile.UserName, PaymentPin = updateProfile.PaymentPin, Phone = updateProfile.Phone, ProfileImage = updateProfile.ProfileImage };
+            var profile = new Profile { FullName = updateProfile.FullName, UserName = updateProfile.UserName };
             var result = await _profileService.UpdateProfile(_profile, profile);
             if (result == null)
                 return BadRequest(new ActionResponse { StatusCode = 400, Message = "Update failed" });
