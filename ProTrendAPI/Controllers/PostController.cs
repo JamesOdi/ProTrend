@@ -6,7 +6,7 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/post")]
     [ApiController]
-    [CookieAuthenticationFilter]
+    [ProTrndAuthorizationFilter]
     public class PostController : BaseController
     {
         public PostController(IServiceProvider serviceProvider) : base(serviceProvider) { }

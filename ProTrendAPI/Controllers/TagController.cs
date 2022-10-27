@@ -6,7 +6,7 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/tag")]
     [ApiController]
-    [CookieAuthenticationFilter]
+    [ProTrndAuthorizationFilter]
     public class TagController : BaseController
     {
         public TagController(IServiceProvider serviceProvider) : base(serviceProvider) { }

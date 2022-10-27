@@ -8,7 +8,7 @@ namespace ProTrendAPI.Controllers
 {
     [Route("api/payment")]
     [ApiController]
-    [CookieAuthenticationFilter]
+    [ProTrndAuthorizationFilter]
     public class PaymentController : BaseController
     {
         private PayStackApi PayStack { get; set; }
