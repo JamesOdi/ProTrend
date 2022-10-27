@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PayStack.Net;
 using ProTrendAPI.Models.Payments;
-using ProTrendAPI.Models.User;
 using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers

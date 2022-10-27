@@ -9,13 +9,11 @@ namespace ProTrendAPI.Services
 {
     public class PostsService : BaseService
     {
-        private readonly CategoriesService _categoryService;
         private readonly ProfileService _profileService;
         private readonly NotificationService _notificationService;
 
         public PostsService(IOptions<DBSettings> settings) : base(settings)
         {
-            _categoryService = new CategoriesService(settings);
             _profileService = new ProfileService(settings);
             _notificationService = new NotificationService(settings);
         }
