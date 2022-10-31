@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ProTrendAPI.Models.Payments;
 using ProTrendAPI.Services.Network;
 
 namespace ProTrendAPI.Controllers
@@ -12,26 +11,27 @@ namespace ProTrendAPI.Controllers
         public PostController(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
         [HttpGet("get")]
-        public async Task<ActionResult<List<Post>>> GetPosts()
+        public async Task<ActionResult<ActionResponse>> GetPosts()
         {
             return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetAllPostsAsync() });
         }
 
         [HttpGet("get/{page}")]
-        public async Task<ActionResult<List<Post>>> GetPostsPaginated(int page)
+        public async Task<ActionResult<ActionResponse>> GetPostsPaginated(int page)
         {
             return Ok(new ActionResponse { Successful = true, Message = $"Posts results for page {page}", StatusCode = 200, Data = await _postsService.GetPagePostsAsync(page) });
         }
 
         [HttpGet("get/promotions")]
-        public async Task<ActionResult<List<Promotion>>> GetPromotions()
+        public async Task<ActionResult<ActionResponse>> GetPromotions()
         {
             return Ok(new ActionResponse { Successful = true, Message = ActionResponseMessage.Ok, StatusCode = 200, Data = await _postsService.GetPromotionsAsync(_profile) });
         }
 
         [HttpGet("get/{id}/gift/profiles")]
-        public async Task<ActionResult<List<Profile>>> GetGifters(Guid id)
+        public async Task<ActionResult<ActionResponse>> GetGifters(Guid id)
         {
+            return NotFound();
             return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetGiftersAsync(id) });
         }
 
@@ -44,7 +44,7 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpGet("get/{id}")]
-        public async Task<ActionResult<Post>> GetPost(Guid id)
+        public async Task<ActionResult<ActionResponse>> GetPost(Guid id)
         {
             var post = await _postsService.GetSinglePostAsync(id);
             if (post == null)
@@ -53,19 +53,19 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpGet("get/{id}/posts")]
-        public async Task<ActionResult<List<Post>>> GetUserPosts(Guid id)
+        public async Task<ActionResult<ActionResponse>> GetUserPosts(Guid id)
         {
             return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetUserPostsAsync(id) });
         }
 
         [HttpGet("get/{id}/likes")]
-        public async Task<ActionResult<List<Like>>> GetLikes(Guid id)
+        public async Task<ActionResult<ActionResponse>> GetLikes(Guid id)
         {
             return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetPostLikesAsync(id) });
         }
 
         [HttpPost("add/like/{id}")]
-        public async Task<IActionResult> AddLike(Guid id)
+        public async Task<ActionResult<ActionResponse>> AddLike(Guid id)
         {
             var post = await _postsService.GetSinglePostAsync(id);
             if (post != null)
@@ -76,11 +76,11 @@ namespace ProTrendAPI.Controllers
                 if (liked && notiSent)
                     return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
             }
-            return BadRequest(new ActionResponse { Message = ActionResponseMessage.BadRequest });
+            return NotFound(new ActionResponse { Message = ActionResponseMessage.BadRequest });
         }
 
         [HttpDelete("delete/like/{id}")]
-        public async Task<IActionResult> RemoveLike(Guid id)
+        public async Task<ActionResult<ActionResponse>> RemoveLike(Guid id)
         {
             var post = await _postsService.GetSinglePostAsync(id);
             if (post != null)
@@ -89,17 +89,17 @@ namespace ProTrendAPI.Controllers
                 if (liked)
                     return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
             }
-            return BadRequest(new ActionResponse { Message = ActionResponseMessage.BadRequest });
+            return NotFound(new ActionResponse { Message = ActionResponseMessage.BadRequest });
         }
 
         [HttpGet("get/{id}/like/count")]
-        public async Task<ActionResult<int>> GetLikesCount(Guid id)
+        public async Task<ActionResult<ActionResponse>> GetLikesCount(Guid id)
         {
             return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetLikesCountAsync(id) });
         }
 
         [HttpPost("add/comment")]
-        public async Task<ActionResult<Comment>> AddComment(CommentDTO commentDTO)
+        public async Task<ActionResult<ActionResponse>> AddComment(CommentDTO commentDTO)
         {
             var post = await _postsService.GetSinglePostAsync(commentDTO.PostId);
             if (post != null)
@@ -110,23 +110,23 @@ namespace ProTrendAPI.Controllers
                 var commentResult = await _postsService.InsertCommentAsync(comment);
                 return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = commentResult });
             }
-            return BadRequest(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
+            return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
         }
 
         [HttpGet("get/{id}/gifts")]
-        public async Task<ActionResult> GetAllGiftsOnPost(Guid id)
+        public async Task<ActionResult<ActionResponse>> GetAllGiftsOnPost(Guid id)
         {
             return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetAllGiftOnPostAsync(id) });
         }
 
         [HttpGet("get/{id}/comments")]
-        public async Task<ActionResult<List<Comment>>> GetComments(Guid id)
+        public async Task<ActionResult<ActionResponse>> GetComments(Guid id)
         {
             return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetCommentsAsync(id) });
         }
 
         [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeletePost(Guid id)
+        public async Task<ActionResult<ActionResponse>> DeletePost(Guid id)
         {
             var delete = await _postsService.DeletePostAsync(id, _profile.Identifier);
             if (!delete)
