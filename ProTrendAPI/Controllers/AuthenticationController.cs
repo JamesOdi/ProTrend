@@ -24,7 +24,7 @@ namespace ProTrendAPI.Controllers
 
         [HttpGet]
         [ProTrndAuthorizationFilter]
-        public ActionResult<Profile> GetMe()
+        public ActionResult<ActionResponse> GetMe()
         {
             return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = _profile});
         }
