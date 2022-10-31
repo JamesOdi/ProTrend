@@ -30,7 +30,7 @@ namespace ProTrendAPI.Services
             else
                 categoryCount = FormatNumber(category.Count);
 
-            return new DataResponse { Status = Constants.OK, Data = new List<List<string>> { SearchCountResult(postsCount, "Posts"), SearchCountResult(peopleCount, "People"), SearchCountResult(categoryCount, "Category") } };
+            return new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = new List<List<string>> { SearchCountResult(postsCount, "Posts"), SearchCountResult(peopleCount, "People"), SearchCountResult(categoryCount, "Category") } };
         }
 
         public async Task<List<Post>> SearchPostsByNameAsync(string name)

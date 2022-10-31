@@ -31,7 +31,7 @@ namespace ProTrendAPI.Controllers
 
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<ActionResult<object>> Register(ProfileDTO request)
+        public async Task<ActionResult<ActionResponse>> Register(ProfileDTO request)
         {
             var userExists = await GetUserResult(request);
 
@@ -47,7 +47,7 @@ namespace ProTrendAPI.Controllers
 
         [HttpPost("forgot-password")]
         [AllowAnonymous]
-        public async Task<IActionResult> ForgotPassword(string email)
+        public async Task<ActionResult<ActionResponse>> ForgotPassword(string email)
         {
             if (!IsValidEmail(email))
                 return BadRequest(new ActionResponse { Message = Constants.InvalidEmail });
@@ -63,7 +63,7 @@ namespace ProTrendAPI.Controllers
 
         [HttpPut("reset-password")]
         [AllowAnonymous]
-        public async Task<IActionResult> ResetPassword(ProfileDTO profile)
+        public async Task<ActionResult<ActionResponse>> ResetPassword(ProfileDTO profile)
         {
             if (!IsValidEmail(profile.Email))
                 return BadRequest(new ActionResponse { Message = Constants.InvalidEmail });
@@ -98,7 +98,7 @@ namespace ProTrendAPI.Controllers
 
         [HttpPost("verify/otp")]
         [AllowAnonymous]
-        public async Task<ActionResult<object>> VerifyOTP(ProfileDTO request)
+        public async Task<ActionResult<ActionResponse>> VerifyOTP(ProfileDTO request)
         {
             CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
             var register = new Register
@@ -125,34 +125,24 @@ namespace ProTrendAPI.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<ActionResult<object>> Login([FromBody] Login login)
+        public async Task<ActionResult<ActionResponse>> Login([FromBody] Login login)
         {
-            if (!IsValidEmail(login.Email))
-            {
-                return BadRequest(new ActionResponse { Message = Constants.InvalidEmail });
-            }
-
             var result = await _regService.FindRegisteredUserByEmailAsync(login);
 
             if (result == null)
-                return BadRequest(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
+                return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
-                return BadRequest(new ActionResponse { Message = Constants.WrongEmailPassword });
-            var token = GetJWT(result);
-            if (token != "")
-            {
-                return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = token });
-            }
-            return BadRequest(new ActionResponse { Message = "Login failed!" });
+                return BadRequest(new ActionResponse { Message = Constants.WrongEmailPassword });           
+                
+            return Ok(new ActionResponse { Successful = true, Data = await _profileService.GetProfileByIdAsync(result.Id) });            
         }
 
             [HttpPost("logout")]
             [ProTrndAuthorizationFilter]
-            public ActionResult<object> Logout()
+            public ActionResult<ActionResponse> Logout()
             {
                 try
                 {
-                    HttpContext.Response.Cookies.Delete(Constants.AUTH);
                     return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
                 }
                 catch (Exception)

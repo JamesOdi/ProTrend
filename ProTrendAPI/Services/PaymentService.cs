@@ -2,7 +2,8 @@
 using MongoDB.Driver;
 using ProTrendAPI.Models.Payments;
 using ProTrendAPI.Settings;
-
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ProTrendAPI.Services
 {
@@ -11,6 +12,26 @@ namespace ProTrendAPI.Services
         public PaymentService(IOptions<DBSettings> settings):base(settings)
         {
                 
+        }
+
+        private static string EncryptDataWithAes(string plainText, string token)
+        {
+            byte[] inputArray = Encoding.UTF8.GetBytes(plainText);
+            var tripleDES = Aes.Create();
+            tripleDES.Key = Encoding.UTF8.GetBytes(token);
+            tripleDES.Mode = CipherMode.ECB;
+            tripleDES.Padding = PaddingMode.PKCS7;
+            ICryptoTransform cTransform = tripleDES.CreateEncryptor();
+            byte[] resultArray = cTransform.TransformFinalBlock(inputArray, 0, inputArray.Length);
+            tripleDES.Clear();
+            return Convert.ToBase64String(resultArray, 0, resultArray.Length);
+        }
+
+        public async Task<AccountDetails> AddAccountDetailsAsync(AccountDetailsDTO account, string token)
+        {
+            var accountDetails = new AccountDetails { CardNumber = EncryptDataWithAes(account.CardNumber, token), CVV = EncryptDataWithAes(account.CVV, token), ExpirtyDate = EncryptDataWithAes(account.ExpirtyDate, token), ProfileId = account.ProfileId };
+            await _accountDetailsCollection.InsertOneAsync(accountDetails);
+            return accountDetails;
         }
 
         public async Task<Transaction> GetTransactionByRefAsync(string reference)
@@ -52,13 +73,8 @@ namespace ProTrendAPI.Services
             if (balance <= 100 || total < balance)
                 return false;
 
-            var transaction = new Transaction { Amount = -total, CreatedAt = DateTime.Now, ProfileId = profile.Identifier, Status = true, TrxRef = Generate().ToString() };
+            var transaction = new Transaction { Amount = -total, CreatedAt = DateTime.Now, ProfileId = profile.Identifier, Purpose = "Withdraw", TrxRef = Generate().ToString() };
             await _transactionCollection.InsertOneAsync(transaction);
-
-            //var companyBody = $"Reqest for withdrawal of N{total} from {profile.Email}";
-            //SendMail("maryse.abshire24@ethereal.email", companyBody);
-            //var senderBody = $"Your reqest for withdrawal of <b>{total} Gifts</b> is being processed. Your withdrawal will be sent to you within <b>24hrs</b>. Thank you. <p>If you face any challenges please send an email to customer support with request ID {transaction.Identifier} and we will get back to you as soon as we can</p>";
-            //SendMail(profile.Email, senderBody);
             return true;
         }
 

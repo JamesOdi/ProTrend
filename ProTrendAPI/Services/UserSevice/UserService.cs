@@ -18,20 +18,20 @@ namespace ProTrendAPI.Services.UserSevice
 
         public Profile? GetProfile()
         {
+            var result = new Profile();
             if (_contextAccessor != null && _contextAccessor.HttpContext != null)
             {
                 try
-                {
-                    string token = string.Empty;
-                    token = _contextAccessor.HttpContext.Request.Cookies.First(x => x.Key == Constants.AUTH).Value;
-                    return Result(token);
+                {                    
+                    var claim = _contextAccessor.HttpContext.Request.Headers["Authorization"];
+                    result = Result(claim);
                 }
                 catch (Exception)
                 {
-                    return null;
+                    result = null;
                 }
             }
-            return null;
+            return result;
         }
 
         public async Task<Profile?> GetMobileProfile()
