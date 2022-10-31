@@ -59,7 +59,7 @@ namespace ProTrendAPI.Controllers
         [HttpPost("top_up/balance/{total}")]
         public async Task<ActionResult<object>> TopUpBalance(int  total)
         {
-            return NotFound();
+            return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
             TransactionInitializeRequest request = new()
             {
                 AmountInKobo = total * 100,
@@ -136,6 +136,7 @@ namespace ProTrendAPI.Controllers
         [HttpPost("verify/promotion")]
         public async Task<ActionResult> VerifyPromotionPayment(VerifyTransaction promotion)
         {
+            return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
             TransactionVerifyResponse response = PayStack.Transactions.Verify(promotion.Reference);
             if (response.Data.Status == "success")
             {
