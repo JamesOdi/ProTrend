@@ -135,7 +135,7 @@ namespace ProTrendAPI.Controllers
             var result = await _regService.FindRegisteredUserByEmailAsync(login);
 
             if (result == null)
-                return BadRequest(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
+                return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
                 return BadRequest(new ActionResponse { Message = Constants.WrongEmailPassword });
 
