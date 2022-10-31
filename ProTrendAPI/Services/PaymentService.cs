@@ -4,6 +4,7 @@ using ProTrendAPI.Models.Payments;
 using ProTrendAPI.Settings;
 using System.Security.Cryptography;
 using System.Text;
+using AccountDetailsDTO = ProTrendAPI.Models.Payments.AccountDetailsDTO;
 
 namespace ProTrendAPI.Services
 {
