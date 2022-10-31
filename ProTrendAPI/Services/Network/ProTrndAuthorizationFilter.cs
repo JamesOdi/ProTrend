@@ -18,7 +18,9 @@ namespace ProTrendAPI.Services.Network
             var isAuthenticated = context.HttpContext.User.Identity.IsAuthenticated;
             if (!isAuthenticated)
             {
-                context.Result = new UnauthorizedResult();
+                context.HttpContext.Response.StatusCode = 401;
+                context.HttpContext.Response.ContentType = "application/json";
+                context.HttpContext.Response.WriteAsJsonAsync(new ActionResponse { StatusCode = 401, Message = "User is Unauthorized", Successful = false }.ToString());
                 return;
             }
 
