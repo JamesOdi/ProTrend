@@ -1,4 +1,6 @@
-﻿namespace ProTrendAPI.Models.Payments
+﻿using System.Text.Json.Serialization;
+
+namespace ProTrendAPI.Models.Payments
 {
     public class PromotionDTO
     {
