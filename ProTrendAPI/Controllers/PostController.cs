@@ -31,7 +31,7 @@ namespace ProTrendAPI.Controllers
         [HttpGet("get/{id}/gift/profiles")]
         public async Task<ActionResult<ActionResponse>> GetGifters(Guid id)
         {
-            return NotFound();
+            return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound});
             return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetGiftersAsync(id) });
         }
 
@@ -48,7 +48,7 @@ namespace ProTrendAPI.Controllers
         {
             var post = await _postsService.GetSinglePostAsync(id);
             if (post == null)
-                return NotFound(new ActionResponse { Successful = true, StatusCode = 404, Message = ActionResponseMessage.NotFound });
+                return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
             return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = post });
         }
 
@@ -89,7 +89,7 @@ namespace ProTrendAPI.Controllers
                 if (liked)
                     return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
             }
-            return NotFound(new ActionResponse { Message = ActionResponseMessage.BadRequest });
+            return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
         }
 
         [HttpGet("get/{id}/like/count")]
