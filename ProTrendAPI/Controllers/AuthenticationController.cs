@@ -125,31 +125,37 @@ namespace ProTrendAPI.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<ActionResult<ActionResponse>> Login([FromBody] Login login)
+        public async Task<ActionResult<object>> Login([FromBody] Login login)
         {
+            if (!IsValidEmail(login.Email))
+            {
+                return BadRequest(new ActionResponse { Message = Constants.InvalidEmail });
+            }
+
             var result = await _regService.FindRegisteredUserByEmailAsync(login);
 
             if (result == null)
-                return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
+                return BadRequest(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
-                return BadRequest(new ActionResponse { Message = Constants.WrongEmailPassword });           
-                
-            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _profileService.GetProfileByIdAsync(result.Id) });            
+                return BadRequest(new ActionResponse { Message = Constants.WrongEmailPassword });
+
+            return Ok(new ActionResponse { Successful = true, StatusCode =200, Message = ActionResponseMessage.Ok, Data = await _profileService.GetProfileByIdAsync(result.Id) });
         }
 
-            [HttpPost("logout")]
-            [ProTrndAuthorizationFilter]
-            public ActionResult<ActionResponse> Logout()
+        [HttpPost("logout")]
+        [ProTrndAuthorizationFilter]
+        public ActionResult<object> Logout()
+        {
+            try
             {
-                try
-                {
-                    return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
-                }
-                catch (Exception)
-                {
-                    return BadRequest(new ActionResponse { Message = "Logout failed" });
-                }
+                HttpContext.Response.Cookies.Delete(Constants.AUTH);
+                return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
             }
+            catch (Exception)
+            {
+                return BadRequest(new ActionResponse { Message = "Logout failed" });
+            }
+        }
 
             private async Task<Register?> GetUserResult(ProfileDTO request)
             {

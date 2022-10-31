@@ -22,7 +22,7 @@ namespace ProTrendAPI.Controllers
         [HttpPut("update")]
         public async Task<ActionResult<ActionResponse>> UpdateProfile([FromBody] ProfileDTO updateProfile)
         {
-            var profile = new Profile { AccountNumber = updateProfile.AccountNumber, BackgroundImageUrl = updateProfile.BackgroundImageUrl, FullName = updateProfile.FullName, UserName = updateProfile.UserName, PaymentPin = updateProfile.PaymentPin, Phone = updateProfile.Phone, ProfileImage = updateProfile.ProfileImage };
+            var profile = new Profile { FullName = updateProfile.FullName, UserName = updateProfile.UserName };
             var result = await _profileService.UpdateProfile(_profile, profile);
             if (result == null)
                 return BadRequest(new ActionResponse { StatusCode = 400, Message = "Update failed" });
@@ -33,7 +33,7 @@ namespace ProTrendAPI.Controllers
         public async Task<ActionResult<ActionResponse>> Follow(Guid id)
         {
             if (id == _profile.Identifier)
-                return BadRequest(new ActionResponse { StatusCode = 403, Message = "Forbidden to follow yourself" });
+                return Forbid();
             var followOk = await _profileService.Follow(_profile, id);
             if (!followOk)
                 return BadRequest(new ActionResponse { StatusCode = 400, Message = "Follow failed" });
@@ -69,7 +69,7 @@ namespace ProTrendAPI.Controllers
         }        
 
         [HttpGet("get/followings/{id}/count")]
-        public async Task<ActionResult<List<ActionResponse>>> GetFollowingCount(Guid id)
+        public async Task<ActionResult<ActionResponse>> GetFollowingCount(Guid id)
         {
             return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _profileService.GetFollowersAsync(id) });
         }        
@@ -77,6 +77,7 @@ namespace ProTrendAPI.Controllers
         [HttpGet("get/gifts/total")]
         public async Task<IActionResult> GetGiftTotal()
         {
+            return NotFound();
             if (_profile == null)
             {
                 return BadRequest(new ActionResponse { StatusCode = 401, Message = "Unauthorized" });
