@@ -23,5 +23,7 @@ namespace ProTrendAPI.Models.Payments
         public int Amount { get; set; }
         [JsonPropertyName("audience")]
         public List<Location> Audience { get; set; } = null!;
+        [JsonPropertyName("disabled")]
+        public bool Disabled { get; set; } = false;
     }
 }

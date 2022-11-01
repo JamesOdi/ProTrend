@@ -24,9 +24,9 @@ namespace ProTrendAPI.Controllers
 
         [HttpGet]
         [ProTrndAuthorizationFilter]
-        public ActionResult<Profile> GetMe()
+        public ActionResult<ActionResponse> GetMe()
         {
-            return Ok(_profile);
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = _profile});
         }
 
         [HttpPost("register")]
@@ -55,7 +55,7 @@ namespace ProTrendAPI.Controllers
             var userExists = await GetUserResult(new ProfileDTO { Email = email });
             if (userExists == null)
             {
-                return BadRequest(new ActionResponse { Message = ActionResponseMessage.NotFound });
+                return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound }) ;
             }
             //SendEmail(email)
             return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = "Email sent" });
@@ -69,7 +69,7 @@ namespace ProTrendAPI.Controllers
                 return BadRequest(new ActionResponse { Message = Constants.InvalidEmail });
             var register = await GetUserResult(new ProfileDTO { Email = profile.Email });
             if (register == null)
-                return BadRequest(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
+                return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
 
             CreatePasswordHash(profile.Password, out byte[] passwordHash, out byte[] passwordSalt);
             register.PasswordHash = passwordHash;

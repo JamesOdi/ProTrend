@@ -6,12 +6,10 @@ namespace ProTrendAPI.Services.UserSevice
     public class UserService : IUserService
     {
         private readonly IHttpContextAccessor _contextAccessor;
-        private readonly IConfiguration _configuration;
 
         public UserService(IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
             _contextAccessor = httpContextAccessor;
-            _configuration = configuration;
         }
 
         public Profile? GetProfile()
