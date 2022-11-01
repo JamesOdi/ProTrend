@@ -21,8 +21,8 @@ namespace ProTrendAPI.Models.User
         public string AccountType { get; set; } = string.Empty;
         [JsonPropertyName("phone")]
         public string Phone { get; set; } = string.Empty;
-        [JsonPropertyName("country")]
-        public string Country { get; set; } = null!;
+        [JsonPropertyName("location")]
+        public string Location { get; set; } = null!;
         [JsonPropertyName("registrationdate")]
         public DateTime RegistrationDate { get; set; }
     }

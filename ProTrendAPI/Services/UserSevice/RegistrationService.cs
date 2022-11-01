@@ -19,7 +19,7 @@ namespace ProTrendAPI.Services.UserSevice
                 UserName = register.UserName.ToLower(),
                 Email = register.Email.ToLower(),
                 AccountType = register.AccountType,
-                Location = register.Country,
+                Location = register.Location,
                 RegistrationDate = register.RegistrationDate,
                 Phone = register.Phone,
                 Disabled = false

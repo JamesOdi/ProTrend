@@ -1,10 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace ProTrendAPI.Services.Network
 {
-    public class ProTrndAuthorizationFilter : AuthorizeAttribute, IAuthorizationFilter
+    public class ProTrndAuthorizationFilter : Attribute, IAuthorizationFilter
     {
         readonly string[] _requiredClaims;
 
@@ -18,10 +17,8 @@ namespace ProTrendAPI.Services.Network
             var isAuthenticated = context.HttpContext.User.Identity.IsAuthenticated;
             if (!isAuthenticated)
             {
-                context.HttpContext.Response.StatusCode = 401;
-                context.HttpContext.Response.ContentType = "application/json";
-                context.HttpContext.Response.WriteAsJsonAsync(new ActionResponse { StatusCode = 401, Message = "User is Unauthorized", Successful = false }.ToString());
-                return;
+                context.ModelState.AddModelError("unauthorized", "Authorization Error: User is UnAuthorization");
+                context.Result = new UnauthorizedObjectResult(context.ModelState);
             }
 
             var hasAllRequiredClaims = _requiredClaims.All(claim => context.HttpContext.User.HasClaim(x => x.Type == claim));

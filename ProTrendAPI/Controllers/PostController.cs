@@ -114,7 +114,13 @@ namespace ProTrendAPI.Controllers
         }
 
         [HttpGet("get/{id}/gifts")]
-        public async Task<ActionResult<ActionResponse>> GetAllGiftsOnPost(Guid id)
+        public async Task<ActionResult> GetAllGiftsOnPost(Guid id)
+        {
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetAllGiftOnPostAsync(id) });
+        }
+
+        [HttpGet("mobile/get/{id}/gifts")]
+        public async Task<ActionResult> MobileGetAllGiftsOnPost(Guid id)
         {
             return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = await _postsService.GetAllGiftOnPostAsync(id) });
         }

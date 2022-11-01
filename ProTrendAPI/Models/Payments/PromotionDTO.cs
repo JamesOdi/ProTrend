@@ -4,6 +4,8 @@ namespace ProTrendAPI.Models.Payments
 {
     public class PromotionDTO
     {
+        [JsonPropertyName("ref")]
+        public string Ref { get; set; } = string.Empty;
         public Guid ProfileId { get; set; }
         [JsonPropertyName("postid")]
         public Guid PostId { get; set; }

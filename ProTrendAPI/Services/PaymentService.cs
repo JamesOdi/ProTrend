@@ -15,6 +15,13 @@ namespace ProTrendAPI.Services
                 
         }
 
+        public async Task<AccountDetails> AddAccountDetailsAsync(AccountDetailsDTO account, string token)
+        {
+            var accountDetails = new AccountDetails { CardNumber = EncryptDataWithAes(account.CardNumber, token), CVV = EncryptDataWithAes(account.CVV, token), ExpirtyDate = EncryptDataWithAes(account.ExpirtyDate, token), ProfileId = account.ProfileId };
+            await _accountDetailsCollection.InsertOneAsync(accountDetails);
+            return accountDetails;
+        }
+
         private static string EncryptDataWithAes(string plainText, string token)
         {
             byte[] inputArray = Encoding.UTF8.GetBytes(plainText);
@@ -28,11 +35,16 @@ namespace ProTrendAPI.Services
             return Convert.ToBase64String(resultArray, 0, resultArray.Length);
         }
 
-        public async Task<AccountDetails> AddAccountDetailsAsync(AccountDetailsDTO account, string token)
+        private string DecryptDataWithAes(byte[] cipherText, string token)
         {
-            var accountDetails = new AccountDetails { CardNumber = EncryptDataWithAes(account.CardNumber, token), CVV = EncryptDataWithAes(account.CVV, token), ExpirtyDate = EncryptDataWithAes(account.ExpirtyDate, token), ProfileId = account.ProfileId };
-            await _accountDetailsCollection.InsertOneAsync(accountDetails);
-            return accountDetails;
+            var tripleDES = Aes.Create();
+            tripleDES.Key = Encoding.UTF8.GetBytes(token);
+            tripleDES.Mode = CipherMode.ECB;
+            tripleDES.Padding = PaddingMode.PKCS7;
+            ICryptoTransform cTransform = tripleDES.CreateDecryptor();
+            byte[] resultArray = cTransform.TransformFinalBlock(cipherText, 0, cipherText.Length);
+            tripleDES.Clear();
+            return Encoding.UTF8.GetString(resultArray);
         }
 
         public async Task<Transaction> GetTransactionByRefAsync(string reference)

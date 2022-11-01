@@ -1,7 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Net.Http.Headers;
-using System.Security.Claims;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 
 namespace ProTrendAPI.Services.UserSevice
@@ -29,8 +26,9 @@ namespace ProTrendAPI.Services.UserSevice
                     result.UserName = claim.Claims.First(x => x.Type == Constants.Name).Value;
                     result.FullName = claim.Claims.First(x => x.Type == Constants.FullName).Value;
                     result.AccountType = claim.Claims.First(x => x.Type == Constants.AccType).Value;
-                    result.Location = claim.Claims.First(x => x.Type == Constants.Country).Value;
+                    result.Location = claim.Claims.First(x => x.Type == Constants.Location).Value;
                     result.Disabled = bool.Parse(claim.Claims.First(x => x.Type == Constants.Disabled).Value);
+                    return result;
                 }
                 catch (Exception)
                 {

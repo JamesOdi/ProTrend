@@ -110,50 +110,40 @@ namespace ProTrendAPI.Controllers
                 FullName = request.FullName.Trim().ToLower(),
                 RegistrationDate = DateTime.Now,
                 AccountType = request.AccountType.Trim().ToLower(),
-                Country = request.Country!.Trim().ToLower()
+                Location = request.Location!.Trim().ToLower()
             };
             var result = await _regService.InsertAsync(register);
             if (result == null)
-                return BadRequest(new ActionResponse { Message = "Error when registering user!" });
-            var token = GetJWT(register);
-            if (token != "")
-            {
-                return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = token });
-            }
-            return BadRequest(new ActionResponse { Message = "Verification failed" });
+                return BadRequest(new ActionResponse { StatusCode = 400, Message = "Error registering user!" });
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok, Data = GetJWT(register) }); ;
         }
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<ActionResult<object>> Login([FromBody] Login login)
+        public async Task<ActionResult<ActionResponse>> Login([FromBody] Login login)
         {
-            if (!IsValidEmail(login.Email))
-            {
-                return BadRequest(new ActionResponse { Message = Constants.InvalidEmail });
-            }
-
             var result = await _regService.FindRegisteredUserByEmailAsync(login);
 
             if (result == null)
                 return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
-                return BadRequest(new ActionResponse { Message = Constants.WrongEmailPassword });
+                return BadRequest(new ActionResponse { StatusCode = 400, Message = Constants.WrongEmailPassword });
 
-            return Ok(new ActionResponse { Successful = true, StatusCode =200, Message = ActionResponseMessage.Ok, Data = await _profileService.GetProfileByIdAsync(result.Id) });
+            return Ok(new ActionResponse { Successful = true, Message = "Login Successful", Data = GetJWT(result) });      
         }
 
         [HttpPost("logout")]
         [ProTrndAuthorizationFilter]
-        public ActionResult<object> Logout()
+        public ActionResult<ActionResponse> Logout()
         {
             try
             {
-                HttpContext.Response.Cookies.Delete(Constants.AUTH);
+                // Modify logout function
                 return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = ActionResponseMessage.Ok });
             }
             catch (Exception)
             {
-                return BadRequest(new ActionResponse { Message = "Logout failed" });
+                return BadRequest(new { Success = false, Message = "Logout failed" });
             }
         }
 
@@ -172,7 +162,7 @@ namespace ProTrendAPI.Controllers
                     new Claim(Constants.Email, user.Email),
                     new Claim(Constants.FullName, user.FullName),
                     new Claim(Constants.AccType, user.AccountType),
-                    new Claim(Constants.Country, user.Country),
+                    new Claim(Constants.Location, user.Location),
                 };
 
                 bool disabled = false;
