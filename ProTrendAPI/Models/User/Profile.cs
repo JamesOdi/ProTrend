@@ -26,9 +26,7 @@ namespace ProTrendAPI.Models.User
         [JsonPropertyName("accountlinked")]
         public bool AccountLinked { get; set; } = false;
         [JsonPropertyName("location")]
-        public string Location { get; set; } = string.Empty;
-        [JsonPropertyName("country")]
-        public string Country { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;S
         [JsonPropertyName("phone")]
         public string? Phone { get; set; } = null;
         [JsonPropertyName("regdate")]

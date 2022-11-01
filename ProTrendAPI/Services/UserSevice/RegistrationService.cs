@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using ProTrendAPI.Models.User;
 using ProTrendAPI.Settings;
 
 namespace ProTrendAPI.Services.UserSevice
@@ -22,7 +21,8 @@ namespace ProTrendAPI.Services.UserSevice
                 Location = register.Location,
                 RegistrationDate = register.RegistrationDate,
                 Phone = register.Phone,
-                Disabled = false
+                Disabled = false,
+                FullName = register.FullName
             };
             await _profileCollection.InsertOneAsync(userProfile);
             return userProfile;
