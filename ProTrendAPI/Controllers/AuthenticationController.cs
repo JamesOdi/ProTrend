@@ -62,8 +62,6 @@ namespace ProTrendAPI.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<ActionResponse>> ResetPassword(ProfileDTO profile)
         {
-            if (!IsValidEmail(profile.Email))
-                return BadRequest(new ActionResponse { Message = Constants.InvalidEmail });
             var register = await GetUserResult(new ProfileDTO { Email = profile.Email });
             if (register == null)
                 return NotFound(new ActionResponse { StatusCode = 404, Message = ActionResponseMessage.NotFound });
