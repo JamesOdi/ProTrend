@@ -17,8 +17,7 @@ namespace ProTrendAPI.Services.Network
             var isAuthenticated = context.HttpContext.User.Identity.IsAuthenticated;
             if (!isAuthenticated)
             {
-                context.ModelState.AddModelError("unauthorized", "Authorization Error: User is UnAuthorization");
-                context.Result = new UnauthorizedObjectResult(context.ModelState);
+                context.Result = new UnauthorizedObjectResult(new ActionResponse { StatusCode = 401, Message = "User is unauthorized" });
             }
 
             var hasAllRequiredClaims = _requiredClaims.All(claim => context.HttpContext.User.HasClaim(x => x.Type == claim));
