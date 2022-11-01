@@ -6,7 +6,6 @@ global using ProTrendAPI.Models.User;
 using ProTrendAPI.Services;
 using ProTrendAPI.Settings;
 using ProTrendAPI.Services.Network;
-using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -58,14 +57,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidateIssuer = false,
         ValidateAudience = false
     };
-});
-
-builder.Services.Configure<CookiePolicyOptions>(options =>
-{
-    options.CheckConsentNeeded = context => true;
-    options.HttpOnly = HttpOnlyPolicy.Always;
-    options.Secure = CookieSecurePolicy.Always;
-    options.MinimumSameSitePolicy = SameSiteMode.Lax;
 });
 
 var app = builder.Build();

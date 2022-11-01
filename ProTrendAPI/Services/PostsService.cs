@@ -33,10 +33,17 @@ namespace ProTrendAPI.Services
                 .ToList();
         }
 
-        public async Task<bool> PromoteAsync(Profile profile, Promotion promotion)
+        public async Task<bool> PromoteAsync(PromotionDTO promotionDto)
         {
-            promotion.Identifier = promotion.Id;
-            promotion.ProfileId = profile.Identifier;
+            int expireDate;
+            if (promotionDto.Amount == 15000)
+                expireDate = 7;
+            else if (promotionDto.Amount == 30000)
+                expireDate = 30;
+            else
+                return false;
+            var promotion = new Promotion { Amount = promotionDto.Amount, BannerUrl = promotionDto.BannerUrl, CreatedAt = DateTime.Now, ProfileId = promotionDto.ProfileId, ExpireAt = DateTime.Now.AddDays(expireDate) };
+            
             try
             {
                 await _promotionCollection.InsertOneAsync(promotion);

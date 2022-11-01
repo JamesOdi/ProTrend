@@ -35,5 +35,6 @@
         public const string Business = "business";
         public const string CORS = "ProTrendCors";
         public const string AUTH = "Authorization";
+        internal static readonly string Location = "Location";
     }
 }
