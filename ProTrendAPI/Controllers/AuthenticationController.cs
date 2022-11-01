@@ -162,7 +162,7 @@ namespace ProTrendAPI.Controllers
                     new Claim(Constants.Email, user.Email),
                     new Claim(Constants.FullName, user.FullName),
                     new Claim(Constants.AccType, user.AccountType),
-                    new Claim(Constants.Country, user.Country),
+                    new Claim(Constants.Location, user.Location),
                 };
 
             bool disabled = false;

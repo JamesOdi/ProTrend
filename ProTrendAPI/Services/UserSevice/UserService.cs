@@ -16,6 +16,7 @@ namespace ProTrendAPI.Services.UserSevice
 
         public Profile? GetProfile()
         {
+            var result = new Profile();
             if (_contextAccessor != null && _contextAccessor.HttpContext != null)
             {
                 try
@@ -27,7 +28,7 @@ namespace ProTrendAPI.Services.UserSevice
                     result.UserName = claim.Claims.First(x => x.Type == Constants.Name).Value;
                     result.FullName = claim.Claims.First(x => x.Type == Constants.FullName).Value;
                     result.AccountType = claim.Claims.First(x => x.Type == Constants.AccType).Value;
-                    result.Country = claim.Claims.First(x => x.Type == Constants.Country).Value;
+                    result.Location = claim.Claims.First(x => x.Type == Constants.Location).Value;
                     result.Disabled = bool.Parse(claim.Claims.First(x => x.Type == Constants.Disabled).Value);
                     return result;
                 }
