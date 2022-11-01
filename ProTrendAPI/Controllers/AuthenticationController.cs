@@ -49,9 +49,6 @@ namespace ProTrendAPI.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<ActionResponse>> ForgotPassword(string email)
         {
-            if (!IsValidEmail(email))
-                return BadRequest(new ActionResponse { Message = Constants.InvalidEmail });
-
             var userExists = await GetUserResult(new ProfileDTO { Email = email });
             if (userExists == null)
             {
