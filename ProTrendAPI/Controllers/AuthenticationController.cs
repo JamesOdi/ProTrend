@@ -129,7 +129,7 @@ namespace ProTrendAPI.Controllers
             if (!VerifyPasswordHash(result, login.Password, result.PasswordHash))
                 return BadRequest(new ActionResponse { StatusCode = 400, Message = Constants.WrongEmailPassword });
 
-            return Ok(new ActionResponse { Successful = true, Message = "Login Successful", Data = GetJWT(result) });      
+            return Ok(new ActionResponse { Successful = true, StatusCode = 200, Message = "Login Successful", Data = GetJWT(result) });      
         }
 
         [HttpPost("logout")]
