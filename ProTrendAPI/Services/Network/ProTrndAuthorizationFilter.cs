@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using ProTrendAPI.Models.Response;
 
 namespace ProTrendAPI.Services.Network
 {
@@ -17,7 +18,7 @@ namespace ProTrendAPI.Services.Network
             var isAuthenticated = context.HttpContext.User.Identity.IsAuthenticated;
             if (!isAuthenticated)
             {
-                context.Result = new UnauthorizedObjectResult(new ActionResponse { StatusCode = 401, Message = "User is unauthorized" });
+                context.Result = new UnauthorizedObjectResult(new ActionResponse { StatusCode = 401, Message = ActionResponseMessage.Unauthorized });
             }
 
             var hasAllRequiredClaims = _requiredClaims.All(claim => context.HttpContext.User.HasClaim(x => x.Type == claim));
